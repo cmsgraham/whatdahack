@@ -44,6 +44,11 @@ def during_ctf_time_only(f):
                         "%(ctf_name)s has not started yet", ctf_name=config.ctf_name()
                     )
                     abort(403, description=error)
+            # ctftime_or_competition() returned False due to competition-scoped
+            # timing (e.g. competition start is in the future) while the global
+            # CTF has no start/end restrictions.  Fall through to the view so
+            # it can produce an appropriate response (e.g. redirect to landing).
+            return f(*args, **kwargs)
 
     return during_ctf_time_only_wrapper
 
