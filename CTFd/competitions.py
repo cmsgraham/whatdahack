@@ -165,13 +165,14 @@ def challenges(slug):
         elif ctf_ended_for(competition):
             infos.append(_l("%(name)s has ended", name=competition.name))
 
-    # Teams mode: require team membership before allowing challenge access
-    if (
-        Configs.challenge_visibility != ChallengeVisibilityTypes.PUBLIC
-        or authed()
-    ):
-        if is_teams_mode() and get_current_team() is None:
-            return redirect(url_for("teams.private", next=request.full_path))
+    # Teams mode: require competition-scoped team membership before allowing access.
+    # For competition challenges we use the per-competition team, not the global team.
+    if authed() and not is_admin():
+        if competition.user_mode == "teams":
+            from CTFd.utils.competitions import get_competition_team
+            user = get_current_user()
+            if user and get_competition_team(user.id, competition.id) is None:
+                return redirect(url_for("competitions.team_select", slug=slug))
 
     return render_template(
         "competitions/challenges.html",
