@@ -145,3 +145,98 @@ def ctf_ended_for(competition):
         return False
     return datetime.datetime.utcnow() > competition.end
 
+
+# ---------------------------------------------------------------------------
+# Lifecycle management
+# ---------------------------------------------------------------------------
+
+
+def end_competition(comp):
+    """
+    Transition a competition to the 'ended' lifecycle state.
+
+    - Sets lifecycle → 'ended'
+    - Deactivates it as the global active competition if it was set
+    - Preserves all challenge and submission data (non-destructive)
+    """
+    from CTFd.cache import clear_challenges, clear_standings
+    from CTFd.models import db
+    from CTFd.utils import get_config, set_config
+
+    comp.lifecycle = "ended"
+    db.session.commit()
+    if get_config("active_competition") == comp.slug:
+        set_config("active_competition", None)
+        clear_standings()
+        clear_challenges()
+
+
+def archive_competition(comp):
+    """
+    Transition a competition to the 'archived' lifecycle state.
+
+    - Sets lifecycle → 'archived'
+    - Sets state → 'hidden' (removes from all public listings)
+    - Deactivates global active competition if needed
+    - All historical data is preserved
+    """
+    from CTFd.cache import clear_challenges, clear_standings
+    from CTFd.models import db
+    from CTFd.utils import get_config, set_config
+
+    comp.lifecycle = "archived"
+    comp.state = "hidden"
+    db.session.commit()
+    if get_config("active_competition") == comp.slug:
+        set_config("active_competition", None)
+        clear_standings()
+        clear_challenges()
+
+
+def unarchive_competition(comp):
+    """
+    Restore an archived competition to 'ended' state.
+
+    Does NOT change visibility (state) — admin controls that separately.
+    """
+    from CTFd.models import db
+
+    comp.lifecycle = "ended"
+    db.session.commit()
+
+
+def clone_competition(source, new_slug, new_name):
+    """
+    Clone a competition's metadata into a new competition shell.
+
+    Creates a new Competition row with the same structural settings as the
+    source (user_mode, team_size, description) but:
+      - New slug and name
+      - lifecycle = 'draft'  (fresh, not yet started)
+      - state = 'hidden'     (hidden until admin makes it visible)
+      - No start/end times   (admin sets dates for the new run)
+      - No challenges        (admin assigns them after cloning)
+      - No solve data        (clean slate)
+
+    This is safe and non-destructive — the source competition is untouched.
+
+    Returns the new Competition instance.
+    """
+    from CTFd.models import Competition, db
+
+    clone = Competition(
+        slug=new_slug,
+        name=new_name,
+        description=source.description,
+        state="hidden",
+        lifecycle="draft",
+        user_mode=source.user_mode,
+        team_size=source.team_size,
+        start=None,
+        end=None,
+        freeze=None,
+    )
+    db.session.add(clone)
+    db.session.commit()
+    return clone
+

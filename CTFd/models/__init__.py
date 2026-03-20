@@ -1214,6 +1214,7 @@ class Competition(db.Model):
     name = db.Column(db.String(128), nullable=False)
     description = db.Column(db.Text)
     state = db.Column(db.String(16), default="hidden")
+    lifecycle = db.Column(db.String(16), default="draft")
     start = db.Column(db.DateTime, nullable=True)
     end = db.Column(db.DateTime, nullable=True)
     freeze = db.Column(db.DateTime, nullable=True)
@@ -1223,11 +1224,31 @@ class Competition(db.Model):
 
     challenges = db.relationship("Challenges", backref="competition", lazy="dynamic")
 
+    # ------------------------------------------------------------------
+    # Lifecycle helpers
+    # ------------------------------------------------------------------
+
+    LIFECYCLE_STATES = ("draft", "scheduled", "active", "ended", "archived")
+
+    @property
+    def is_ended(self):
+        """True for both ended and archived — competition is over."""
+        return self.lifecycle in ("ended", "archived")
+
+    @property
+    def is_archived(self):
+        return self.lifecycle == "archived"
+
+    @property
+    def is_live(self):
+        """True only when lifecycle is 'active'."""
+        return self.lifecycle == "active"
+
     def __init__(self, *args, **kwargs):
         super(Competition, self).__init__(**kwargs)
 
     def __repr__(self):
-        return "<Competition %r>" % self.name
+        return "<Competition %r [%s]>" % (self.name, self.lifecycle or "draft")
 
 
 class CompetitionTeam(db.Model):

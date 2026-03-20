@@ -292,6 +292,19 @@ body { background-color: var(--comp-bg-page) !important; }
 
     {% include "components/errors.html" %}
 
+    {% set lc = competition.lifecycle or 'draft' %}
+    {% if lc in ('ended', 'archived') %}
+    <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:.75rem;">
+      <i class="fas fa-flag-checkered" style="color:#b45309;font-size:1.1rem;flex-shrink:0"></i>
+      <div>
+        <strong style="color:#92400e;font-size:.88rem">
+          {% if lc == 'archived' %}{% trans %}This competition has been archived.{% endtrans %}{% else %}{% trans %}This competition has ended.{% endtrans %}{% endif %}
+        </strong>
+        <span style="color:#b45309;font-size:.82rem;margin-left:.35rem">{% trans %}Challenges are closed. Final standings are preserved below.{% endtrans %}</span>
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Countdown timer (rendered by JS) -->
     {% if competition.start or competition.end %}
     <div class="comp-timer" id="comp-timer" style="display:none">
@@ -316,12 +329,19 @@ body { background-color: var(--comp-bg-page) !important; }
         {% endif %}
 
         <div class="comp-actions">
+          {% set lc = competition.lifecycle or 'draft' %}
+          {% if lc in ('ended', 'archived') %}
+          <a href="{{ url_for('competitions.scoreboard', slug=competition.slug) }}" class="comp-cta-primary">
+            <i class="fas fa-trophy"></i>{% trans %}Final Standings{% endtrans %}
+          </a>
+          {% else %}
           <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-cta-primary">
             <i class="fas fa-flag"></i>{% trans %}View Challenges{% endtrans %}
           </a>
           <a href="{{ url_for('competitions.scoreboard', slug=competition.slug) }}" class="comp-cta-secondary">
             <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
           </a>
+          {% endif %}
         </div>
       </div>
 

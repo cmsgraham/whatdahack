@@ -112,6 +112,18 @@ body { background-color: var(--cl-bg-page) !important; }
   background: rgba(107,114,128,.08); color: var(--cl-muted);
   border: 1px solid rgba(107,114,128,.2);
 }
+.cl-badge--ended {
+  background: rgba(245,158,11,.1); color: #b45309;
+  border: 1px solid rgba(245,158,11,.3);
+}
+.cl-badge--scheduled {
+  background: rgba(59,130,246,.1); color: #1d4ed8;
+  border: 1px solid rgba(59,130,246,.3);
+}
+.cl-badge--draft {
+  background: rgba(107,114,128,.08); color: var(--cl-muted);
+  border: 1px solid rgba(107,114,128,.2); font-style: italic;
+}
 
 .cl-card-desc {
   font-size: .85rem; color: var(--cl-muted);
@@ -208,13 +220,19 @@ body { background-color: var(--cl-bg-page) !important; }
         </div>
 
         <div class="cl-card-actions">
-          <a href="{{ url_for('competitions.challenges', slug=comp.slug) }}" class="cl-btn-primary">
-            <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
-          </a>
-          <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="cl-btn-secondary">
-            <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
-          </a>
-        </div>
+            {% set lc = comp.lifecycle or 'draft' %}
+            {% if lc in ('ended', 'archived') %}
+            <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="cl-btn-primary">
+              <i class="fas fa-trophy"></i>{% trans %}Final Standings{% endtrans %}
+            </a>
+            {% else %}
+            <a href="{{ url_for('competitions.challenges', slug=comp.slug) }}" class="cl-btn-primary">
+              <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
+            </a>
+            <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="cl-btn-secondary">
+              <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
+            </a>
+            {% endif %}
 
       </div>
       {% endfor %}
@@ -227,5 +245,11 @@ body { background-color: var(--cl-bg-page) !important; }
     </div>
     {% endif %}
   </div>
+</div>
+
+<div class="text-center py-3" style="font-size:.85rem;color:var(--cl-muted)">
+  <a href="{{ url_for('competitions.history') }}" style="color:var(--cl-muted);text-decoration:none">
+    <i class="fas fa-history me-1"></i>{% trans %}Past competitions{% endtrans %}
+  </a>
 </div>
 {% endblock %}

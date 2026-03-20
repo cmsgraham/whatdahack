@@ -123,6 +123,7 @@ def competitions_detail(competition_id):
         comp.name = request.form.get("name", comp.name).strip()
         comp.description = request.form.get("description", "").strip()
         comp.state = request.form.get("state", comp.state)
+        comp.lifecycle = request.form.get("lifecycle", comp.lifecycle or "draft")
         comp.user_mode = request.form.get("user_mode", comp.user_mode)
         comp.team_size = request.form.get("team_size", comp.team_size, type=int)
         comp.start = _parse_dt(request.form.get("start"))
@@ -153,6 +154,86 @@ def competitions_detail(competition_id):
         assigned_ids=assigned_ids,
         unassigned=unassigned,
         active_slug=active_slug,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Lifecycle transitions
+# ---------------------------------------------------------------------------
+
+
+@admin.route("/admin/competitions/<int:competition_id>/end", methods=["POST"])
+@admins_only
+def competitions_end(competition_id):
+    """Transition competition to 'ended' — preserves all data."""
+    from CTFd.utils.competitions import end_competition
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    end_competition(comp)
+    flash(f"'{comp.name}' has been ended. Historical data preserved.", "success")
+    return redirect(url_for("admin.competitions_detail", competition_id=comp.id))
+
+
+@admin.route("/admin/competitions/<int:competition_id>/archive", methods=["POST"])
+@admins_only
+def competitions_archive(competition_id):
+    """Archive a competition — hides it from all public views."""
+    from CTFd.utils.competitions import archive_competition
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    archive_competition(comp)
+    flash(
+        f"'{comp.name}' has been archived and hidden from public listings.",
+        "success",
+    )
+    return redirect(url_for("admin.competitions_detail", competition_id=comp.id))
+
+
+@admin.route("/admin/competitions/<int:competition_id>/unarchive", methods=["POST"])
+@admins_only
+def competitions_unarchive(competition_id):
+    """Restore an archived competition to 'ended' state."""
+    from CTFd.utils.competitions import unarchive_competition
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    unarchive_competition(comp)
+    flash(f"'{comp.name}' restored to ended state.", "success")
+    return redirect(url_for("admin.competitions_detail", competition_id=comp.id))
+
+
+@admin.route("/admin/competitions/<int:competition_id>/clone", methods=["POST"])
+@admins_only
+def competitions_clone(competition_id):
+    """Clone a competition's metadata into a new competition shell."""
+    from CTFd.utils.competitions import clone_competition
+
+    source = Competition.query.filter_by(id=competition_id).first_or_404()
+
+    new_slug = request.form.get("new_slug", "").strip()
+    new_name = request.form.get("new_name", "").strip()
+
+    errors = []
+    if not new_slug:
+        errors.append("New slug is required.")
+    if not new_name:
+        errors.append("New name is required.")
+    if new_slug and Competition.query.filter_by(slug=new_slug).first():
+        errors.append(f"A competition with slug '{new_slug}' already exists.")
+
+    if errors:
+        for err in errors:
+            flash(err, "danger")
+        return redirect(
+            url_for("admin.competitions_detail", competition_id=competition_id)
+        )
+
+    cloned = clone_competition(source, new_slug, new_name)
+    flash(
+        f"Cloned '{source.name}' \u2192 '{cloned.name}'. Assign challenges to the new competition.",
+        "success",
+    )
+    return redirect(
+        url_for("admin.competitions_detail", competition_id=cloned.id)
     )
 
 

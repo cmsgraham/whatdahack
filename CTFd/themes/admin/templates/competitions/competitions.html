@@ -35,7 +35,8 @@
 						<th class="text-center">#</th>
 						<th>Slug</th>
 						<th>Name</th>
-						<th class="text-center">State</th>
+						<th class="text-center">Lifecycle</th>
+						<th class="text-center">Visibility</th>
 						<th class="text-center">Mode</th>
 						<th class="text-center">Start</th>
 						<th class="text-center">End</th>
@@ -52,6 +53,20 @@
 							<a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}">
 								{{ comp.name }}
 							</a>
+						</td>
+						<td class="text-center">
+							{% set lc = comp.lifecycle or 'draft' %}
+							{% if lc == 'active' %}
+								<span class="badge badge-success">active</span>
+							{% elif lc == 'scheduled' %}
+								<span class="badge badge-info">scheduled</span>
+							{% elif lc == 'ended' %}
+								<span class="badge badge-warning">ended</span>
+							{% elif lc == 'archived' %}
+								<span class="badge badge-dark">archived</span>
+							{% else %}
+								<span class="badge badge-secondary">draft</span>
+							{% endif %}
 						</td>
 						<td class="text-center">
 							{% if comp.state == 'visible' %}

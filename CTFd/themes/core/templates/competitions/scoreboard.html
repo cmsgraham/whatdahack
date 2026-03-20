@@ -89,6 +89,14 @@
 
     <h1><span class="accent">[</span> {{ competition.name }} <span class="accent">]</span></h1>
 
+    {% if competition.is_ended %}
+    <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:8px;padding:.65rem 1rem;margin-top:.6rem;display:inline-flex;align-items:center;gap:.5rem;font-size:.82rem;">
+      <i class="fas fa-flag-checkered" style="color:#b45309"></i>
+      <span style="color:#92400e;font-weight:600">{% trans %}Final Standings{% endtrans %}</span>
+      <span style="color:#b45309">— {% trans %}This competition has ended. Results are read-only.{% endtrans %}</span>
+    </div>
+    {% endif %}
+
     <div class="comp-context-links">
       <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-context-link">
         <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}

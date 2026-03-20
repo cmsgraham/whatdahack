@@ -66,12 +66,20 @@ def _inject_competition(slug):
 
 @competitions.route("/competitions")
 def listing():
-    """List all publicly visible competitions."""
+    """List all publicly visible, non-archived competitions."""
     from CTFd.models import Competition
 
     query = Competition.query
     if not is_admin():
-        query = query.filter_by(state="visible")
+        # Public sees only visible + not archived
+        query = query.filter_by(state="visible").filter(
+            Competition.lifecycle.notin_(["archived"])
+        )
+    else:
+        # Admins see everything except archived (archived lives in history)
+        query = query.filter(
+            Competition.lifecycle.notin_(["archived"])
+        )
     all_competitions = query.order_by(Competition.id.asc()).all()
     active = get_active_competition()
     return render_template(
@@ -91,6 +99,23 @@ def show(slug):
         competition=competition,
         active_competition=active,
     )
+
+
+@competitions.route("/competitions/history")
+def history():
+    """List all ended and archived competitions (historical record)."""
+    from CTFd.models import Competition
+
+    query = Competition.query.filter(
+        Competition.lifecycle.in_(["ended", "archived"])
+    )
+    if not is_admin():
+        query = query.filter_by(state="visible")
+    past = query.order_by(
+        Competition.end.desc().nullslast(),
+        Competition.id.desc(),
+    ).all()
+    return render_template("competitions/history.html", competitions=past)
 
 
 @competitions.route("/competitions/<slug>/challenges")

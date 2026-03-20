@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+:root,
+[data-bs-theme="light"] {
+  --ch-bg-page:    #f3f4f6;
+  --ch-bg-surface: #ffffff;
+  --ch-bg-header1: #e5e7eb;
+  --ch-bg-header2: #d1d5db;
+  --ch-text:       #111827;
+  --ch-muted:      #6b7280;
+  --ch-border:     #d1d5db;
+  --ch-accent:     #b45309;
+  --ch-accent-rgb: 180, 83, 9;
+}
+[data-bs-theme="dark"] {
+  --ch-bg-page:    #0d1117;
+  --ch-bg-surface: #161b22;
+  --ch-bg-header1: #0d1117;
+  --ch-bg-header2: #161b22;
+  --ch-text:       #e6edf3;
+  --ch-muted:      #8b949e;
+  --ch-border:     #30363d;
+  --ch-accent:     #f59e0b;
+  --ch-accent-rgb: 245, 158, 11;
+}
+
+.jumbotron { display: none !important; }
+body { background-color: var(--ch-bg-page) !important; }
+
+.ch-header {
+  padding: 2.8rem 0 2.2rem;
+  background: linear-gradient(135deg, var(--ch-bg-header1) 0%, var(--ch-bg-header2) 100%);
+  border-bottom: 1px solid var(--ch-border);
+  position: relative; overflow: hidden;
+}
+.ch-header::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ch-accent-rgb), .07) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ch-header .breadcrumb {
+  background: transparent; padding: 0; margin-bottom: .5rem;
+  font-size: .75rem; letter-spacing: .4px;
+}
+.ch-header .breadcrumb-item + .breadcrumb-item::before { color: var(--ch-muted); }
+.ch-header .breadcrumb-item a { color: var(--ch-accent); text-decoration: none; }
+.ch-header .breadcrumb-item a:hover { text-decoration: underline; }
+.ch-header .breadcrumb-item.active { color: var(--ch-muted); }
+.ch-header h1 {
+  font-size: 2rem; font-weight: 800;
+  color: var(--ch-text); letter-spacing: -.5px; margin-bottom: .35rem;
+}
+.ch-header h1 .accent { color: var(--ch-accent); }
+.ch-header p { color: var(--ch-muted); font-size: .88rem; margin: 0; }
+
+.ch-body { padding: 2.5rem 0 3rem; }
+
+.ch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.ch-card {
+  background: var(--ch-bg-surface);
+  border: 1px solid var(--ch-border);
+  border-radius: 12px;
+  padding: 1.5rem 1.6rem;
+  display: flex; flex-direction: column; gap: .35rem;
+  transition: box-shadow .2s, border-color .2s, transform .15s;
+  position: relative; overflow: hidden;
+  opacity: .92;
+}
+.ch-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,.1);
+  border-color: rgba(var(--ch-accent-rgb), .4);
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+.ch-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: .5rem; margin-bottom: .3rem;
+}
+.ch-card-name {
+  font-size: 1.1rem; font-weight: 700; color: var(--ch-text);
+  text-decoration: none; line-height: 1.3;
+}
+.ch-card-name:hover { color: var(--ch-accent); }
+
+.ch-badge {
+  display: inline-flex; align-items: center; gap: .25rem;
+  border-radius: 999px; padding: .18rem .55rem;
+  font-size: .65rem; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.ch-badge--ended {
+  background: rgba(var(--ch-accent-rgb), .12); color: var(--ch-accent);
+  border: 1px solid rgba(var(--ch-accent-rgb), .3);
+}
+.ch-badge--archived {
+  background: rgba(107,114,128,.08); color: var(--ch-muted);
+  border: 1px solid rgba(107,114,128,.2);
+}
+
+.ch-card-desc {
+  font-size: .85rem; color: var(--ch-muted);
+  line-height: 1.6; margin: .25rem 0 .5rem;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.ch-card-meta {
+  font-size: .75rem; color: var(--ch-muted);
+  display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem;
+}
+.ch-card-meta i { opacity: .7; }
+
+.ch-card-actions {
+  display: flex; gap: .5rem; flex-wrap: wrap;
+  margin-top: auto; padding-top: .75rem;
+  border-top: 1px solid var(--ch-border);
+}
+.ch-btn-primary {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--ch-accent); color: #fff !important;
+  border: none; border-radius: 7px;
+  padding: .42rem 1rem; font-size: .8rem; font-weight: 600;
+  text-decoration: none; transition: opacity .15s;
+}
+.ch-btn-primary:hover { opacity: .88; }
+.ch-btn-secondary {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: transparent; color: var(--ch-accent) !important;
+  border: 1px solid rgba(var(--ch-accent-rgb), .4);
+  border-radius: 7px;
+  padding: .42rem 1rem; font-size: .8rem; font-weight: 600;
+  text-decoration: none; transition: background .15s;
+}
+.ch-btn-secondary:hover { background: rgba(var(--ch-accent-rgb), .07); }
+
+.ch-empty {
+  text-align: center; padding: 5rem 1rem; color: var(--ch-muted);
+}
+.ch-empty i { font-size: 3rem; opacity: .35; margin-bottom: 1rem; display: block; }
+.ch-empty p { font-size: .9rem; margin: 0; }
+
+@media (max-width: 575.98px) {
+  .ch-header h1 { font-size: 1.5rem; }
+  .ch-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ch-header">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('competitions.listing') }}">
+            <i class="fas fa-layer-group me-1"></i>{% trans %}Competitions{% endtrans %}
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{% trans %}History{% endtrans %}</li>
+      </ol>
+    </nav>
+
+    <h1><span class="accent">[</span> {% trans %}Competition History{% endtrans %} <span class="accent">]</span></h1>
+    <p>// {% trans %}past competitions — read-only final standings preserved{% endtrans %}</p>
+  </div>
+</div>
+
+<div class="ch-body">
+  <div class="container">
+    {% if competitions %}
+    <div class="ch-grid">
+      {% for comp in competitions %}
+      <div class="ch-card">
+
+        <div class="ch-card-header">
+          <a href="{{ url_for('competitions.show', slug=comp.slug) }}" class="ch-card-name">{{ comp.name }}</a>
+          <div class="d-flex gap-1 flex-wrap">
+            {% if (comp.lifecycle or 'draft') == 'archived' %}
+              <span class="ch-badge ch-badge--archived"><i class="fas fa-archive"></i> {% trans %}Archived{% endtrans %}</span>
+            {% else %}
+              <span class="ch-badge ch-badge--ended"><i class="fas fa-flag-checkered"></i> {% trans %}Ended{% endtrans %}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if comp.description %}
+        <p class="ch-card-desc">{{ comp.description }}</p>
+        {% endif %}
+
+        <div class="ch-card-meta">
+          {% if comp.start %}
+            <span><i class="fas fa-play-circle"></i> {{ comp.start.strftime('%b %d, %Y') }}</span>
+          {% endif %}
+          {% if comp.end %}
+            <span><i class="fas fa-flag-checkered"></i> {{ comp.end.strftime('%b %d, %Y') }}</span>
+          {% endif %}
+          <span><i class="fas fa-users"></i>
+            {% if comp.user_mode == 'teams' %}{% trans %}Teams{% endtrans %}{% else %}{% trans %}Individual{% endtrans %}{% endif %}
+            {% if comp.team_size and comp.team_size > 0 %}&nbsp;(max&nbsp;{{ comp.team_size }}){% endif %}
+          </span>
+        </div>
+
+        <div class="ch-card-actions">
+          <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="ch-btn-primary">
+            <i class="fas fa-trophy"></i>{% trans %}Final Standings{% endtrans %}
+          </a>
+          <a href="{{ url_for('competitions.show', slug=comp.slug) }}" class="ch-btn-secondary">
+            <i class="fas fa-info-circle"></i>{% trans %}Details{% endtrans %}
+          </a>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="ch-empty">
+      <i class="fas fa-history"></i>
+      <p>{% trans %}No past competitions yet. Ended competitions will appear here.{% endtrans %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
