@@ -85,9 +85,29 @@ def upgrade():
         )
 
     # ------------------------------------------------------------------
-    # 3. Drop old two-column unique indexes (auto-named by MySQL/MariaDB)
-    #    Discovered names on live DB: challenge_id  and  challenge_id_2
-    #    Use INFORMATION_SCHEMA to find them safely in case names differ.
+    # 3. Create new three-column unique constraints FIRST so MySQL has a
+    #    replacement index before we drop the old ones.  The new indexes
+    #    start with challenge_id, satisfying any FK that used the old
+    #    challenge_id_2 index.  Each create is idempotent.
+    # ------------------------------------------------------------------
+    for constraint_name, columns in [
+        ("uq_solves_challenge_user_comp", ["challenge_id", "user_id", "competition_id"]),
+        ("uq_solves_challenge_team_comp", ["challenge_id", "team_id", "competition_id"]),
+    ]:
+        exists = bind.execute(
+            sa.text(
+                "SELECT COUNT(*) FROM information_schema.STATISTICS "
+                "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'solves' "
+                f"AND INDEX_NAME = '{constraint_name}'"
+            )
+        ).scalar()
+        if not exists:
+            op.create_unique_constraint(constraint_name, "solves", columns)
+
+    # ------------------------------------------------------------------
+    # 4. Drop old two-column unique indexes (safe now that new ones exist)
+    #    Use INFORMATION_SCHEMA to find them: any unique index on solves
+    #    that does NOT include competition_id is a legacy 2-col constraint.
     # ------------------------------------------------------------------
     result = bind.execute(
         sa.text(
@@ -106,20 +126,6 @@ def upgrade():
         bind.execute(
             sa.text(f"ALTER TABLE solves DROP INDEX `{idx_name}`")
         )
-
-    # ------------------------------------------------------------------
-    # 4. Create new three-column unique constraints
-    # ------------------------------------------------------------------
-    op.create_unique_constraint(
-        "uq_solves_challenge_user_comp",
-        "solves",
-        ["challenge_id", "user_id", "competition_id"],
-    )
-    op.create_unique_constraint(
-        "uq_solves_challenge_team_comp",
-        "solves",
-        ["challenge_id", "team_id", "competition_id"],
-    )
 
     # ------------------------------------------------------------------
     # 5. Add FK constraint (idempotent: skip if already exists)
