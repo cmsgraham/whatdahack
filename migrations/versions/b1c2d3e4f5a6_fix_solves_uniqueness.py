@@ -57,23 +57,32 @@ def upgrade():
     bind = op.get_bind()
 
     # ------------------------------------------------------------------
-    # 1. Add competition_id column to solves
+    # 1. Add competition_id column to solves (idempotent: skip if exists)
     # ------------------------------------------------------------------
-    op.add_column(
-        "solves",
-        sa.Column("competition_id", sa.Integer(), nullable=True),
-    )
-
-    # ------------------------------------------------------------------
-    # 2. Populate from parent submissions table
-    # ------------------------------------------------------------------
-    bind.execute(
+    col_exists = bind.execute(
         sa.text(
-            "UPDATE solves s "
-            "INNER JOIN submissions sub ON s.id = sub.id "
-            "SET s.competition_id = sub.competition_id"
+            "SELECT COUNT(*) FROM information_schema.COLUMNS "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'solves' "
+            "AND COLUMN_NAME = 'competition_id'"
         )
-    )
+    ).scalar()
+
+    if not col_exists:
+        op.add_column(
+            "solves",
+            sa.Column("competition_id", sa.Integer(), nullable=True),
+        )
+
+        # ------------------------------------------------------------------
+        # 2. Populate from parent submissions table (only needed when new)
+        # ------------------------------------------------------------------
+        bind.execute(
+            sa.text(
+                "UPDATE solves s "
+                "INNER JOIN submissions sub ON s.id = sub.id "
+                "SET s.competition_id = sub.competition_id"
+            )
+        )
 
     # ------------------------------------------------------------------
     # 3. Drop old two-column unique indexes (auto-named by MySQL/MariaDB)
@@ -113,16 +122,25 @@ def upgrade():
     )
 
     # ------------------------------------------------------------------
-    # 5. Add FK constraint (non-critical; makes schema explicit)
+    # 5. Add FK constraint (idempotent: skip if already exists)
     # ------------------------------------------------------------------
-    op.create_foreign_key(
-        "fk_solves_competition_id",
-        "solves",
-        "competitions",
-        ["competition_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    fk_exists = bind.execute(
+        sa.text(
+            "SELECT COUNT(*) FROM information_schema.KEY_COLUMN_USAGE "
+            "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'solves' "
+            "AND CONSTRAINT_NAME = 'fk_solves_competition_id'"
+        )
+    ).scalar()
+
+    if not fk_exists:
+        op.create_foreign_key(
+            "fk_solves_competition_id",
+            "solves",
+            "competitions",
+            ["competition_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
 
 
 def downgrade():
