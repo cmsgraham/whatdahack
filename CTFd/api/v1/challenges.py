@@ -155,6 +155,15 @@ class ChallengeList(Resource):
                 if config.is_teams_mode() and get_current_team_attrs() is None:
                     abort(403)
 
+        # Require explicit competition registration before listing challenges.
+        competition_id = get_current_competition_id()
+        if competition_id is not None and not is_admin():
+            if authed():
+                from CTFd.utils.competitions import is_registered
+                user_obj = get_current_user()
+                if not is_registered(user_obj.id, competition_id):
+                    abort(403)
+
         # Build filtering queries
         q = query_args.pop("q", None)
         field = str(query_args.pop("field", None))
@@ -695,6 +704,12 @@ class ChallengeAttempt(Resource):
         # ctf_active is used in place of ctftime() throughout this handler.
         competition_id = get_current_competition_id()
         ctf_active = ctftime_or_competition()
+
+        # Require explicit competition registration before accepting submissions.
+        if competition_id is not None and not is_admin():
+            from CTFd.utils.competitions import is_registered
+            if not is_registered(user.id, competition_id):
+                abort(403)
 
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
 

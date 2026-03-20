@@ -25,10 +25,20 @@ from CTFd.utils.competitions import (
     ctftime_for,
     get_active_competition,
     get_competition_by_slug,
+    get_competition_team,
+    get_registration_status,
+    register_user,
+    create_competition_team,
+    join_competition_team,
+    can_register,
 )
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.config.visibility import scores_visible
-from CTFd.utils.decorators import require_complete_profile, require_verified_emails
+from CTFd.utils.decorators import (
+    require_complete_profile,
+    require_competition_registered,
+    require_verified_emails,
+)
 from CTFd.utils.decorators.visibility import (
     check_account_visibility,
     check_challenge_visibility,
@@ -36,7 +46,7 @@ from CTFd.utils.decorators.visibility import (
 )
 from CTFd.utils.helpers import get_errors, get_infos
 from CTFd.utils.scores import get_standings
-from CTFd.utils.user import authed, get_current_team, is_admin
+from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
 
 competitions = Blueprint("competitions", __name__)
 
@@ -95,10 +105,18 @@ def show(slug):
     """Render the competition landing page."""
     competition = _inject_competition(slug)
     active = get_active_competition()
+
+    reg_status = "not_joined"
+    if authed() and not is_admin():
+        user = get_current_user()
+        reg_status = get_registration_status(user.id, competition.id)
+
     return render_template(
         "competitions/landing.html",
         competition=competition,
         active_competition=active,
+        reg_status=reg_status,
+        can_register=can_register(competition),
     )
 
 
@@ -124,6 +142,7 @@ def history():
 @require_complete_profile
 @require_verified_emails
 @check_challenge_visibility
+@require_competition_registered
 def challenges(slug):
     """Render the challenges page scoped to the given competition."""
     competition = _inject_competition(slug)
@@ -184,3 +203,157 @@ def scoreboard(slug):
         standings=standings,
         infos=infos,
     )
+
+
+# ---------------------------------------------------------------------------
+# Explicit registration routes
+# ---------------------------------------------------------------------------
+
+
+@competitions.route("/competitions/<slug>/join", methods=["POST"])
+@require_complete_profile
+@require_verified_emails
+def join(slug):
+    """
+    POST /competitions/<slug>/join
+
+    Registers the current user for the competition.  Requires authentication.
+    - users-mode competition → status set to 'joined' immediately, redirect to challenges.
+    - teams-mode competition → status set to 'pending_team', redirect to team-select page.
+    """
+    if not authed():
+        return redirect(url_for("auth.login", next=request.full_path))
+
+    competition = _inject_competition(slug)
+    user = get_current_user()
+
+    reg, err = register_user(user.id, competition.id)
+    if err:
+        return render_template(
+            "competitions/landing.html",
+            competition=competition,
+            active_competition=get_active_competition(),
+            errors=[err],
+            reg_status="not_joined",
+        )
+
+    if reg.status == "pending_team":
+        return redirect(url_for("competitions.team_select", slug=slug))
+
+    return redirect(url_for("competitions.challenges", slug=slug))
+
+
+@competitions.route("/competitions/<slug>/team", methods=["GET"])
+@require_complete_profile
+@require_verified_emails
+def team_select(slug):
+    """
+    GET /competitions/<slug>/team
+
+    Team-selection landing for teams-mode competitions.
+    Shows the user a form to create a new team or join an existing one.
+    Only reachable after joining a competition.
+    """
+    if not authed():
+        return redirect(url_for("auth.login", next=request.full_path))
+
+    competition = _inject_competition(slug)
+    user = get_current_user()
+
+    status = get_registration_status(user.id, competition.id)
+    if status == "not_joined":
+        return redirect(url_for("competitions.show", slug=slug))
+
+    membership = get_competition_team(user.id, competition.id)
+    if membership is not None and status == "joined":
+        # User already has a team — send them to challenges
+        return redirect(url_for("competitions.challenges", slug=slug))
+
+    # List teams currently enrolled in this competition for the join-team picker
+    from CTFd.models import CompetitionTeam, CompetitionTeamMember, Teams
+    enrolled_teams = (
+        Teams.query.join(CompetitionTeam, Teams.id == CompetitionTeam.team_id)
+        .filter(CompetitionTeam.competition_id == competition.id)
+        .order_by(Teams.name.asc())
+        .all()
+    )
+    # Attach member count to each team for display
+    team_member_counts = {
+        t.id: CompetitionTeamMember.query.filter_by(
+            competition_id=competition.id, team_id=t.id
+        ).count()
+        for t in enrolled_teams
+    }
+
+    return render_template(
+        "competitions/team_select.html",
+        competition=competition,
+        enrolled_teams=enrolled_teams,
+        team_member_counts=team_member_counts,
+        team_size=competition.team_size,
+        errors=get_errors(),
+        infos=get_infos(),
+    )
+
+
+@competitions.route("/competitions/<slug>/team/create", methods=["POST"])
+@require_complete_profile
+@require_verified_emails
+def team_create(slug):
+    """
+    POST /competitions/<slug>/team/create
+
+    Creates a new team in this competition and assigns the current user to it.
+    """
+    if not authed():
+        return redirect(url_for("auth.login", next=request.full_path))
+
+    competition = _inject_competition(slug)
+    user = get_current_user()
+
+    team_name = request.form.get("name", "").strip()
+    team_password = request.form.get("password", "").strip() or None
+
+    team, err = create_competition_team(
+        user.id, competition.id, team_name, team_password
+    )
+    if err:
+        return redirect(
+            url_for("competitions.team_select", slug=slug, error=err)
+        )
+
+    return redirect(url_for("competitions.challenges", slug=slug))
+
+
+@competitions.route("/competitions/<slug>/team/join", methods=["POST"])
+@require_complete_profile
+@require_verified_emails
+def team_join(slug):
+    """
+    POST /competitions/<slug>/team/join
+
+    Joins an existing team in this competition.
+    """
+    if not authed():
+        return redirect(url_for("auth.login", next=request.full_path))
+
+    competition = _inject_competition(slug)
+    user = get_current_user()
+
+    team_id = request.form.get("team_id", type=int)
+    team_password = request.form.get("password", "").strip() or None
+
+    if not team_id:
+        return redirect(
+            url_for("competitions.team_select", slug=slug, error="No team selected")
+        )
+
+    membership, err = join_competition_team(
+        user.id, competition.id, team_id, team_password
+    )
+    if err:
+        return redirect(
+            url_for("competitions.team_select", slug=slug, error=err)
+        )
+
+    return redirect(url_for("competitions.challenges", slug=slug))

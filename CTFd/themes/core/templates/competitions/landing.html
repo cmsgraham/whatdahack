@@ -335,12 +335,34 @@ body { background-color: var(--comp-bg-page) !important; }
             <i class="fas fa-trophy"></i>{% trans %}Final Standings{% endtrans %}
           </a>
           {% else %}
-          <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-cta-primary">
-            <i class="fas fa-flag"></i>{% trans %}View Challenges{% endtrans %}
-          </a>
-          <a href="{{ url_for('competitions.scoreboard', slug=competition.slug) }}" class="comp-cta-secondary">
-            <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
-          </a>
+            {% if reg_status == 'not_joined' %}
+              {# User is not yet registered — show join CTA #}
+              {% if can_register %}
+                <form method="POST" action="{{ url_for('competitions.join', slug=competition.slug) }}" style="display:inline">
+                  <input type="hidden" name="nonce" value="{{ Session.nonce }}">
+                  <button type="submit" class="comp-cta-primary">
+                    <i class="fas fa-flag"></i>{% trans %}Join Competition{% endtrans %}
+                  </button>
+                </form>
+              {% else %}
+                <span class="comp-cta-secondary" style="cursor:default;opacity:.6">
+                  <i class="fas fa-lock"></i>{% trans %}Registration Closed{% endtrans %}
+                </span>
+              {% endif %}
+            {% elif reg_status == 'pending_team' %}
+              {# User joined but still needs a team #}
+              <a href="{{ url_for('competitions.team_select', slug=competition.slug) }}" class="comp-cta-primary">
+                <i class="fas fa-users"></i>{% trans %}Select Your Team{% endtrans %}
+              </a>
+            {% else %}
+              {# fully registered #}
+              <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-cta-primary">
+                <i class="fas fa-flag"></i>{% trans %}View Challenges{% endtrans %}
+              </a>
+              <a href="{{ url_for('competitions.scoreboard', slug=competition.slug) }}" class="comp-cta-secondary">
+                <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
+              </a>
+            {% endif %}
           {% endif %}
         </div>
       </div>

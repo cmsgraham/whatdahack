@@ -1,0 +1,102 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>{{ comp.name }} — Members
+      <span class="badge badge-secondary ml-2">{{ rows | length }}</span>
+    </h1>
+    <p class="mb-0">
+      <a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}" class="text-white">
+        &larr; Back to competition
+      </a>
+    </p>
+  </div>
+</div>
+
+<div class="container">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if rows %}
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">Registered Participants</h5>
+          <div>
+            <span class="badge badge-success mr-1">
+              {{ rows | selectattr('status', 'equalto', 'joined') | list | length }} joined
+            </span>
+            <span class="badge badge-warning">
+              {{ rows | selectattr('status', 'equalto', 'pending_team') | list | length }} pending team
+            </span>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Team</th>
+                <th>Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  {% if row.user %}
+                    <a href="{{ url_for('admin.users_detail', user_id=row.user.id) }}">
+                      {{ row.user.name }}
+                    </a>
+                  {% else %}
+                    <em class="text-muted">deleted user (id={{ row.user.id if row.user else '?' }})</em>
+                  {% endif %}
+                </td>
+                <td>{% if row.user %}{{ row.user.email }}{% endif %}</td>
+                <td>
+                  {% if row.status == 'joined' %}
+                    <span class="badge badge-success">joined</span>
+                  {% elif row.status == 'pending_team' %}
+                    <span class="badge badge-warning">pending team</span>
+                  {% else %}
+                    <span class="badge badge-secondary">{{ row.status }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if row.team %}
+                    <a href="{{ url_for('admin.teams_detail', team_id=row.team.id) }}">
+                      {{ row.team.name }}
+                    </a>
+                  {% elif comp.user_mode == 'teams' %}
+                    <em class="text-muted">—</em>
+                  {% else %}
+                    <em class="text-muted">N/A</em>
+                  {% endif %}
+                </td>
+                <td class="text-muted" style="font-size:.85rem">
+                  {% if row.joined_at %}{{ row.joined_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-info mt-3">No users have registered for this competition yet.</div>
+  {% endif %}
+
+</div>
+{% endblock %}

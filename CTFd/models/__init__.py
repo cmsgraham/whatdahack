@@ -1316,6 +1316,11 @@ class CompetitionUser(db.Model):
         db.ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
     )
+    # Registration state:
+    #   'joined'       — user is fully registered and may participate
+    #   'pending_team' — user has joined the competition but has not yet
+    #                    selected or created a team (teams-mode competitions only)
+    status = db.Column(db.String(16), nullable=False, default="joined")
     joined_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
     competition = db.relationship(
@@ -1323,14 +1328,73 @@ class CompetitionUser(db.Model):
     )
     user = db.relationship("Users", foreign_keys=[user_id], lazy="select")
 
-    __table_args__ = (db.UniqueConstraint("competition_id", "user_id"), {})
+    __table_args__ = (
+        db.UniqueConstraint("competition_id", "user_id", name="uq_comp_user"),
+        {},
+    )
 
     def __init__(self, *args, **kwargs):
         super(CompetitionUser, self).__init__(**kwargs)
 
     def __repr__(self):
-        return "<CompetitionUser competition_id={} user_id={}>".format(
-            self.competition_id, self.user_id
+        return "<CompetitionUser competition_id={} user_id={} status={}>".format(
+            self.competition_id, self.user_id, self.status
+        )
+
+
+class CompetitionTeamMember(db.Model):
+    """Per-competition team assignment for a user.
+
+    Separates competition-scoped team membership from the global Users.team_id
+    FK so the same user account can be on different teams across competitions.
+
+    Invariants:
+    - A user may belong to at most one team per competition
+      (enforced by UNIQUE(competition_id, user_id)).
+    - The referenced team must be enrolled in the competition
+      (CompetitionTeam row must exist for the same competition_id + team_id).
+    """
+
+    __tablename__ = "competition_team_members"
+    id = db.Column(db.Integer, primary_key=True)
+    competition_id = db.Column(
+        db.Integer,
+        db.ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    team_id = db.Column(
+        db.Integer,
+        db.ForeignKey("teams.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    joined_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    competition = db.relationship(
+        "Competition", foreign_keys=[competition_id], lazy="select"
+    )
+    team = db.relationship("Teams", foreign_keys=[team_id], lazy="select")
+    user = db.relationship("Users", foreign_keys=[user_id], lazy="select")
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "competition_id", "user_id", name="uq_comp_team_member_user"
+        ),
+        {},
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(CompetitionTeamMember, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return (
+            "<CompetitionTeamMember competition_id={} team_id={} user_id={}>".format(
+                self.competition_id, self.team_id, self.user_id
+            )
         )
 
 
@@ -1361,3 +1425,36 @@ def _auto_set_competition_id(mapper, connection, target):
     ).fetchone()
     if row and row[0] is not None:
         target.competition_id = row[0]
+
+
+@event.listens_for(Submissions, "before_insert", propagate=True)
+def _auto_set_competition_team(mapper, connection, target):
+    """
+    For competition submissions, override team_id with the user's
+    competition-specific team from competition_team_members rather than the
+    global Users.team_id.  This ensures per-competition team scoring is
+    accurate even when a user's global team_id differs from their
+    competition team.
+
+    Runs after _auto_set_competition_id so target.competition_id is
+    guaranteed to be populated before this listener executes.
+
+    Invariants:
+    - If competition_id is None: do nothing (legacy/global submission).
+    - If user_id is None: do nothing.
+    - If no competition_team_members row exists for this user+competition:
+      leave team_id unchanged (handles users-mode competitions and edge cases).
+    """
+    if target.competition_id is None or target.user_id is None:
+        return
+    from sqlalchemy import text
+
+    row = connection.execute(
+        text(
+            "SELECT team_id FROM competition_team_members "
+            "WHERE competition_id = :cid AND user_id = :uid"
+        ),
+        {"cid": target.competition_id, "uid": target.user_id},
+    ).fetchone()
+    if row:
+        target.team_id = row[0]

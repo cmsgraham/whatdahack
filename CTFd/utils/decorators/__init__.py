@@ -237,3 +237,84 @@ def require_complete_profile(f):
             return f(*args, **kwargs)
 
     return _require_complete_profile
+
+
+def require_competition_registered(f):
+    """
+    Decorator that gates a route behind explicit competition registration.
+
+    Behaviour:
+    - Passes through for admins unconditionally.
+    - Passes through when there is no active competition context (no g.competition_id
+      and no 'active_competition' config) to preserve legacy/global mode behaviour.
+    - For unauthenticated users redirects to login.
+    - For authenticated users who have not joined the competition:
+        → HTML requests: redirect to the competition landing page with a flash message
+        → JSON requests: 403
+    - For users in a teams-mode competition who have joined but not yet selected
+      a team (status == 'pending_team'):
+        → HTML requests: redirect to the competition team-selection page
+        → JSON requests: 403
+
+    Apply this decorator to every route that should be restricted to registered
+    participants only (challenges page, submission API, hint unlock, etc.).
+    """
+
+    @functools.wraps(f)
+    def _require_competition_registered(*args, **kwargs):
+        from CTFd.utils.competitions import (
+            get_current_competition_id,
+            get_registration_status,
+        )
+
+        if is_admin():
+            return f(*args, **kwargs)
+
+        competition_id = get_current_competition_id()
+        if competition_id is None:
+            # No competition context — legacy platform behaviour, pass through.
+            return f(*args, **kwargs)
+
+        if not authed():
+            if request.content_type == "application/json":
+                abort(403)
+            return redirect(url_for("auth.login", next=request.full_path))
+
+        user = get_current_user()
+        status = get_registration_status(user.id, competition_id)
+
+        if status == "not_joined":
+            if request.content_type == "application/json":
+                abort(403)
+            # Redirect to the landing page where the join CTA lives.
+            # We need the competition slug; try g.competition first, then DB.
+            try:
+                from flask import g as _g
+                slug = _g.competition.slug
+            except (RuntimeError, AttributeError):
+                from CTFd.models import Competition
+                comp = Competition.query.get(competition_id)
+                slug = comp.slug if comp else None
+
+            if slug:
+                return redirect(url_for("competitions.show", slug=slug))
+            abort(403)
+
+        if status == "pending_team":
+            if request.content_type == "application/json":
+                abort(403)
+            try:
+                from flask import g as _g
+                slug = _g.competition.slug
+            except (RuntimeError, AttributeError):
+                from CTFd.models import Competition
+                comp = Competition.query.get(competition_id)
+                slug = comp.slug if comp else None
+
+            if slug:
+                return redirect(url_for("competitions.team_select", slug=slug))
+            abort(403)
+
+        return f(*args, **kwargs)
+
+    return _require_competition_registered

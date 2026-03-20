@@ -240,3 +240,267 @@ def clone_competition(source, new_slug, new_name):
     db.session.commit()
     return clone
 
+
+# ---------------------------------------------------------------------------
+# Explicit competition registration helpers
+# ---------------------------------------------------------------------------
+
+
+def can_register(competition, admin_override=False):
+    """
+    Return True if registration is currently open for this competition.
+
+    Policy:
+      draft     → blocked  (competition is not yet published)
+      scheduled → open     (pre-registration before start date is allowed)
+      active    → open
+      ended     → closed   (pass admin_override=True to bypass)
+      archived  → always closed
+
+    Rationale: allowing pre-registration (scheduled state) lets competitors
+    prepare teams and plan participation before the start gun.  Closing
+    registration after end prevents late sign-ups that would corrupt history.
+    """
+    if admin_override:
+        return True
+    lc = competition.lifecycle or "draft"
+    return lc in ("scheduled", "active")
+
+
+def get_registration(user_id, competition_id):
+    """Return the CompetitionUser row for (user_id, competition_id), or None."""
+    from CTFd.models import CompetitionUser
+
+    return CompetitionUser.query.filter_by(
+        competition_id=competition_id, user_id=user_id
+    ).first()
+
+
+def get_registration_status(user_id, competition_id):
+    """
+    Return the canonical registration state for a user in a competition:
+
+      'not_joined'   — no CompetitionUser row exists
+      'pending_team' — CompetitionUser row exists but team not yet chosen
+                       (only possible in teams-mode competitions)
+      'joined'       — fully registered and may participate
+    """
+    reg = get_registration(user_id, competition_id)
+    if reg is None:
+        return "not_joined"
+    return reg.status  # "pending_team" or "joined"
+
+
+def is_registered(user_id, competition_id):
+    """True iff the user is fully registered (status == 'joined')."""
+    return get_registration_status(user_id, competition_id) == "joined"
+
+
+def get_competition_team(user_id, competition_id):
+    """
+    Return the CompetitionTeamMember row for this user in this competition,
+    or None if the user has no team assignment for this competition.
+    """
+    from CTFd.models import CompetitionTeamMember
+
+    return CompetitionTeamMember.query.filter_by(
+        competition_id=competition_id, user_id=user_id
+    ).first()
+
+
+def register_user(user_id, competition_id, force=False):
+    """
+    Register a user for a competition by creating a CompetitionUser row.
+
+    - users-mode competitions:  status is set to 'joined' immediately.
+    - teams-mode competitions:  status is set to 'pending_team'; the user
+      must then create or join a competition team to become fully 'joined'.
+
+    If the user is already registered, the existing row is returned with no
+    error (idempotent).
+
+    Returns (CompetitionUser | None, error_str | None).
+    Pass force=True to bypass the can_register() timing check (admin use).
+    """
+    from sqlalchemy.exc import IntegrityError
+
+    from CTFd.models import Competition, CompetitionUser, db
+
+    comp = Competition.query.filter_by(id=competition_id).first()
+    if comp is None:
+        return None, "Competition not found"
+
+    existing = get_registration(user_id, competition_id)
+    if existing is not None:
+        return existing, None
+
+    if not force and not can_register(comp):
+        return None, "Registration is currently closed for this competition"
+
+    initial_status = "pending_team" if comp.user_mode == "teams" else "joined"
+    reg = CompetitionUser(
+        competition_id=competition_id,
+        user_id=user_id,
+        status=initial_status,
+    )
+    db.session.add(reg)
+    try:
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        # Concurrent insert — return existing row
+        reg = CompetitionUser.query.filter_by(
+            competition_id=competition_id, user_id=user_id
+        ).first()
+    return reg, None
+
+
+def create_competition_team(user_id, competition_id, team_name, team_password=None):
+    """
+    Create a new team for a competition and register the user on it.
+
+    Steps:
+      1. Create a global Teams row (teams are global objects).
+      2. Create a CompetitionTeam row (enroll team in competition).
+      3. Create a CompetitionTeamMember row (user → team for this competition).
+      4. Set CompetitionUser.status = 'joined'.
+
+    Returns (Teams | None, error_str | None).
+    """
+    from sqlalchemy.exc import IntegrityError
+
+    from CTFd.models import (
+        Competition,
+        CompetitionTeam,
+        CompetitionTeamMember,
+        CompetitionUser,
+        Teams,
+        db,
+    )
+
+    comp = Competition.query.filter_by(id=competition_id).first()
+    if comp is None:
+        return None, "Competition not found"
+
+    reg = get_registration(user_id, competition_id)
+    if reg is None:
+        return None, "You must join the competition before creating a team"
+
+    if get_competition_team(user_id, competition_id) is not None:
+        return None, "You are already on a team in this competition"
+
+    team_name = (team_name or "").strip()
+    if not team_name:
+        return None, "Team name is required"
+
+    # Enforce team name uniqueness within this competition
+    name_conflict = (
+        Teams.query.join(CompetitionTeam, Teams.id == CompetitionTeam.team_id)
+        .filter(CompetitionTeam.competition_id == competition_id)
+        .filter(Teams.name == team_name)
+        .first()
+    )
+    if name_conflict is not None:
+        return None, f"A team named '{team_name}' already exists in this competition"
+
+    try:
+        from werkzeug.security import generate_password_hash
+
+        team = Teams(name=team_name, captain_id=user_id)
+        if team_password:
+            team.password = generate_password_hash(team_password)
+        db.session.add(team)
+        db.session.flush()  # materialise team.id
+
+        db.session.add(CompetitionTeam(competition_id=competition_id, team_id=team.id))
+        db.session.add(
+            CompetitionTeamMember(
+                competition_id=competition_id,
+                team_id=team.id,
+                user_id=user_id,
+            )
+        )
+        reg.status = "joined"
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None, "Team name conflict — please choose a different name"
+
+    return team, None
+
+
+def join_competition_team(user_id, competition_id, team_id, team_password=None):
+    """
+    Join an existing team in a competition.
+
+    Prerequisites:
+      - User has a CompetitionUser row for this competition.
+      - User is not already on a team in this competition.
+      - The team has a CompetitionTeam row for this competition.
+      - Team is not full (respects competition.team_size when > 0).
+      - Correct team password is provided if the team is password-protected.
+
+    Returns (CompetitionTeamMember | None, error_str | None).
+    """
+    from sqlalchemy.exc import IntegrityError
+
+    from CTFd.models import (
+        Competition,
+        CompetitionTeam,
+        CompetitionTeamMember,
+        CompetitionUser,
+        Teams,
+        db,
+    )
+
+    comp = Competition.query.filter_by(id=competition_id).first()
+    if comp is None:
+        return None, "Competition not found"
+
+    reg = get_registration(user_id, competition_id)
+    if reg is None:
+        return None, "You must join the competition before joining a team"
+
+    if get_competition_team(user_id, competition_id) is not None:
+        return None, "You are already on a team in this competition"
+
+    comp_team = CompetitionTeam.query.filter_by(
+        competition_id=competition_id, team_id=team_id
+    ).first()
+    if comp_team is None:
+        return None, "That team is not enrolled in this competition"
+
+    team = Teams.query.filter_by(id=team_id).first()
+    if team is None:
+        return None, "Team not found"
+
+    if team.password:
+        from werkzeug.security import check_password_hash
+
+        if not team_password:
+            return None, "This team requires a password"
+        if not check_password_hash(team.password, team_password):
+            return None, "Incorrect team password"
+
+    if comp.team_size and comp.team_size > 0:
+        current_count = CompetitionTeamMember.query.filter_by(
+            competition_id=competition_id, team_id=team_id
+        ).count()
+        if current_count >= comp.team_size:
+            return None, f"This team is full (max {comp.team_size} members)"
+
+    try:
+        membership = CompetitionTeamMember(
+            competition_id=competition_id,
+            team_id=team_id,
+            user_id=user_id,
+        )
+        db.session.add(membership)
+        reg.status = "joined"
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return None, "Failed to join team — you may already be on a team in this competition"
+
+    return membership, None
+

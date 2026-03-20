@@ -336,3 +336,50 @@ def competitions_challenges_remove(competition_id):
         flash(f"{len(challenge_ids)} challenge(s) removed from '{comp.name}'.", "success")
 
     return redirect(url_for("admin.competitions_detail", competition_id=comp.id))
+
+
+# ---------------------------------------------------------------------------
+# Members
+# ---------------------------------------------------------------------------
+
+
+@admin.route("/admin/competitions/<int:competition_id>/members")
+@admins_only
+def competitions_members(competition_id):
+    """List all users registered for a competition, their status, and their team."""
+    from CTFd.models import CompetitionTeamMember, CompetitionUser, Users
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+
+    registrations = (
+        CompetitionUser.query.filter_by(competition_id=competition_id)
+        .order_by(CompetitionUser.joined_at.asc())
+        .all()
+    )
+
+    memberships = {
+        m.user_id: m
+        for m in CompetitionTeamMember.query.filter_by(
+            competition_id=competition_id
+        ).all()
+    }
+
+    rows = []
+    for reg in registrations:
+        user = Users.query.get(reg.user_id)
+        membership = memberships.get(reg.user_id)
+        team = membership.team if membership else None
+        rows.append(
+            {
+                "user": user,
+                "status": reg.status,
+                "joined_at": reg.joined_at,
+                "team": team,
+            }
+        )
+
+    return render_template(
+        "admin/competitions/members.html",
+        comp=comp,
+        rows=rows,
+    )
