@@ -9,7 +9,7 @@ from sqlalchemy.sql import and_
 from CTFd.api.v1.helpers.request import validate_args
 from CTFd.api.v1.helpers.schemas import sqlalchemy_to_pydantic
 from CTFd.api.v1.schemas import APIDetailedSuccessResponse, APIListSuccessResponse
-from CTFd.cache import cache, clear_challenges, clear_ratings, clear_standings
+from CTFd.cache import cache, clear_challenges, clear_ratings, clear_standings, clear_standings_for_competition
 from CTFd.constants import RawEnum
 from CTFd.exceptions.challenges import (
     ChallengeCreateException,
@@ -339,6 +339,15 @@ class Challenge(Resource):
                 and_(Challenges.state != "hidden", Challenges.state != "locked"),
             ).first_or_404()
 
+        # Enforce competition isolation: non-admins may only view challenges that
+        # belong to the competition currently in scope (g.competition_id or the
+        # active competition config).  A missing competition_id on the challenge
+        # means it is a legacy/global challenge — allow through.
+        _competition_id = get_current_competition_id()
+        if _competition_id is not None and not is_admin():
+            if chal.competition_id is not None and chal.competition_id != _competition_id:
+                abort(404)
+
         try:
             chal_class = get_chal_class(chal.type)
         except KeyError:
@@ -350,10 +359,14 @@ class Challenge(Resource):
         if chal.requirements:
             requirements = chal.requirements.get("prerequisites", [])
             anonymize = chal.requirements.get("anonymize")
-            # Gather all challenge IDs so that we can determine invalid challenge prereqs
-            all_challenge_ids = {
-                c.id for c in Challenges.query.with_entities(Challenges.id).all()
-            }
+            # Gather challenge IDs scoped to the current competition for prereq
+            # validation.  Falls back to all IDs when no competition is active.
+            _chal_id_q = Challenges.query.with_entities(Challenges.id)
+            if _competition_id is not None:
+                _chal_id_q = _chal_id_q.filter(
+                    Challenges.competition_id == _competition_id
+                )
+            all_challenge_ids = {c.id for c in _chal_id_q.all()}
             if challenges_visible():
                 user = get_current_user()
                 if user:
@@ -691,6 +704,12 @@ class ChallengeAttempt(Resource):
         if challenge.state == "locked":
             abort(403)
 
+        # Competition isolation: prevent submitting flags for challenges that
+        # belong to a different competition than the one the user is in.
+        if competition_id is not None and not is_admin():
+            if challenge.competition_id is not None and challenge.competition_id != competition_id:
+                abort(403)
+
         if challenge.requirements:
             requirements = challenge.requirements.get("prerequisites", [])
             solve_ids = get_solve_ids_for_user_id(
@@ -814,9 +833,17 @@ class ChallengeAttempt(Resource):
         cache.inc(acc_kpm_key)
         cache.expire(acc_kpm_key, time_delay)
 
-        solves = Solves.query.filter_by(
+        # Check if this user/team has already solved this challenge in the
+        # current competition.  When competition_id is None (no competition
+        # context) fall back to the global check to preserve legacy behaviour.
+        solves_q = Solves.query.filter_by(
             account_id=user.account_id, challenge_id=challenge_id
-        ).first()
+        )
+        if competition_id is not None:
+            solves_q = solves_q.filter(
+                Submissions.competition_id == competition_id
+            )
+        solves = solves_q.first()
 
         # Challenge not solved yet
         if not solves:
@@ -861,7 +888,7 @@ class ChallengeAttempt(Resource):
                             },
                         }
 
-                    clear_standings()
+                    clear_standings_for_competition(competition_id)
                     clear_challenges()
 
                 log(
@@ -882,7 +909,7 @@ class ChallengeAttempt(Resource):
                     chal_class.partial(
                         user=user, team=team, challenge=challenge, request=request
                     )
-                    clear_standings()
+                    clear_standings_for_competition(competition_id)
                     clear_challenges()
 
                 log(

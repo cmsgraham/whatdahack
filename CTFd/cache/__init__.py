@@ -172,6 +172,34 @@ def clear_standings():
     cache.delete(make_template_fragment_key(CacheKeys.PUBLIC_SCOREBOARD_TABLE))
 
 
+def clear_standings_for_competition(competition_id):
+    """
+    Targeted standings cache clear for a specific competition.
+
+    Performs the same full memoize clear as clear_standings(), PLUS deletes the
+    competition-scoped HTTP response cache entry for the scoreboard API
+    (cached by ?competition_id=N).  Call this after a solve instead of the
+    broader clear_standings() to avoid unnecessarily evicting other competitions'
+    cached scoreboards.
+    """
+    # Full memoize/model clear
+    clear_standings()
+
+    # Also delete the @cache.cached() HTTP response entry for this competition's
+    # scoreboard URL (?competition_id=N).  The key format mirrors what
+    # make_cache_key_with_query_string(allowed_params=["competition_id"]) produces.
+    if competition_id is not None:
+        from CTFd.api import api
+        from CTFd.api.v1.scoreboard import ScoreboardList
+
+        args_hash = calculate_param_hash(
+            (("competition_id", str(competition_id)),),
+            allowed_params=["competition_id"],
+        )
+        endpoint = api.name + "." + ScoreboardList.endpoint
+        cache.delete("view/%s/%s" % (endpoint, args_hash))
+
+
 def clear_challenges():
     from CTFd.utils.challenges import get_all_challenges  # noqa: I001
     from CTFd.utils.challenges import (

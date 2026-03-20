@@ -937,8 +937,18 @@ class Submissions(db.Model):
 class Solves(Submissions):
     __tablename__ = "solves"
     __table_args__ = (
-        db.UniqueConstraint("challenge_id", "user_id"),
-        db.UniqueConstraint("challenge_id", "team_id"),
+        # Include competition_id so the same challenge can be solved once per
+        # competition.  NULL competition_id is treated as a distinct value in
+        # MySQL/MariaDB unique indexes, so application-level checks must guard
+        # the case where competition_id is None (legacy challenges).
+        db.UniqueConstraint(
+            "challenge_id", "user_id", "competition_id",
+            name="uq_solves_challenge_user_comp",
+        ),
+        db.UniqueConstraint(
+            "challenge_id", "team_id", "competition_id",
+            name="uq_solves_challenge_team_comp",
+        ),
         {},
     )
     id = db.Column(
@@ -955,6 +965,17 @@ class Solves(Submissions):
     team_id = column_property(
         db.Column(db.Integer, db.ForeignKey("teams.id", ondelete="CASCADE")),
         Submissions.team_id,
+    )
+    # competition_id is stored physically in the solves table (mirrored from the
+    # parent submissions row) so that it can be included in a unique index.
+    # The _auto_set_competition_id event listener on Submissions populates it.
+    competition_id = column_property(
+        db.Column(
+            db.Integer,
+            db.ForeignKey("competitions.id", ondelete="SET NULL"),
+            nullable=True,
+        ),
+        Submissions.competition_id,
     )
 
     user = db.relationship("Users", foreign_keys="Solves.user_id", lazy="select")
