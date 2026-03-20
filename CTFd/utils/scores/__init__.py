@@ -1,14 +1,14 @@
 from sqlalchemy.sql.expression import union_all
 
 from CTFd.cache import cache
-from CTFd.models import Awards, Brackets, Challenges, Solves, Teams, Users, db
+from CTFd.models import Awards, Brackets, Challenges, Solves, Submissions, Teams, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc
 from CTFd.utils.modes import get_model
 
 
 @cache.memoize(timeout=60)
-def get_standings(count=None, bracket_id=None, admin=False, fields=None):
+def get_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
     """
     Get standings as a list of tuples containing account_id, name, and score e.g. [(account_id, team_name, score)].
 
@@ -16,6 +16,9 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None):
     user will have a solve ID that is before the others. That user will be considered the tie-winner.
 
     Challenges & Awards with a value of zero are filtered out of the calculations to avoid incorrect tie breaks.
+
+    Pass competition_id to scope results to a specific competition. If None, returns global standings
+    (existing behavior preserved for backward compatibility).
     """
     if fields is None:
         fields = []
@@ -51,6 +54,14 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None):
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
+
+    """
+    Scope to a specific competition when competition_id is provided.
+    Solves.competition_id resolves via the parent Submissions table (joined table inheritance).
+    """
+    if competition_id is not None:
+        scores = scores.filter(Submissions.competition_id == competition_id)
+        awards = awards.filter(Awards.competition_id == competition_id)
 
     """
     Combine awards and solves with a union. They should have the same amount of columns
@@ -135,7 +146,7 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None):
 
 
 @cache.memoize(timeout=60)
-def get_team_standings(count=None, bracket_id=None, admin=False, fields=None):
+def get_team_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
     if fields is None:
         fields = []
     scores = (
@@ -165,6 +176,10 @@ def get_team_standings(count=None, bracket_id=None, admin=False, fields=None):
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
+
+    if competition_id is not None:
+        scores = scores.filter(Submissions.competition_id == competition_id)
+        awards = awards.filter(Awards.competition_id == competition_id)
 
     results = union_all(scores, awards).alias("results")
 
@@ -234,7 +249,7 @@ def get_team_standings(count=None, bracket_id=None, admin=False, fields=None):
 
 
 @cache.memoize(timeout=60)
-def get_user_standings(count=None, bracket_id=None, admin=False, fields=None):
+def get_user_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
     if fields is None:
         fields = []
     scores = (
@@ -264,6 +279,10 @@ def get_user_standings(count=None, bracket_id=None, admin=False, fields=None):
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
+
+    if competition_id is not None:
+        scores = scores.filter(Submissions.competition_id == competition_id)
+        awards = awards.filter(Awards.competition_id == competition_id)
 
     results = union_all(scores, awards).alias("results")
 

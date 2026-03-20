@@ -4,7 +4,7 @@ from flask import request
 from flask_restx import Namespace, Resource
 from sqlalchemy import select
 
-from CTFd.cache import cache, make_cache_key
+from CTFd.cache import cache, make_cache_key_with_query_string
 from CTFd.models import Brackets, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.decorators.visibility import (
@@ -19,14 +19,29 @@ scoreboard_namespace = Namespace(
     "scoreboard", description="Endpoint to retrieve scores"
 )
 
+# Cache key factory that includes competition_id in the cache key so that
+# different competitions get separate cached responses.
+_scoreboard_cache_key = make_cache_key_with_query_string(
+    allowed_params=["competition_id"]
+)
+
 
 @scoreboard_namespace.route("")
 class ScoreboardList(Resource):
     @check_account_visibility
     @check_score_visibility
-    @cache.cached(timeout=60, key_prefix=make_cache_key)
+    @cache.cached(timeout=60, key_prefix=_scoreboard_cache_key)
     def get(self):
-        standings = get_standings()
+        # Resolve optional competition_id query param
+        raw_cid = request.args.get("competition_id")
+        competition_id = None
+        if raw_cid is not None:
+            try:
+                competition_id = int(raw_cid)
+            except (ValueError, TypeError):
+                pass
+
+        standings = get_standings(competition_id=competition_id)
         response = []
         mode = get_config("user_mode")
         account_type = get_mode_as_word()
@@ -62,7 +77,7 @@ class ScoreboardList(Resource):
                     }
 
             # Get user_standings as a dict so that we can more quickly get member scores
-            user_standings = get_user_standings()
+            user_standings = get_user_standings(competition_id=competition_id)
             for u in user_standings:
                 membership[u.team_id][u.user_id]["score"] = int(u.score)
 
@@ -95,5 +110,14 @@ class ScoreboardDetail(Resource):
         # Restrict count to some limit
         count = max(1, min(count, 50))
         bracket_id = request.args.get("bracket_id")
-        response = get_scoreboard_detail(count=count, bracket_id=bracket_id)
+        raw_cid = request.args.get("competition_id")
+        competition_id = None
+        if raw_cid is not None:
+            try:
+                competition_id = int(raw_cid)
+            except (ValueError, TypeError):
+                pass
+        response = get_scoreboard_detail(
+            count=count, bracket_id=bracket_id, competition_id=competition_id
+        )
         return {"success": True, "data": response}

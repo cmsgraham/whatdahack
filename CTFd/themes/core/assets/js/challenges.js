@@ -270,7 +270,9 @@ Alpine.data("ChallengeBoard", () => ({
   challenge: null,
 
   async init() {
-    this.challenges = await CTFd.pages.challenges.getChallenges();
+    const _cid = window.__CTF_COMPETITION_ID__;
+    const _params = _cid ? { competition_id: _cid } : {};
+    this.challenges = await CTFd.pages.challenges.getChallenges(_params);
     this.loaded = true;
 
     if (window.location.hash) {
@@ -333,7 +335,9 @@ Alpine.data("ChallengeBoard", () => ({
   },
 
   async loadChallenges() {
-    this.challenges = await CTFd.pages.challenges.getChallenges();
+    const _cid = window.__CTF_COMPETITION_ID__;
+    const _params = _cid ? { competition_id: _cid } : {};
+    this.challenges = await CTFd.pages.challenges.getChallenges(_params);
   },
 
   async loadChallenge(challengeId) {

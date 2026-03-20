@@ -1,7 +1,7 @@
 from flask import abort, render_template, request, url_for
 
 from CTFd.admin import admin
-from CTFd.models import Challenges, Flags, Solves
+from CTFd.models import Challenges, Competition, Flags, Solves
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, get_chal_class
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils.decorators import admins_only
@@ -14,6 +14,7 @@ from CTFd.utils.user import get_current_team, get_current_user
 def challenges_listing():
     q = request.args.get("q")
     field = request.args.get("field")
+    competition_id = request.args.get("competition_id", type=int)
     filters = []
 
     if q:
@@ -21,9 +22,13 @@ def challenges_listing():
         if Challenges.__mapper__.has_property(field):
             filters.append(getattr(Challenges, field).like("%{}%".format(q)))
 
+    if competition_id:
+        filters.append(Challenges.competition_id == competition_id)
+
     query = Challenges.query.filter(*filters).order_by(Challenges.id.asc())
     challenges = query.all()
     total = query.count()
+    competitions = Competition.query.order_by(Competition.name.asc()).all()
 
     return render_template(
         "admin/challenges/challenges.html",
@@ -31,6 +36,8 @@ def challenges_listing():
         total=total,
         q=q,
         field=field,
+        competitions=competitions,
+        active_competition_id=competition_id,
     )
 
 
@@ -56,8 +63,12 @@ def challenges_detail(challenge_id):
             f"The underlying challenge type ({challenge.type}) is not installed. This challenge can not be loaded.",
         )
 
+    competitions = Competition.query.order_by(Competition.name.asc()).all()
+
     update_j2 = render_template(
-        challenge_class.templates["update"].lstrip("/"), challenge=challenge
+        challenge_class.templates["update"].lstrip("/"),
+        challenge=challenge,
+        competitions=competitions,
     )
 
     update_script = url_for(

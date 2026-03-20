@@ -1,0 +1,227 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container d-flex justify-content-between align-items-center">
+		<h1>{{ comp.name }}</h1>
+		<div>
+			{% if active_slug == comp.slug %}
+				<form method="POST" action="{{ url_for('admin.competitions_deactivate', competition_id=comp.id) }}" class="d-inline">
+					<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+					<button type="submit" class="btn btn-warning btn-sm">Deactivate</button>
+				</form>
+			{% else %}
+				<form method="POST" action="{{ url_for('admin.competitions_activate', competition_id=comp.id) }}" class="d-inline">
+					<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+					<button type="submit" class="btn btn-success btn-sm">Set Active</button>
+				</form>
+			{% endif %}
+			<form method="POST" action="{{ url_for('admin.competitions_delete', competition_id=comp.id) }}" class="d-inline"
+			      onsubmit="return confirm('Delete competition {{ comp.name | e }}? This cannot be undone.')">
+				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+				<button type="submit" class="btn btn-danger btn-sm ml-1">Delete</button>
+			</form>
+		</div>
+	</div>
+</div>
+
+<div class="container">
+
+	{% for category, message in get_flashed_messages(with_categories=true) %}
+		<div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible" role="alert">
+			{{ message }}
+			<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+		</div>
+	{% endfor %}
+
+	{% if errors %}
+		{% for error in errors %}
+		<div class="alert alert-danger alert-dismissible" role="alert">
+			{{ error }}
+			<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+		</div>
+		{% endfor %}
+	{% endif %}
+
+
+	<!-- Settings Form -->
+	<div class="row">
+		<div class="col-md-8 offset-md-2">
+			<h3>Settings</h3>
+			<hr>
+
+			<form method="POST" action="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}">
+				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+
+				<div class="form-group">
+					<label for="slug">Slug</label>
+					<input type="text" class="form-control" id="slug" name="slug"
+					       pattern="[a-z0-9\-]+" title="Lowercase letters, numbers, and hyphens only"
+					       value="{{ comp.slug }}" required>
+					<small class="form-text text-muted">Used in URLs. Changing this will break existing links.</small>
+				</div>
+
+				<div class="form-group">
+					<label for="name">Name</label>
+					<input type="text" class="form-control" id="name" name="name"
+					       value="{{ comp.name }}" required>
+				</div>
+
+				<div class="form-group">
+					<label for="description">Description</label>
+					<textarea class="form-control" id="description" name="description" rows="3">{{ comp.description or '' }}</textarea>
+				</div>
+
+				<h5 class="mt-3">Timing</h5>
+
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="start">Start</label>
+						<input type="datetime-local" class="form-control" id="start" name="start"
+						       value="{{ comp.start.strftime('%Y-%m-%dT%H:%M') if comp.start else '' }}">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="end">End</label>
+						<input type="datetime-local" class="form-control" id="end" name="end"
+						       value="{{ comp.end.strftime('%Y-%m-%dT%H:%M') if comp.end else '' }}">
+					</div>
+					<div class="form-group col-md-4">
+						<label for="freeze">Freeze</label>
+						<input type="datetime-local" class="form-control" id="freeze" name="freeze"
+						       value="{{ comp.freeze.strftime('%Y-%m-%dT%H:%M') if comp.freeze else '' }}">
+					</div>
+				</div>
+
+				<div class="form-row">
+					<div class="form-group col-md-4">
+						<label for="state">Visibility</label>
+						<select class="form-control" id="state" name="state">
+							<option value="hidden" {% if comp.state == 'hidden' %}selected{% endif %}>Hidden</option>
+							<option value="visible" {% if comp.state == 'visible' %}selected{% endif %}>Visible</option>
+						</select>
+					</div>
+					<div class="form-group col-md-4">
+						<label for="user_mode">User Mode</label>
+						<select class="form-control" id="user_mode" name="user_mode">
+							<option value="teams" {% if comp.user_mode == 'teams' %}selected{% endif %}>Teams</option>
+							<option value="users" {% if comp.user_mode == 'users' %}selected{% endif %}>Users</option>
+						</select>
+					</div>
+					<div class="form-group col-md-4">
+						<label for="team_size">Max Team Size</label>
+						<input type="number" class="form-control" id="team_size" name="team_size"
+						       min="0" value="{{ comp.team_size }}">
+						<small class="form-text text-muted">0 = unlimited</small>
+					</div>
+				</div>
+
+				<button type="submit" class="btn btn-primary">Save Changes</button>
+			</form>
+		</div>
+	</div>
+
+
+	<!-- Assigned Challenges -->
+	<div class="row mt-5">
+		<div class="col-md-10 offset-md-1">
+			<h3>Assigned Challenges
+				<span class="badge badge-secondary">{{ assigned | length }}</span>
+			</h3>
+			<hr>
+
+			{% if assigned %}
+			<form method="POST" action="{{ url_for('admin.competitions_challenges_remove', competition_id=comp.id) }}">
+				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th><input type="checkbox" id="select-all-assigned" title="Select all"></th>
+							<th>#</th>
+							<th>Name</th>
+							<th>Category</th>
+							<th>Value</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for challenge in assigned %}
+						<tr>
+							<td><input type="checkbox" name="challenge_ids" value="{{ challenge.id }}"></td>
+							<td>{{ challenge.id }}</td>
+							<td>{{ challenge.name }}</td>
+							<td>{{ challenge.category }}</td>
+							<td>{{ challenge.value }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				<button type="submit" class="btn btn-danger btn-sm">Remove Selected</button>
+			</form>
+			{% else %}
+			<p class="text-muted">No challenges assigned to this competition yet.</p>
+			{% endif %}
+		</div>
+	</div>
+
+
+	<!-- Add Challenges -->
+	{% if unassigned %}
+	<div class="row mt-4">
+		<div class="col-md-10 offset-md-1">
+			<h3>Add Challenges</h3>
+			<p class="text-muted">Select challenges to assign to this competition. Only challenges not yet assigned to any competition are shown.</p>
+			<hr>
+			<form method="POST" action="{{ url_for('admin.competitions_challenges_add', competition_id=comp.id) }}">
+				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+				<table class="table table-striped">
+					<thead>
+						<tr>
+							<th><input type="checkbox" id="select-all-unassigned" title="Select all"></th>
+							<th>#</th>
+							<th>Name</th>
+							<th>Category</th>
+							<th>Value</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for challenge in unassigned %}
+						<tr>
+							<td><input type="checkbox" name="challenge_ids" value="{{ challenge.id }}"></td>
+							<td>{{ challenge.id }}</td>
+							<td>{{ challenge.name }}</td>
+							<td>{{ challenge.category }}</td>
+							<td>{{ challenge.value }}</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				<button type="submit" class="btn btn-success btn-sm">Add Selected</button>
+			</form>
+		</div>
+	</div>
+	{% endif %}
+
+</div>
+
+<script>
+(function () {
+	var selectAllAssigned = document.getElementById('select-all-assigned');
+	if (selectAllAssigned) {
+		selectAllAssigned.addEventListener('change', function () {
+			var checkboxes = document.querySelectorAll('input[name="challenge_ids"]');
+			var assignedTable = selectAllAssigned.closest('table');
+			checkboxes = assignedTable.querySelectorAll('input[name="challenge_ids"]');
+			checkboxes.forEach(function (cb) { cb.checked = selectAllAssigned.checked; });
+		});
+	}
+
+	var selectAllUnassigned = document.getElementById('select-all-unassigned');
+	if (selectAllUnassigned) {
+		selectAllUnassigned.addEventListener('change', function () {
+			var unassignedTable = selectAllUnassigned.closest('table');
+			var checkboxes = unassignedTable.querySelectorAll('input[name="challenge_ids"]');
+			checkboxes.forEach(function (cb) { cb.checked = selectAllUnassigned.checked; });
+		});
+	}
+})();
+</script>
+{% endblock %}

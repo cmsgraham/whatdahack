@@ -46,6 +46,7 @@ from CTFd.utils.challenges import (
     get_solve_ids_for_user_id,
     get_solves_for_challenge_id,
 )
+from CTFd.utils.competitions import get_current_competition_id, ctftime_or_competition
 from CTFd.utils.config.visibility import (
     accounts_visible,
     challenges_visible,
@@ -161,13 +162,22 @@ class ChallengeList(Resource):
         # Admins get a shortcut to see all challenges despite pre-requisites
         admin_view = is_admin() and request.args.get("view") == "admin"
 
+        # Resolve the active competition for scoping queries.
+        # When no competition is active, competition_id is None and all
+        # functions fall back to returning global (unscoped) results.
+        competition_id = get_current_competition_id()
+
         # Get a cached mapping of challenge_id to solve_count
-        solve_counts = get_solve_counts_for_challenges(admin=admin_view)
+        solve_counts = get_solve_counts_for_challenges(
+            admin=admin_view, competition_id=competition_id
+        )
 
         # Get list of solve_ids for current user
         if authed():
             user = get_current_user()
-            user_solves = get_solve_ids_for_user_id(user_id=user.id)
+            user_solves = get_solve_ids_for_user_id(
+                user_id=user.id, competition_id=competition_id
+            )
         else:
             user_solves = set()
 
@@ -182,17 +192,21 @@ class ChallengeList(Resource):
             # `None` for the solve count if visiblity checks fail
             solve_count_dfl = None
 
-        chal_q = get_all_challenges(admin=admin_view, field=field, q=q, **query_args)
+        chal_q = get_all_challenges(admin=admin_view, field=field, q=q, competition_id=competition_id, **query_args)
 
         # Iterate through the list of challenges, adding to the object which
         # will be JSONified back to the client
         response = []
         tag_schema = TagSchema(view="user", many=True)
 
-        # Gather all challenge IDs so that we can determine invalid challenge prereqs
-        all_challenge_ids = {
-            c.id for c in Challenges.query.with_entities(Challenges.id).all()
-        }
+        # Gather challenge IDs scoped to the active competition for prereq validation.
+        # Falls back to all challenge IDs when no competition is configured.
+        chal_id_query = Challenges.query.with_entities(Challenges.id)
+        if competition_id is not None:
+            chal_id_query = chal_id_query.filter(
+                Challenges.competition_id == competition_id
+            )
+        all_challenge_ids = {c.id for c in chal_id_query.all()}
         for challenge in chal_q:
             if challenge.requirements:
                 requirements = challenge.requirements.get("prerequisites", [])
@@ -664,6 +678,11 @@ class ChallengeAttempt(Resource):
         if config.is_teams_mode() and team is None:
             abort(403)
 
+        # Resolve the competition context once for this entire request.
+        # ctf_active is used in place of ctftime() throughout this handler.
+        competition_id = get_current_competition_id()
+        ctf_active = ctftime_or_competition()
+
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
 
         if challenge.state == "hidden":
@@ -674,17 +693,16 @@ class ChallengeAttempt(Resource):
 
         if challenge.requirements:
             requirements = challenge.requirements.get("prerequisites", [])
-            solve_ids = (
-                Solves.query.with_entities(Solves.challenge_id)
-                .filter_by(account_id=user.account_id)
-                .order_by(Solves.challenge_id.asc())
-                .all()
+            solve_ids = get_solve_ids_for_user_id(
+                user_id=user.id, competition_id=competition_id
             )
-            solve_ids = {solve_id for (solve_id,) in solve_ids}
-            # Gather all challenge IDs so that we can determine invalid challenge prereqs
-            all_challenge_ids = {
-                c.id for c in Challenges.query.with_entities(Challenges.id).all()
-            }
+            # Gather challenge IDs scoped to the active competition for prereq validation.
+            chal_id_query = Challenges.query.with_entities(Challenges.id)
+            if competition_id is not None:
+                chal_id_query = chal_id_query.filter(
+                    Challenges.competition_id == competition_id
+                )
+            all_challenge_ids = {c.id for c in chal_id_query.all()}
             prereqs = set(requirements).intersection(all_challenge_ids)
             if solve_ids >= prereqs:
                 pass
@@ -745,7 +763,7 @@ class ChallengeAttempt(Resource):
                     # Calculate actual time remaining based on oldest fail
                     response = f"Not accepted. Try again in {time_delay} seconds"
                     response_code = 429
-                    if ctftime():
+                    if ctf_active:
                         chal_class.ratelimited(
                             user=user, team=team, challenge=challenge, request=request
                         )
@@ -766,7 +784,7 @@ class ChallengeAttempt(Resource):
                 )
 
         if kpm >= kpm_limit or recent_attempt_count >= kpm_limit:
-            if ctftime():
+            if ctf_active:
                 chal_class.ratelimited(
                     user=user, team=team, challenge=challenge, request=request
                 )
@@ -813,7 +831,7 @@ class ChallengeAttempt(Resource):
 
             if status == "correct" or status is True:
                 # The challenge plugin says the input is right
-                if ctftime() or current_user.is_admin():
+                if ctf_active or current_user.is_admin():
                     try:
                         chal_class.solve(
                             user=user,
@@ -860,7 +878,7 @@ class ChallengeAttempt(Resource):
                 }
             elif status == "partial":
                 # The challenge plugin says that the input is a partial solve
-                if ctftime() or current_user.is_admin():
+                if ctf_active or current_user.is_admin():
                     chal_class.partial(
                         user=user, team=team, challenge=challenge, request=request
                     )
@@ -881,7 +899,7 @@ class ChallengeAttempt(Resource):
                 }
             elif status == "incorrect" or status is False:
                 # The challenge plugin says the input is wrong
-                if ctftime() or current_user.is_admin():
+                if ctf_active or current_user.is_admin():
                     chal_class.fail(
                         user=user, team=team, challenge=challenge, request=request
                     )

@@ -44,6 +44,26 @@
 				</div>
 			</form>
 			{% endwith %}
+
+			{% if competitions %}
+			<form method="GET" class="form-inline mt-2">
+				<div class="form-group col-md-4 pl-0">
+					<select class="form-control custom-select w-100" name="competition_id"
+					        onchange="this.form.submit()">
+						<option value="">All Competitions</option>
+						{% for comp in competitions %}
+						<option value="{{ comp.id }}"
+						        {% if active_competition_id == comp.id %}selected{% endif %}>
+							{{ comp.name }}
+						</option>
+						{% endfor %}
+					</select>
+				</div>
+				{% if active_competition_id %}
+				<a href="{{ url_for('admin.challenges_listing') }}" class="btn btn-outline-secondary btn-sm ml-1">Clear Filter</a>
+				{% endif %}
+			</form>
+			{% endif %}
 		</div>
 	</div>
 

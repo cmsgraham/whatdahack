@@ -9,15 +9,22 @@ from CTFd.utils.scores import get_standings
 
 
 @cache.memoize(timeout=60)
-def get_scoreboard_detail(count, bracket_id=None):
+def get_scoreboard_detail(count, bracket_id=None, competition_id=None):
     response = {}
 
-    standings = get_standings(count=count, bracket_id=bracket_id)
+    standings = get_standings(
+        count=count, bracket_id=bracket_id, competition_id=competition_id
+    )
 
     team_ids = [team.account_id for team in standings]
 
     solves = Solves.query.filter(Solves.account_id.in_(team_ids))
     awards = Awards.query.filter(Awards.account_id.in_(team_ids))
+
+    # Scope to competition if requested
+    if competition_id is not None:
+        solves = solves.filter(Solves.competition_id == competition_id)
+        awards = awards.filter(Awards.competition_id == competition_id)
 
     freeze = get_config("freeze")
 
@@ -56,7 +63,9 @@ def get_scoreboard_detail(count, bracket_id=None):
 
     # Sort all solves by date
     for team_id in solves_mapper:
-        solves_mapper[team_id] = sorted(solves_mapper[team_id], key=lambda k: k["date"])
+        solves_mapper[team_id] = sorted(
+            solves_mapper[team_id], key=lambda k: k["date"]
+        )
 
     for i, x in enumerate(standings):
         response[i + 1] = {

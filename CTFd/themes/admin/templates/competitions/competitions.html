@@ -1,0 +1,100 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>Competitions
+			<a class="no-decoration" href="{{ url_for('admin.competitions_new') }}">
+				<span role="button" data-toggle="tooltip" title="New Competition">
+					<i class="btn-fa fas fa-plus-circle"></i>
+				</span>
+			</a>
+		</h1>
+	</div>
+</div>
+
+<div class="container">
+
+	{% with messages = get_flashed_messages(with_categories=true) %}
+	{% if messages %}
+		{% for category, message in messages %}
+		<div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible" role="alert">
+			{{ message }}
+			<button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+		</div>
+		{% endfor %}
+	{% endif %}
+	{% endwith %}
+
+	<div class="row">
+		<div class="col-md-12">
+			{% if competitions %}
+			<table class="table table-striped border">
+				<thead>
+					<tr>
+						<th class="text-center">#</th>
+						<th>Slug</th>
+						<th>Name</th>
+						<th class="text-center">State</th>
+						<th class="text-center">Mode</th>
+						<th class="text-center">Start</th>
+						<th class="text-center">End</th>
+						<th class="text-center">Active</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					{% for comp in competitions %}
+					<tr>
+						<td class="text-center">{{ comp.id }}</td>
+						<td><code>{{ comp.slug }}</code></td>
+						<td>
+							<a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}">
+								{{ comp.name }}
+							</a>
+						</td>
+						<td class="text-center">
+							{% if comp.state == 'visible' %}
+								<span class="badge badge-success">visible</span>
+							{% else %}
+								<span class="badge badge-secondary">hidden</span>
+							{% endif %}
+						</td>
+						<td class="text-center">{{ comp.user_mode }}</td>
+						<td class="text-center text-muted" style="font-size:.85rem">
+							{{ comp.start.strftime('%Y-%m-%d %H:%M') if comp.start else '—' }}
+						</td>
+						<td class="text-center text-muted" style="font-size:.85rem">
+							{{ comp.end.strftime('%Y-%m-%d %H:%M') if comp.end else '—' }}
+						</td>
+						<td class="text-center">
+							{% if active_slug == comp.slug %}
+								<span class="badge badge-success"><i class="fas fa-check"></i> Active</span>
+							{% else %}
+								<form method="POST" action="{{ url_for('admin.competitions_activate', competition_id=comp.id) }}" class="d-inline">
+									<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+									<button type="submit" class="btn btn-xs btn-outline-success" title="Set as active">
+										Set Active
+									</button>
+								</form>
+							{% endif %}
+						</td>
+						<td class="text-right">
+							<a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}" class="btn btn-sm btn-outline-secondary">
+								<i class="fas fa-pencil-alt"></i> Edit
+							</a>
+						</td>
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% else %}
+			<div class="text-center text-muted py-5">
+				<i class="fas fa-calendar-times fa-3x mb-3"></i>
+				<p>No competitions yet. <a href="{{ url_for('admin.competitions_new') }}">Create one</a>.</p>
+			</div>
+			{% endif %}
+		</div>
+	</div>
+</div>
+{% endblock %}

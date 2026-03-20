@@ -1,0 +1,426 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Competition landing — design tokens ────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --comp-bg-page:     #f3f4f6;
+  --comp-bg-surface:  #ffffff;
+  --comp-bg-header1:  #e5e7eb;
+  --comp-bg-header2:  #d1d5db;
+  --comp-text:        #111827;
+  --comp-muted:       #6b7280;
+  --comp-border:      #d1d5db;
+  --comp-accent:      #059669;
+  --comp-accent-rgb:  5, 150, 105;
+  --comp-accent-glow: rgba(5,150,105,.15);
+}
+[data-bs-theme="dark"] {
+  --comp-bg-page:     #0d1117;
+  --comp-bg-surface:  #161b22;
+  --comp-bg-header1:  #0d1117;
+  --comp-bg-header2:  #161b22;
+  --comp-text:        #e6edf3;
+  --comp-muted:       #8b949e;
+  --comp-border:      #30363d;
+  --comp-accent:      #00ff88;
+  --comp-accent-rgb:  0, 255, 136;
+  --comp-accent-glow: rgba(0,255,136,.12);
+}
+
+.jumbotron { display: none !important; }
+body { background-color: var(--comp-bg-page) !important; }
+
+/* ── Page header ────────────────────────────────────────────────────────── */
+.comp-hero {
+  padding: 3rem 0 2.5rem;
+  background: linear-gradient(135deg, var(--comp-bg-header1) 0%, var(--comp-bg-header2) 100%);
+  border-bottom: 1px solid var(--comp-border);
+  position: relative;
+  overflow: hidden;
+}
+.comp-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--comp-accent-rgb), .07) 0%, transparent 60%);
+  pointer-events: none;
+}
+.comp-hero .breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: .6rem;
+  font-size: .75rem;
+  letter-spacing: .4px;
+}
+.comp-hero .breadcrumb-item + .breadcrumb-item::before { color: var(--comp-muted); }
+.comp-hero .breadcrumb-item a { color: var(--comp-accent); text-decoration: none; }
+.comp-hero .breadcrumb-item a:hover { text-decoration: underline; }
+.comp-hero .breadcrumb-item.active { color: var(--comp-muted); }
+
+.comp-hero h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--comp-text);
+  letter-spacing: -.5px;
+  margin-bottom: .5rem;
+}
+.comp-hero h1 .accent { color: var(--comp-accent); }
+.comp-hero .comp-meta {
+  font-size: .82rem;
+  color: var(--comp-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+  margin-top: .4rem;
+}
+.comp-hero .comp-meta i { opacity: .7; }
+
+/* ── Active badge ────────────────────────────────────────────────────────── */
+.comp-badge-active {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  background: rgba(var(--comp-accent-rgb), .15);
+  color: var(--comp-accent);
+  border: 1px solid rgba(var(--comp-accent-rgb), .35);
+  border-radius: 999px;
+  padding: .2rem .65rem;
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+}
+.comp-badge-active::before {
+  content: '';
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--comp-accent);
+  animation: comp-pulse 1.6s ease-in-out infinite;
+}
+@keyframes comp-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.5; transform:scale(1.3); }
+}
+
+/* ── Content area ────────────────────────────────────────────────────────── */
+.comp-body { padding: 2.5rem 0 3rem; }
+
+.comp-description {
+  background: var(--comp-bg-surface);
+  border: 1px solid var(--comp-border);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.75rem;
+  color: var(--comp-text);
+  line-height: 1.7;
+}
+
+/* ── Info cards ──────────────────────────────────────────────────────────── */
+.comp-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.comp-info-card {
+  background: var(--comp-bg-surface);
+  border: 1px solid var(--comp-border);
+  border-radius: 10px;
+  padding: 1.1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+.comp-info-card .card-label {
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--comp-muted);
+}
+.comp-info-card .card-value {
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--comp-text);
+}
+.comp-info-card .card-icon {
+  font-size: 1.2rem;
+  color: var(--comp-accent);
+  margin-bottom: .25rem;
+}
+
+/* ── CTA buttons ─────────────────────────────────────────────────────────── */
+.comp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  margin-top: .5rem;
+}
+.comp-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: var(--comp-accent);
+  color: #fff !important;
+  border: none;
+  border-radius: 8px;
+  padding: .6rem 1.4rem;
+  font-size: .88rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  text-decoration: none;
+  transition: opacity .15s, transform .1s;
+}
+.comp-cta-primary:hover { opacity: .9; transform: translateY(-1px); }
+.comp-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  background: transparent;
+  color: var(--comp-accent) !important;
+  border: 1px solid rgba(var(--comp-accent-rgb), .45);
+  border-radius: 8px;
+  padding: .6rem 1.4rem;
+  font-size: .88rem;
+  font-weight: 600;
+  letter-spacing: .3px;
+  text-decoration: none;
+  transition: background .15s, transform .1s;
+}
+.comp-cta-secondary:hover {
+  background: rgba(var(--comp-accent-rgb), .08);
+  transform: translateY(-1px);
+}
+
+/* ── Timer ────────────────────────────────────────────────────────────────── */
+.comp-timer {
+  background: var(--comp-bg-surface);
+  border: 1px solid var(--comp-border);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.75rem;
+}
+.comp-timer .timer-label {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--comp-muted);
+  margin-bottom: .6rem;
+}
+.comp-timer .timer-digits {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+}
+.comp-timer .timer-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--comp-bg-page);
+  border: 1px solid var(--comp-border);
+  border-radius: 8px;
+  padding: .5rem .85rem;
+  min-width: 60px;
+}
+.comp-timer .timer-unit .num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--comp-accent);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.comp-timer .timer-unit .unit-label {
+  font-size: .58rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--comp-muted);
+  margin-top: .15rem;
+}
+
+@media (max-width: 575.98px) {
+  .comp-hero h1 { font-size: 1.5rem; }
+  .comp-info-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Hero / page header -->
+<div class="comp-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('competitions.listing') }}">
+            <i class="fas fa-layer-group me-1"></i>{% trans %}Competitions{% endtrans %}
+          </a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">{{ competition.name }}</li>
+      </ol>
+    </nav>
+
+    <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+      <h1><span class="accent">[</span> {{ competition.name }} <span class="accent">]</span></h1>
+      {% if active_competition and active_competition.id == competition.id %}
+        <span class="comp-badge-active">{% trans %}Active{% endtrans %}</span>
+      {% endif %}
+    </div>
+
+    <div class="comp-meta">
+      {% if competition.start %}
+        <span><i class="fas fa-play-circle me-1"></i>{{ competition.start.strftime('%b %d, %Y %H:%M UTC') }}</span>
+      {% endif %}
+      {% if competition.end %}
+        <span><i class="fas fa-stop-circle me-1"></i>{{ competition.end.strftime('%b %d, %Y %H:%M UTC') }}</span>
+      {% endif %}
+      <span><i class="fas fa-users me-1"></i>
+        {% if competition.user_mode == 'teams' %}{% trans %}Teams{% endtrans %}{% else %}{% trans %}Individual{% endtrans %}{% endif %}
+        {% if competition.team_size and competition.team_size > 0 %}(max {{ competition.team_size }}){% endif %}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Body -->
+<div class="comp-body">
+  <div class="container">
+
+    {% include "components/errors.html" %}
+
+    <!-- Countdown timer (rendered by JS) -->
+    {% if competition.start or competition.end %}
+    <div class="comp-timer" id="comp-timer" style="display:none">
+      <div class="timer-label" id="comp-timer-label">Loading…</div>
+      <div class="timer-digits">
+        <div class="timer-unit"><span class="num" id="comp-t-days">--</span><span class="unit-label">{% trans %}Days{% endtrans %}</span></div>
+        <div class="timer-unit"><span class="num" id="comp-t-hours">--</span><span class="unit-label">{% trans %}Hours{% endtrans %}</span></div>
+        <div class="timer-unit"><span class="num" id="comp-t-mins">--</span><span class="unit-label">{% trans %}Mins{% endtrans %}</span></div>
+        <div class="timer-unit"><span class="num" id="comp-t-secs">--</span><span class="unit-label">{% trans %}Secs{% endtrans %}</span></div>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <!-- Left: description + actions -->
+      <div class="col-lg-8">
+
+        {% if competition.description %}
+        <div class="comp-description">
+          {{ competition.description }}
+        </div>
+        {% endif %}
+
+        <div class="comp-actions">
+          <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-cta-primary">
+            <i class="fas fa-flag"></i>{% trans %}View Challenges{% endtrans %}
+          </a>
+          <a href="{{ url_for('competitions.scoreboard', slug=competition.slug) }}" class="comp-cta-secondary">
+            <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: info cards -->
+      <div class="col-lg-4 mt-4 mt-lg-0">
+        <div class="comp-info-grid">
+
+          {% if competition.start %}
+          <div class="comp-info-card">
+            <i class="fas fa-calendar-alt card-icon"></i>
+            <span class="card-label">{% trans %}Starts{% endtrans %}</span>
+            <span class="card-value">{{ competition.start.strftime('%b %d, %Y') }}</span>
+          </div>
+          {% endif %}
+
+          {% if competition.end %}
+          <div class="comp-info-card">
+            <i class="fas fa-calendar-check card-icon"></i>
+            <span class="card-label">{% trans %}Ends{% endtrans %}</span>
+            <span class="card-value">{{ competition.end.strftime('%b %d, %Y') }}</span>
+          </div>
+          {% endif %}
+
+          <div class="comp-info-card">
+            <i class="fas fa-users card-icon"></i>
+            <span class="card-label">{% trans %}Format{% endtrans %}</span>
+            <span class="card-value">
+              {% if competition.user_mode == 'teams' %}{% trans %}Teams{% endtrans %}{% else %}{% trans %}Individual{% endtrans %}{% endif %}
+            </span>
+          </div>
+
+          {% if competition.team_size and competition.team_size > 0 %}
+          <div class="comp-info-card">
+            <i class="fas fa-user-friends card-icon"></i>
+            <span class="card-label">{% trans %}Max Team Size{% endtrans %}</span>
+            <span class="card-value">{{ competition.team_size }}</span>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if competition.start or competition.end %}
+<script>
+(function () {
+  var start = {{ (competition.start.timestamp() * 1000) | int if competition.start else 'null' }};
+  var end   = {{ (competition.end.timestamp() * 1000) | int if competition.end else 'null' }};
+
+  var timerEl   = document.getElementById('comp-timer');
+  var labelEl   = document.getElementById('comp-timer-label');
+  var daysEl    = document.getElementById('comp-t-days');
+  var hoursEl   = document.getElementById('comp-t-hours');
+  var minsEl    = document.getElementById('comp-t-mins');
+  var secsEl    = document.getElementById('comp-t-secs');
+
+  function pad(v) { return String(v).padStart(2, '0'); }
+
+  function tick() {
+    var now = Date.now();
+    var target = null;
+    var label  = '';
+
+    if (start && now < start) {
+      target = start;
+      label  = '{{ _("Starts in") }}';
+    } else if (end && now < end) {
+      target = end;
+      label  = '{{ _("Ends in") }}';
+    } else {
+      timerEl.style.display = 'none';
+      return;
+    }
+
+    timerEl.style.display = '';
+    labelEl.textContent = label;
+
+    var diff = Math.floor((target - now) / 1000);
+    var d = Math.floor(diff / 86400);
+    var h = Math.floor((diff % 86400) / 3600);
+    var m = Math.floor((diff % 3600) / 60);
+    var s = diff % 60;
+
+    daysEl.textContent  = pad(d);
+    hoursEl.textContent = pad(h);
+    minsEl.textContent  = pad(m);
+    secsEl.textContent  = pad(s);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
+{% endif %}
+{% endblock %}

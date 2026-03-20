@@ -35,7 +35,7 @@ Rating = namedtuple("Rating", ["up", "down", "count"])
 
 
 @cache.memoize(timeout=60)
-def get_all_challenges(admin=False, field=None, q=None, **query_args):
+def get_all_challenges(admin=False, field=None, q=None, competition_id=None, **query_args):
     filters = build_model_filters(model=Challenges, query=q, field=field)
     chal_q = Challenges.query
     # Admins can see hidden and locked challenges in the admin view
@@ -43,6 +43,10 @@ def get_all_challenges(admin=False, field=None, q=None, **query_args):
         chal_q = chal_q.filter(
             and_(Challenges.state != "hidden", Challenges.state != "locked")
         )
+    # Scope to a specific competition when provided.
+    # When None, fall back to returning all challenges (legacy behavior).
+    if competition_id is not None:
+        chal_q = chal_q.filter(Challenges.competition_id == competition_id)
     chal_q = (
         chal_q.filter_by(**query_args)
         .filter(*filters)
@@ -128,19 +132,26 @@ def get_submissions_for_user_id_for_challenge_id(user_id, challenge_id):
 
 
 @cache.memoize(timeout=60)
-def get_solve_ids_for_user_id(user_id):
+def get_solve_ids_for_user_id(user_id, competition_id=None):
     user = Users.query.filter_by(id=user_id).first()
-    solve_ids = (
+    solve_ids_q = (
         Solves.query.with_entities(Solves.challenge_id)
         .filter(Solves.account_id == user.account_id)
-        .all()
     )
+    # When a competition_id is provided, restrict solves to that competition.
+    # Solves inherits from Submissions (joined table inheritance) so
+    # Submissions.competition_id is reachable without an explicit extra join.
+    if competition_id is not None:
+        solve_ids_q = solve_ids_q.filter(
+            Submissions.competition_id == competition_id
+        )
+    solve_ids = solve_ids_q.all()
     solve_ids = {value for (value,) in solve_ids}
     return solve_ids
 
 
 @cache.memoize(timeout=60)
-def get_solve_counts_for_challenges(challenge_id=None, admin=False):
+def get_solve_counts_for_challenges(challenge_id=None, admin=False, competition_id=None):
     if challenge_id is None:
         challenge_id_filter = ()
     else:
@@ -164,6 +175,12 @@ def get_solve_counts_for_challenges(challenge_id=None, admin=False):
         .filter(*challenge_id_filter, freeze_cond, exclude_solves_cond)
         .group_by(Solves.challenge_id)
     )
+
+    # When a competition_id is provided, restrict solve counts to that competition.
+    # Solves inherits Submissions (joined table inheritance) so competition_id
+    # is accessible directly via Submissions without an extra join.
+    if competition_id is not None:
+        solves_q = solves_q.filter(Submissions.competition_id == competition_id)
 
     solve_counts = {}
     for chal_id, solve_count in solves_q:

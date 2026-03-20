@@ -13,14 +13,19 @@ from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
 
 def during_ctf_time_only(f):
     """
-    Decorator to restrict an endpoint to only be seen during a CTF
-    :param f:
-    :return:
+    Decorator to restrict an endpoint to only be seen during a CTF.
+
+    When an active competition is configured (via the 'active_competition' config
+    key), timing is evaluated against that competition's start/end fields.
+    When no active competition is configured, falls back to the global ctftime()
+    which reads from the CTFd config table — preserving legacy behavior exactly.
     """
 
     @functools.wraps(f)
     def during_ctf_time_only_wrapper(*args, **kwargs):
-        if ctftime() or current_user.is_admin():
+        from CTFd.utils.competitions import ctftime_or_competition
+
+        if ctftime_or_competition() or current_user.is_admin():
             return f(*args, **kwargs)
         else:
             if ctf_ended():

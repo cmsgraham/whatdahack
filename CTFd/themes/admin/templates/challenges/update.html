@@ -263,6 +263,23 @@
 	</div>
 	{% endblock %}
 
+	{% block competition %}
+	{% if competitions %}
+	<div class="form-group">
+		<label>
+			Competition<br>
+			<small class="form-text text-muted">Assign this challenge to a competition</small>
+		</label>
+		<select class="form-control custom-select" name="competition_id">
+			<option value="">— None —</option>
+			{% for comp in competitions %}
+			<option value="{{ comp.id }}" {% if challenge.competition_id == comp.id %}selected{% endif %}>{{ comp.name }}</option>
+			{% endfor %}
+		</select>
+	</div>
+	{% endif %}
+	{% endblock %}
+
 	{% block submit %}
 	<div>
 		<button class="btn btn-success btn-outlined float-right" type="submit">

@@ -3,6 +3,7 @@ from collections import defaultdict
 
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, validates
@@ -129,6 +130,9 @@ class Challenges(db.Model):
     image = db.Column(db.Text)
 
     requirements = db.Column(db.JSON)
+    competition_id = db.Column(
+        db.Integer, db.ForeignKey("competitions.id", ondelete="SET NULL"), nullable=True
+    )
 
     files = db.relationship("ChallengeFiles", backref="challenge")
     tags = db.relationship("Tags", backref="challenge")
@@ -248,6 +252,9 @@ class Awards(db.Model):
     category = db.Column(db.String(80))
     icon = db.Column(db.Text)
     requirements = db.Column(db.JSON)
+    competition_id = db.Column(
+        db.Integer, db.ForeignKey("competitions.id", ondelete="SET NULL"), nullable=True
+    )
 
     user = db.relationship("Users", foreign_keys="Awards.user_id", lazy="select")
     team = db.relationship("Teams", foreign_keys="Awards.team_id", lazy="select")
@@ -882,6 +889,9 @@ class Submissions(db.Model):
     provided = db.Column(db.Text)
     type = db.Column(db.String(32))
     date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    competition_id = db.Column(
+        db.Integer, db.ForeignKey("competitions.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Relationships
     user = db.relationship("Users", foreign_keys="Submissions.user_id", lazy="select")
@@ -1195,3 +1205,117 @@ class Ratings(db.Model):
         return "<Rating user_id={} challenge_id={} value={}>".format(
             self.user_id, self.challenge_id, self.value
         )
+
+
+class Competition(db.Model):
+    __tablename__ = "competitions"
+    id = db.Column(db.Integer, primary_key=True)
+    slug = db.Column(db.String(64), unique=True, nullable=False)
+    name = db.Column(db.String(128), nullable=False)
+    description = db.Column(db.Text)
+    state = db.Column(db.String(16), default="hidden")
+    start = db.Column(db.DateTime, nullable=True)
+    end = db.Column(db.DateTime, nullable=True)
+    freeze = db.Column(db.DateTime, nullable=True)
+    user_mode = db.Column(db.String(16), default="teams")
+    team_size = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    challenges = db.relationship("Challenges", backref="competition", lazy="dynamic")
+
+    def __init__(self, *args, **kwargs):
+        super(Competition, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<Competition %r>" % self.name
+
+
+class CompetitionTeam(db.Model):
+    __tablename__ = "competition_teams"
+    id = db.Column(db.Integer, primary_key=True)
+    competition_id = db.Column(
+        db.Integer,
+        db.ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    team_id = db.Column(
+        db.Integer,
+        db.ForeignKey("teams.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    joined_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    competition = db.relationship(
+        "Competition", foreign_keys=[competition_id], lazy="select"
+    )
+    team = db.relationship("Teams", foreign_keys=[team_id], lazy="select")
+
+    __table_args__ = (db.UniqueConstraint("competition_id", "team_id"), {})
+
+    def __init__(self, *args, **kwargs):
+        super(CompetitionTeam, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<CompetitionTeam competition_id={} team_id={}>".format(
+            self.competition_id, self.team_id
+        )
+
+
+class CompetitionUser(db.Model):
+    __tablename__ = "competition_users"
+    id = db.Column(db.Integer, primary_key=True)
+    competition_id = db.Column(
+        db.Integer,
+        db.ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    joined_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+
+    competition = db.relationship(
+        "Competition", foreign_keys=[competition_id], lazy="select"
+    )
+    user = db.relationship("Users", foreign_keys=[user_id], lazy="select")
+
+    __table_args__ = (db.UniqueConstraint("competition_id", "user_id"), {})
+
+    def __init__(self, *args, **kwargs):
+        super(CompetitionUser, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<CompetitionUser competition_id={} user_id={}>".format(
+            self.competition_id, self.user_id
+        )
+
+
+@event.listens_for(Submissions, "before_insert", propagate=True)
+def _auto_set_competition_id(mapper, connection, target):
+    """
+    Automatically derive competition_id on every Submissions insert (including
+    all subclasses — Solves, Fails, Partials, Ratelimiteds, Discards).
+
+    This removes the need to modify individual challenge plugin code.
+    The competition_id is taken from the associated Challenge row.
+
+    Invariants:
+    - If competition_id is already set, do nothing (explicit wins).
+    - If challenge_id is not set, do nothing (no challenge to derive from).
+    - If the challenge has no competition_id, leave target.competition_id as None.
+    """
+    if target.competition_id is not None:
+        return
+    if target.challenge_id is None:
+        return
+    # Use connection-level query to avoid session state issues during flush.
+    from sqlalchemy import text
+
+    row = connection.execute(
+        text("SELECT competition_id FROM challenges WHERE id = :cid"),
+        {"cid": target.challenge_id},
+    ).fetchone()
+    if row and row[0] is not None:
+        target.competition_id = row[0]

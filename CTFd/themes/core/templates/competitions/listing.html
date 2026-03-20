@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+:root,
+[data-bs-theme="light"] {
+  --cl-bg-page:    #f3f4f6;
+  --cl-bg-surface: #ffffff;
+  --cl-bg-header1: #e5e7eb;
+  --cl-bg-header2: #d1d5db;
+  --cl-text:       #111827;
+  --cl-muted:      #6b7280;
+  --cl-border:     #d1d5db;
+  --cl-accent:     #059669;
+  --cl-accent-rgb: 5, 150, 105;
+}
+[data-bs-theme="dark"] {
+  --cl-bg-page:    #0d1117;
+  --cl-bg-surface: #161b22;
+  --cl-bg-header1: #0d1117;
+  --cl-bg-header2: #161b22;
+  --cl-text:       #e6edf3;
+  --cl-muted:      #8b949e;
+  --cl-border:     #30363d;
+  --cl-accent:     #00ff88;
+  --cl-accent-rgb: 0, 255, 136;
+}
+
+.jumbotron { display: none !important; }
+body { background-color: var(--cl-bg-page) !important; }
+
+.cl-header {
+  padding: 2.8rem 0 2.2rem;
+  background: linear-gradient(135deg, var(--cl-bg-header1) 0%, var(--cl-bg-header2) 100%);
+  border-bottom: 1px solid var(--cl-border);
+  position: relative; overflow: hidden;
+}
+.cl-header::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--cl-accent-rgb), .07) 0%, transparent 60%);
+  pointer-events: none;
+}
+.cl-header h1 {
+  font-size: 2rem; font-weight: 800;
+  color: var(--cl-text); letter-spacing: -.5px; margin-bottom: .35rem;
+}
+.cl-header h1 .accent { color: var(--cl-accent); }
+.cl-header p { color: var(--cl-muted); font-size: .88rem; margin: 0; }
+
+.cl-body { padding: 2.5rem 0 3rem; }
+
+.cl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.cl-card {
+  background: var(--cl-bg-surface);
+  border: 1px solid var(--cl-border);
+  border-radius: 12px;
+  padding: 1.5rem 1.6rem;
+  display: flex; flex-direction: column; gap: .35rem;
+  transition: box-shadow .2s, border-color .2s, transform .15s;
+  position: relative; overflow: hidden;
+}
+.cl-card:hover {
+  box-shadow: 0 8px 28px rgba(0,0,0,.1);
+  border-color: rgba(var(--cl-accent-rgb), .4);
+  transform: translateY(-2px);
+}
+.cl-card--active {
+  border-color: rgba(var(--cl-accent-rgb), .55);
+  box-shadow: 0 0 0 1px rgba(var(--cl-accent-rgb), .25);
+}
+.cl-card--active::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--cl-accent); border-radius: 12px 12px 0 0;
+}
+
+.cl-card-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; margin-bottom: .3rem;
+}
+.cl-card-name {
+  font-size: 1.1rem; font-weight: 700; color: var(--cl-text);
+  text-decoration: none; line-height: 1.3;
+}
+.cl-card-name:hover { color: var(--cl-accent); }
+
+.cl-badge {
+  display: inline-flex; align-items: center; gap: .25rem;
+  border-radius: 999px; padding: .18rem .55rem;
+  font-size: .65rem; font-weight: 700; letter-spacing: .5px;
+  text-transform: uppercase; white-space: nowrap; flex-shrink: 0;
+}
+.cl-badge--active {
+  background: rgba(var(--cl-accent-rgb), .15); color: var(--cl-accent);
+  border: 1px solid rgba(var(--cl-accent-rgb), .35);
+}
+.cl-badge--active::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--cl-accent);
+  animation: cl-pulse 1.6s ease-in-out infinite;
+}
+@keyframes cl-pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.5; transform:scale(1.3); }
+}
+.cl-badge--hidden {
+  background: rgba(107,114,128,.08); color: var(--cl-muted);
+  border: 1px solid rgba(107,114,128,.2);
+}
+
+.cl-card-desc {
+  font-size: .85rem; color: var(--cl-muted);
+  line-height: 1.6; margin: .25rem 0 .5rem;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.cl-card-meta {
+  font-size: .75rem; color: var(--cl-muted);
+  display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .75rem;
+}
+.cl-card-meta i { opacity: .7; }
+
+.cl-card-actions {
+  display: flex; gap: .5rem; flex-wrap: wrap;
+  margin-top: auto; padding-top: .75rem;
+  border-top: 1px solid var(--cl-border);
+}
+.cl-btn-primary {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--cl-accent); color: #fff !important;
+  border: none; border-radius: 7px;
+  padding: .42rem 1rem; font-size: .8rem; font-weight: 600;
+  text-decoration: none; transition: opacity .15s;
+}
+.cl-btn-primary:hover { opacity: .88; }
+.cl-btn-secondary {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: transparent; color: var(--cl-accent) !important;
+  border: 1px solid rgba(var(--cl-accent-rgb), .4);
+  border-radius: 7px;
+  padding: .42rem 1rem; font-size: .8rem; font-weight: 600;
+  text-decoration: none; transition: background .15s;
+}
+.cl-btn-secondary:hover { background: rgba(var(--cl-accent-rgb), .07); }
+
+.cl-empty {
+  text-align: center; padding: 5rem 1rem; color: var(--cl-muted);
+}
+.cl-empty i { font-size: 3rem; opacity: .35; margin-bottom: 1rem; display: block; }
+.cl-empty p { font-size: .9rem; margin: 0; }
+
+@media (max-width: 575.98px) {
+  .cl-header h1 { font-size: 1.5rem; }
+  .cl-grid { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cl-header">
+  <div class="container">
+    <h1><span class="accent">[</span> {% trans %}Competitions{% endtrans %} <span class="accent">]</span></h1>
+    <p>// {% trans %}browse and join available competitions{% endtrans %}</p>
+  </div>
+</div>
+
+<div class="cl-body">
+  <div class="container">
+    {% if competitions %}
+    <div class="cl-grid">
+      {% for comp in competitions %}
+      {% set is_active = active_competition and active_competition.id == comp.id %}
+      <div class="cl-card {% if is_active %}cl-card--active{% endif %}">
+
+        <div class="cl-card-header">
+          <a href="{{ url_for('competitions.show', slug=comp.slug) }}" class="cl-card-name">{{ comp.name }}</a>
+          <div class="d-flex gap-1 flex-wrap">
+            {% if is_active %}
+              <span class="cl-badge cl-badge--active">{% trans %}Active{% endtrans %}</span>
+            {% endif %}
+            {% if comp.state == 'hidden' %}
+              <span class="cl-badge cl-badge--hidden"><i class="fas fa-eye-slash"></i> {% trans %}Hidden{% endtrans %}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if comp.description %}
+        <p class="cl-card-desc">{{ comp.description }}</p>
+        {% endif %}
+
+        <div class="cl-card-meta">
+          {% if comp.start %}
+            <span><i class="fas fa-play-circle"></i> {{ comp.start.strftime('%b %d, %Y') }}</span>
+          {% endif %}
+          {% if comp.end %}
+            <span><i class="fas fa-stop-circle"></i> {{ comp.end.strftime('%b %d, %Y') }}</span>
+          {% endif %}
+          <span><i class="fas fa-users"></i>
+            {% if comp.user_mode == 'teams' %}{% trans %}Teams{% endtrans %}{% else %}{% trans %}Individual{% endtrans %}{% endif %}
+            {% if comp.team_size and comp.team_size > 0 %}&nbsp;(max&nbsp;{{ comp.team_size }}){% endif %}
+          </span>
+        </div>
+
+        <div class="cl-card-actions">
+          <a href="{{ url_for('competitions.challenges', slug=comp.slug) }}" class="cl-btn-primary">
+            <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
+          </a>
+          <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="cl-btn-secondary">
+            <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
+          </a>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="cl-empty">
+      <i class="fas fa-calendar-times"></i>
+      <p>{% trans %}No competitions are available yet. Check back soon.{% endtrans %}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
