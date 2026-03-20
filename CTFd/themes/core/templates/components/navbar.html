@@ -1,27 +1,292 @@
-<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+<!-- ── Navbar CSS ──────────────────────────────────────────────────────────── -->
+<style>
+/* ── Navbar tokens — light ───────────────────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --nav-bg:               rgba(255,255,255,.92);
+  --nav-border:           rgba(0,0,0,.09);
+  --nav-text:             #374151;
+  --nav-muted:            #6b7280;
+  --nav-hover-bg:         rgba(0,0,0,.05);
+  --nav-active-bg:        rgba(5,150,105,.1);
+  --nav-active-text:      #059669;
+  --nav-accent:           #059669;
+  --nav-accent-rgb:       5, 150, 105;
+  --nav-dropdown-bg:      #ffffff;
+  --nav-dropdown-border:  #e2e8f0;
+  --nav-dropdown-hover:   rgba(5,150,105,.07);
+  --nav-badge-bg:         #ef4444;
+  --nav-badge-text:       #ffffff;
+  --nav-icon-btn-bg:      transparent;
+  --nav-icon-btn-hover:   rgba(0,0,0,.06);
+  --nav-brand-accent:     #059669;
+  --nav-divider:          rgba(0,0,0,.08);
+}
+/* ── Navbar tokens — dark ────────────────────────────────────────────────── */
+[data-bs-theme="dark"] {
+  --nav-bg:               rgba(13,17,23,.9);
+  --nav-border:           rgba(48,54,61,.9);
+  --nav-text:             #c9d1d9;
+  --nav-muted:            #8b949e;
+  --nav-hover-bg:         rgba(255,255,255,.055);
+  --nav-active-bg:        rgba(0,255,136,.1);
+  --nav-active-text:      #00ff88;
+  --nav-accent:           #00ff88;
+  --nav-accent-rgb:       0, 255, 136;
+  --nav-dropdown-bg:      #161b22;
+  --nav-dropdown-border:  #30363d;
+  --nav-dropdown-hover:   rgba(0,255,136,.07);
+  --nav-badge-bg:         #f85149;
+  --nav-badge-text:       #ffffff;
+  --nav-icon-btn-bg:      transparent;
+  --nav-icon-btn-hover:   rgba(255,255,255,.07);
+  --nav-brand-accent:     #00ff88;
+  --nav-divider:          rgba(255,255,255,.07);
+}
+
+/* ── Navbar shell ────────────────────────────────────────────────────────── */
+.navbar.ctf-nav {
+  background: var(--nav-bg) !important;
+  border-bottom: 1px solid var(--nav-border);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding-top: 0;
+  padding-bottom: 0;
+  min-height: 52px;
+}
+.ctf-nav .container { min-height: 52px; }
+
+/* Accent underline glow */
+.ctf-nav::after {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--nav-accent-rgb), .35) 50%, transparent 100%);
+  pointer-events: none;
+}
+
+/* ── Brand ───────────────────────────────────────────────────────────────── */
+.ctf-nav .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  padding: 0;
+  margin-right: 1.5rem;
+  text-decoration: none;
+}
+.ctf-nav .navbar-brand .ctf-brand-logo {
+  height: 26px;
+  width: auto;
+  display: block;
+}
+.ctf-nav .navbar-brand .ctf-brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.ctf-nav .navbar-brand .ctf-brand-name {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--nav-text);
+}
+.ctf-nav .navbar-brand .ctf-brand-sub {
+  font-size: .58rem;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--nav-brand-accent);
+  margin-top: 1px;
+  opacity: .85;
+}
+.ctf-nav .navbar-brand:hover .ctf-brand-name { color: var(--nav-active-text); }
+
+/* ── Toggler ─────────────────────────────────────────────────────────────── */
+.ctf-nav .navbar-toggler {
+  border: 1px solid var(--nav-divider);
+  border-radius: 8px;
+  padding: .28rem .52rem;
+  color: var(--nav-muted);
+  background: var(--nav-icon-btn-bg);
+  box-shadow: none !important;
+  transition: border-color .2s, background .2s;
+}
+.ctf-nav .navbar-toggler:hover { background: var(--nav-icon-btn-hover); border-color: rgba(var(--nav-accent-rgb), .4); }
+.ctf-nav .navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28140,148,158,0.85%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+  width: 1.2em;
+  height: 1.2em;
+}
+
+/* ── Left nav links ──────────────────────────────────────────────────────── */
+.ctf-nav .ctf-nav-links {
+  gap: .1rem;
+  align-items: center;
+}
+.ctf-nav .ctf-nav-links .nav-item { position: relative; }
+.ctf-nav .ctf-nav-links .nav-link {
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--nav-muted);
+  padding: .35rem .7rem;
+  border-radius: 6px;
+  transition: color .18s, background .18s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.ctf-nav .ctf-nav-links .nav-link:hover { color: var(--nav-text); background: var(--nav-hover-bg); }
+.ctf-nav .ctf-nav-links .nav-link.active,
+.ctf-nav .ctf-nav-links .nav-link[aria-current="page"] { color: var(--nav-active-text); background: var(--nav-active-bg); }
+
+/* ── Divider (mobile) ────────────────────────────────────────────────────── */
+.ctf-nav .ctf-nav-divider { border-color: var(--nav-divider) !important; margin: .55rem 0; }
+
+/* ── Right utility area ──────────────────────────────────────────────────── */
+.ctf-nav .ctf-nav-utils {
+  display: flex;
+  align-items: center;
+  gap: .15rem;
+}
+
+/* Icon-style action button (notifications, settings, theme, etc.) */
+.ctf-nav .ctf-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .38rem;
+  background: var(--nav-icon-btn-bg);
+  border: none;
+  border-radius: 7px;
+  color: var(--nav-muted);
+  font-size: .75rem;
+  font-weight: 500;
+  letter-spacing: .4px;
+  padding: .32rem .58rem;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .15s, background .15s;
+  line-height: 1;
+}
+.ctf-nav .ctf-icon-btn i { font-size: .78rem; }
+.ctf-nav .ctf-icon-btn:hover { color: var(--nav-text); background: var(--nav-icon-btn-hover); text-decoration: none; }
+.ctf-nav .ctf-icon-btn.active { color: var(--nav-active-text); background: var(--nav-active-bg); }
+
+/* Admin button gets a subtle accent colour */
+.ctf-nav .ctf-icon-btn--admin { color: var(--nav-accent) !important; }
+.ctf-nav .ctf-icon-btn--admin:hover { background: rgba(var(--nav-accent-rgb), .1) !important; }
+
+/* Logout: red-tinted on hover */
+.ctf-nav .ctf-icon-btn--logout:hover { color: #ef4444 !important; background: rgba(239,68,68,.08) !important; }
+
+/* Notification badge */
+.ctf-nav .ctf-notif-wrap { position: relative; display: inline-flex; }
+.ctf-nav .ctf-notif-badge {
+  position: absolute;
+  top: 0; right: 0;
+  transform: translate(40%, -40%);
+  min-width: 16px;
+  height: 16px;
+  font-size: .58rem;
+  line-height: 16px;
+  text-align: center;
+  padding: 0 3px;
+  border-radius: 8px;
+  background: var(--nav-badge-bg);
+  color: var(--nav-badge-text);
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Thin separator between icon group zones */
+.ctf-nav .ctf-util-sep {
+  width: 1px;
+  height: 22px;
+  background: var(--nav-divider);
+  margin: 0 .28rem;
+  flex-shrink: 0;
+}
+
+/* ── Language dropdown ───────────────────────────────────────────────────── */
+.ctf-nav .ctf-lang-dropdown .dropdown-toggle {
+  /* inherits .ctf-icon-btn */
+}
+.ctf-nav .ctf-lang-dropdown .dropdown-toggle::after { display: none; }
+.ctf-nav .ctf-lang-menu {
+  background: var(--nav-dropdown-bg) !important;
+  border: 1px solid var(--nav-dropdown-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18) !important;
+  padding: .35rem;
+  min-width: 160px;
+}
+.ctf-nav .ctf-lang-menu .dropdown-item {
+  border-radius: 6px;
+  font-size: .78rem;
+  padding: .42rem .75rem;
+  color: var(--nav-text);
+  background: transparent;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.ctf-nav .ctf-lang-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
+.ctf-nav .ctf-lang-menu .dropdown-item.ctf-lang-active { color: var(--nav-active-text) !important; background: rgba(var(--nav-accent-rgb), .1) !important; font-weight: 600; }
+
+/* ── Mobile collapsed menu ───────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .ctf-nav .ctf-nav-utils { flex-direction: column; align-items: flex-start; padding-bottom: .5rem; }
+  .ctf-nav .ctf-icon-btn { width: 100%; justify-content: flex-start; padding: .48rem .7rem; border-radius: 7px; font-size: .82rem; }
+  .ctf-nav .ctf-util-sep { display: none; }
+  .ctf-nav .ctf-nav-links .nav-link { font-size: .82rem; padding: .48rem .7rem; width: 100%; }
+  .ctf-nav .ctf-lang-menu { position: static !important; transform: none; box-shadow: none !important; border: 1px solid var(--nav-dropdown-border) !important; margin-top: .25rem; }
+  .ctf-nav .ctf-notif-badge { position: static; transform: none; display: inline; vertical-align: middle; }
+  .ctf-nav .ctf-notif-wrap { display: inline-flex; align-items: center; gap: .3rem; }
+}
+</style>
+
+<!-- ── Navbar markup ──────────────────────────────────────────────────────── -->
+<nav class="navbar navbar-expand-md fixed-top ctf-nav">
   <div class="container">
+
+    <!-- Brand -->
     <a href="{{ url_for('views.static_html', route='/') }}" class="navbar-brand">
       {% if Configs.ctf_logo %}
         <img
-            class="img-responsive ctf_logo"
-            src="{{ url_for('views.files', path=Configs.ctf_logo) }}"
-            alt="{{ Configs.ctf_name }}"
-            height="25"
+          class="ctf-brand-logo"
+          src="{{ url_for('views.files', path=Configs.ctf_logo) }}"
+          alt="{{ Configs.ctf_name }}"
         >
       {% else %}
-        {{ Configs.ctf_name }}
+        {% set brand_parts = Configs.ctf_name.split(' ', 1) %}
+        <span class="ctf-brand-text">
+          <span class="ctf-brand-name">{{ brand_parts[0] }}</span>
+          {% if brand_parts|length > 1 %}
+            <span class="ctf-brand-sub">{{ brand_parts[1] }}</span>
+          {% endif %}
+        </span>
       {% endif %}
     </a>
 
+    <!-- Mobile toggler -->
     <button
-        class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#base-navbars"
-        aria-controls="base-navbars" aria-expanded="false" aria-label="Toggle navigation"
+      class="navbar-toggler" type="button"
+      data-bs-toggle="collapse" data-bs-target="#base-navbars"
+      aria-controls="base-navbars" aria-expanded="false" aria-label="Toggle navigation"
     >
       <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="base-navbars">
-      <ul class="navbar-nav me-auto">
+
+      <!-- Left links -->
+      <ul class="navbar-nav me-auto ctf-nav-links">
         {% for page in Plugins.user_menu_pages %}
           <li class="nav-item">
             <a class="nav-link" href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
@@ -33,14 +298,13 @@
         {% if Configs.account_visibility != 'admins' %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('users.listing') }}">
-              {% trans %}Users{% endtrans %}
+              <i class="fas fa-users"></i>{% trans %}Users{% endtrans %}
             </a>
           </li>
-
           {% if Configs.user_mode == 'teams' %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('teams.listing') }}">
-                {% trans %}Teams{% endtrans %}
+                <i class="fas fa-layer-group"></i>{% trans %}Teams{% endtrans %}
               </a>
             </li>
           {% endif %}
@@ -49,163 +313,140 @@
         {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('scoreboard.listing') }}">
-              {% trans %}Scoreboard{% endtrans %}
+              <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
             </a>
           </li>
         {% endif %}
 
         <li class="nav-item">
           <a class="nav-link" href="{{ url_for('challenges.listing') }}">
-            {% trans %}Challenges{% endtrans %}
+            <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
           </a>
         </li>
       </ul>
 
-      <hr class="d-sm-flex d-md-flex d-lg-none">
+      <hr class="d-md-none ctf-nav-divider">
 
-      <ul class="navbar-nav ms-md-auto d-block d-sm-flex d-md-flex">
+      <!-- Right utility row -->
+      <ul class="navbar-nav ctf-nav-utils">
         {% if authed() %}
 
           {% if is_admin() %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('admin.view') }}">
-                <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Admin Panel{% endtrans %}">
-                    <i class="fas fa-wrench d-none d-md-inline d-lg-none"></i>
-                </span>
-                <span class="d-sm-inline d-md-none d-lg-inline">
-                  <i class="fas fa-wrench pe-1"></i>
-                  {% trans %}Admin Panel{% endtrans %}
-                </span>
+              <a class="ctf-icon-btn ctf-icon-btn--admin" href="{{ url_for('admin.view') }}"
+                 data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Admin Panel{% endtrans %}">
+                <i class="fas fa-wrench"></i>
+                <span class="d-inline d-md-none d-lg-inline">{% trans %}Admin{% endtrans %}</span>
               </a>
             </li>
+            <li class="ctf-util-sep d-none d-md-flex"></li>
           {% endif %}
 
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('views.notifications') }}">
-              <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Notifications{% endtrans %}">
-                <i class="fas fa-bell d-none d-md-inline d-lg-none"></i>
+            <a class="ctf-icon-btn" href="{{ url_for('views.notifications') }}"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Notifications{% endtrans %}">
+              <span class="ctf-notif-wrap">
+                <i class="fas fa-bell"></i>
+                <span x-data x-show="$store.unread_count > 0" x-text="$store.unread_count"
+                      class="ctf-notif-badge badge-notification"></span>
               </span>
-              <span class="d-sm-inline d-md-none d-lg-inline">
-                  <i class="fas fa-bell pe-1"></i>
-                  <span x-data x-show="$store.unread_count > 0" x-text="$store.unread_count" class="badge rounded-pill bg-danger badge-notification"></span>
-                  {% trans %}Notifications{% endtrans %}
-              </span>
+              <span class="d-inline d-md-none d-lg-inline">{% trans %}Notifications{% endtrans %}</span>
             </a>
           </li>
 
           {% if Configs.user_mode == "teams" %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('teams.private') }}">
-                <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Team{% endtrans %}">
-                  <i class="fas fa-users d-none d-md-inline d-lg-none"></i>
-                </span>
-                <span class="d-sm-inline d-md-none d-lg-inline">
-                  <i class="fas fa-users pe-1"></i>
-                  {% trans %}Team{% endtrans %}
-                </span>
+              <a class="ctf-icon-btn" href="{{ url_for('teams.private') }}"
+                 data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Team{% endtrans %}">
+                <i class="fas fa-users"></i>
+                <span class="d-inline d-md-none d-lg-inline">{% trans %}Team{% endtrans %}</span>
               </a>
             </li>
           {% endif %}
 
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('users.private') }}">
-              <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Profile{% endtrans %}">
-                <i class="fas fa-user-circle d-none d-md-inline d-lg-none"></i>
-              </span>
-              <span class="d-sm-inline d-md-none d-lg-inline">
-                <i class="fas fa-user-circle pe-1"></i>
-                {% trans %}Profile{% endtrans %}
-              </span>
+            <a class="ctf-icon-btn" href="{{ url_for('users.private') }}"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Profile{% endtrans %}">
+              <i class="fas fa-user-circle"></i>
+              <span class="d-inline d-md-none d-lg-inline">{% trans %}Profile{% endtrans %}</span>
             </a>
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('views.settings') }}">
-              <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Settings{% endtrans %}">
-                <i class="fas fa-cogs d-none d-md-inline d-lg-none"></i>
-              </span>
-              <span class="d-sm-inline d-md-none d-lg-inline">
-                <i class="fas fa-cogs pe-1"></i>
-                {% trans %}Settings{% endtrans %}
-              </span>
+            <a class="ctf-icon-btn" href="{{ url_for('views.settings') }}"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Settings{% endtrans %}">
+              <i class="fas fa-cog"></i>
+              <span class="d-inline d-md-none d-lg-inline d-none">{% trans %}Settings{% endtrans %}</span>
             </a>
           </li>
 
+          <li class="ctf-util-sep d-none d-md-flex"></li>
+
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('auth.logout') }}">
-              <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Logout{% endtrans %}">
-                <i class="fas fa-sign-out-alt d-none d-md-inline d-lg-none"></i>
-              </span>
-              <span class="d-sm-inline d-md-none d-lg-inline">
-                <i class="fas fa-sign-out-alt pe-1"></i><span class="d-lg-none">
-                  {% trans %}Logout{% endtrans %}
-                </span>
-              </span>
+            <a class="ctf-icon-btn ctf-icon-btn--logout" href="{{ url_for('auth.logout') }}"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Logout{% endtrans %}">
+              <i class="fas fa-sign-out-alt"></i>
+              <span class="d-inline d-md-none">{% trans %}Logout{% endtrans %}</span>
             </a>
           </li>
+
         {% else %}
 
           {% if registration_visible() %}
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('auth.register') }}">
-                <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Register{% endtrans %}">
-                  <i class="fas fa-user-plus d-none d-md-inline d-lg-none"></i>
-                </span>
-                <span class="d-sm-inline d-md-none d-lg-inline">
-                  <i class="fas fa-user-plus pe-1"></i>
-                  {% trans %}Register{% endtrans %}
-                </span>
+              <a class="ctf-icon-btn" href="{{ url_for('auth.register') }}">
+                <i class="fas fa-user-plus"></i>
+                {% trans %}Register{% endtrans %}
               </a>
             </li>
           {% endif %}
 
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('auth.login') }}">
-              <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Login{% endtrans %}">
-                <i class="fas fa-sign-in-alt d-none d-md-inline d-lg-none"></i>
-              </span>
-              <span class="d-sm-inline d-md-none d-lg-inline">
-                <i class="fas fa-sign-in-alt pe-1"></i>
-                {% trans %}Login{% endtrans %}
-              </span>
+            <a class="ctf-icon-btn" href="{{ url_for('auth.login') }}">
+              <i class="fas fa-sign-in-alt"></i>
+              {% trans %}Login{% endtrans %}
             </a>
           </li>
+
         {% endif %}
 
-        <li class="nav-item dropdown">
-          <button class="nav-link dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-language d-none d-md-inline"></i>
-            <span class="d-sm-inline d-md-none">
-              <i class="fas fa-language pe-1"></i>
-              {% trans %}Change language{% endtrans %}
-            </span>
+        <li class="ctf-util-sep d-none d-md-flex"></li>
+
+        <!-- Language dropdown -->
+        <li class="nav-item dropdown ctf-lang-dropdown">
+          <button class="ctf-icon-btn dropdown-toggle" type="button"
+                  data-bs-toggle="dropdown" aria-expanded="false"
+                  data-bs-toggle="tooltip" data-bs-placement="bottom"
+                  title="{% trans %}Change language{% endtrans %}">
+            <i class="fas fa-language"></i>
+            <span class="d-inline d-md-none">{% trans %}Language{% endtrans %}</span>
           </button>
           <form x-data="LanguageForm">
-            <ul class="dropdown-menu dropdown-menu-end">
+            <ul class="dropdown-menu dropdown-menu-end ctf-lang-menu">
               {% set curr_lang = get_locale() %}
               {%- for lang in Languages.names.items() %}
               <li>
-                  <span class="dropdown-item {{ 'bg-primary text-white' if (curr_lang == lang[0]) }}" @click="set" value="{{ lang[0] }}">
-                    {{ lang[1] }}
-                  </span>
+                <span
+                  class="dropdown-item {% if curr_lang == lang[0] %}ctf-lang-active{% endif %}"
+                  @click="set" value="{{ lang[0] }}"
+                >{{ lang[1] }}</span>
               </li>
               {%- endfor %}
             </ul>
           </form>
         </li>
 
+        <!-- Theme switch -->
         <li class="nav-item">
-          <button class="nav-link theme-switch" type="button">
-            <span data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Toggle theme{% endtrans %}">
-              <i class="fas fa-sun d-none d-md-inline"></i>
-            </span>
-            <span class="d-sm-inline d-md-none">
-              <i class="fas fa-sun pe-1"></i>
-              {% trans %}Toggle theme{% endtrans %}
-            </span>
+          <button class="ctf-icon-btn theme-switch" type="button"
+                  data-bs-toggle="tooltip" data-bs-placement="bottom"
+                  title="{% trans %}Toggle theme{% endtrans %}">
+            <i class="fas fa-circle-half-stroke"></i>
+            <span class="d-inline d-md-none">{% trans %}Toggle theme{% endtrans %}</span>
           </button>
         </li>
       </ul>
+
     </div>
   </div>
 </nav>

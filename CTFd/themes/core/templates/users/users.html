@@ -1,140 +1,468 @@
 {% extends "base.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Design tokens — light ───────────────────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --ctf-bg-page:        #f3f4f6;
+  --ctf-bg-surface:     #ffffff;
+  --ctf-bg-elevated:    #f8f9fa;
+  --ctf-bg-input:       #ffffff;
+  --ctf-text-primary:   #111827;
+  --ctf-text-muted:     #6b7280;
+  --ctf-border:         #d1d5db;
+  --ctf-border-subtle:  #e5e7eb;
+  --ctf-accent:         #059669;
+  --ctf-accent-rgb:     5, 150, 105;
+  --ctf-accent-glow:    rgba(5,150,105,.15);
+  --ctf-header-bg1:     #e5e7eb;
+  --ctf-header-bg2:     #d1d5db;
+  --ctf-badge-bg:       rgba(0,0,0,.06);
+  --ctf-badge-color:    #374151;
+  --ctf-divider:        #e5e7eb;
+  --ctf-shadow-hover:   0 8px 24px rgba(0,0,0,.1), 0 0 0 1px rgba(5,150,105,.15);
+}
+/* ── Design tokens — dark ────────────────────────────────────────────────── */
+[data-bs-theme="dark"] {
+  --ctf-bg-page:        #0d1117;
+  --ctf-bg-surface:     #161b22;
+  --ctf-bg-elevated:    #161b22;
+  --ctf-bg-input:       #0d1117;
+  --ctf-text-primary:   #e6edf3;
+  --ctf-text-muted:     #8b949e;
+  --ctf-border:         #30363d;
+  --ctf-border-subtle:  #21262d;
+  --ctf-accent:         #00ff88;
+  --ctf-accent-rgb:     0, 255, 136;
+  --ctf-accent-glow:    rgba(0,255,136,.12);
+  --ctf-header-bg1:     #0d1117;
+  --ctf-header-bg2:     #161b22;
+  --ctf-badge-bg:       #21262d;
+  --ctf-badge-color:    #8b949e;
+  --ctf-divider:        #21262d;
+  --ctf-shadow-hover:   0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(0,255,136,.12);
+}
+
+.jumbotron { display: none !important; }
+body { background-color: var(--ctf-bg-page) !important; }
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.ctf-page-header {
+  padding: 2.5rem 0 2rem;
+  background: linear-gradient(135deg, var(--ctf-header-bg1) 0%, var(--ctf-header-bg2) 100%);
+  border-bottom: 1px solid var(--ctf-border);
+  position: relative;
+  overflow: hidden;
+}
+.ctf-page-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb), .06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ctf-page-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--ctf-accent) 50%, transparent 100%);
+  opacity: .3;
+}
+.ctf-page-header h1 {
+  font-size: 1.75rem;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--ctf-text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+.ctf-page-header h1 .accent { color: var(--ctf-accent); }
+.ctf-page-header p {
+  color: var(--ctf-text-muted);
+  font-size: .75rem;
+  letter-spacing: 2px;
+  margin: .4rem 0 0;
+}
+
+/* ── Filter / search bar ─────────────────────────────────────────────────── */
+.ctf-filter-bar {
+  background: var(--ctf-bg-elevated);
+  border: 1px solid var(--ctf-border);
+  border-radius: 10px;
+  padding: .85rem 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  align-items: center;
+  margin: 1.5rem 0 1.5rem;
+}
+.ctf-filter-bar .ctf-select,
+.ctf-filter-bar .ctf-input {
+  background: var(--ctf-bg-input);
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-primary);
+  border-radius: 6px;
+  font-size: .78rem;
+  padding: .38rem .8rem;
+  transition: border-color .2s, box-shadow .2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.ctf-filter-bar .ctf-select:focus,
+.ctf-filter-bar .ctf-input:focus {
+  outline: none;
+  border-color: var(--ctf-accent);
+  box-shadow: 0 0 0 2px var(--ctf-accent-glow);
+}
+.ctf-filter-bar .ctf-select {
+  padding-right: 1.9rem;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 16 16'%3e%3cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right .5rem center;
+  background-size: .75em;
+}
+[data-bs-theme="dark"] .ctf-filter-bar .ctf-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%238b949e' viewBox='0 0 16 16'%3e%3cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+}
+.ctf-filter-bar .ctf-input { flex: 1; min-width: 200px; }
+.ctf-filter-bar .ctf-input::placeholder { color: var(--ctf-text-muted); }
+.ctf-filter-bar .ctf-select option { background: var(--ctf-bg-input); color: var(--ctf-text-primary); }
+.ctf-submit-btn {
+  background: rgba(var(--ctf-accent-rgb), .1);
+  border: 1px solid rgba(var(--ctf-accent-rgb), .35);
+  color: var(--ctf-accent);
+  border-radius: 6px;
+  padding: .38rem .9rem;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+.ctf-submit-btn:hover { background: rgba(var(--ctf-accent-rgb), .18); }
+
+/* ── Search info strip ───────────────────────────────────────────────────── */
+.ctf-search-info {
+  background: var(--ctf-bg-elevated);
+  border: 1px solid var(--ctf-border);
+  border-radius: 8px;
+  padding: .65rem 1.1rem;
+  font-size: .82rem;
+  color: var(--ctf-text-muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.ctf-search-info i { color: var(--ctf-accent); }
+.ctf-search-info strong { color: var(--ctf-accent); }
+
+/* ── User list ───────────────────────────────────────────────────────────── */
+.ctf-user-list {
+  background: var(--ctf-bg-surface);
+  border: 1px solid var(--ctf-border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+}
+.ctf-user-list-head {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr 140px;
+  padding: .55rem 1.25rem;
+  background: var(--ctf-bg-elevated);
+  border-bottom: 1px solid var(--ctf-border);
+  gap: .5rem;
+}
+.ctf-user-list-head span {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ctf-text-muted);
+}
+.ctf-user-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr 140px;
+  align-items: center;
+  padding: .72rem 1.25rem;
+  border-bottom: 1px solid var(--ctf-border-subtle);
+  transition: background .15s;
+  gap: .5rem;
+}
+.ctf-user-row:last-child { border-bottom: none; }
+.ctf-user-row:hover { background: var(--ctf-bg-elevated); }
+
+/* Avatar + name cell */
+.ctf-user-name-cell { display: flex; align-items: center; gap: .65rem; min-width: 0; }
+.ctf-user-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(var(--ctf-accent-rgb), .08);
+  border: 1px solid rgba(var(--ctf-accent-rgb), .18);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--ctf-accent);
+  font-size: .72rem;
+}
+.ctf-user-name-info { min-width: 0; }
+.ctf-user-name {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ctf-text-primary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  transition: color .15s;
+}
+.ctf-user-name:hover { color: var(--ctf-accent); text-decoration: none; }
+.ctf-user-name--plain {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ctf-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.ctf-user-badges { display: flex; gap: .3rem; flex-wrap: wrap; margin-top: .2rem; }
+
+/* Badges */
+.ctf-badge {
+  font-size: .6rem;
+  padding: .1rem .4rem;
+  border-radius: 4px;
+  background: var(--ctf-badge-bg);
+  color: var(--ctf-badge-color);
+  border: 1px solid var(--ctf-border);
+  text-transform: uppercase;
+  letter-spacing: .3px;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.ctf-badge--official {
+  background: rgba(var(--ctf-accent-rgb), .1);
+  color: var(--ctf-accent);
+  border-color: rgba(var(--ctf-accent-rgb), .3);
+}
+.ctf-badge--official:hover { opacity: .8; }
+
+/* Website cell */
+.ctf-user-website { text-align: center; }
+.ctf-user-website a { color: var(--ctf-text-muted); font-size: .82rem; transition: color .15s; }
+.ctf-user-website a:hover { color: var(--ctf-accent); }
+
+/* Affiliation / Country */
+.ctf-user-affiliation {
+  font-size: .8rem;
+  color: var(--ctf-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ctf-user-country {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .8rem;
+  color: var(--ctf-text-muted);
+}
+
+/* ── Pagination ──────────────────────────────────────────────────────────── */
+.ctf-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .5rem 0 2.5rem;
+}
+.ctf-pagination a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  border: 1px solid var(--ctf-border);
+  border-radius: 7px;
+  background: var(--ctf-bg-surface);
+  color: var(--ctf-text-muted);
+  font-size: .8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  text-decoration: none;
+  padding: 0 .55rem;
+}
+.ctf-pagination a:hover {
+  border-color: var(--ctf-accent);
+  color: var(--ctf-accent);
+  background: rgba(var(--ctf-accent-rgb), .06);
+  text-decoration: none;
+}
+.ctf-page-select {
+  background: var(--ctf-bg-input);
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-primary);
+  border-radius: 7px;
+  padding: .3rem .7rem;
+  font-size: .8rem;
+  cursor: pointer;
+}
+.ctf-page-select:focus { outline: none; border-color: var(--ctf-accent); }
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .ctf-user-list-head { grid-template-columns: 1fr 40px; }
+  .ctf-user-list-head .ctf-col-web { display: none; }
+  .ctf-user-list-head .ctf-col-aff { display: none; }
+  .ctf-user-list-head .ctf-col-country { display: none; }
+  .ctf-user-row { grid-template-columns: 1fr 40px; }
+  .ctf-user-affiliation,
+  .ctf-user-country { display: none !important; }
+  .ctf-filter-bar { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>{% trans %}Users{% endtrans %}</h1>
+<!-- Page header -->
+<div class="ctf-page-header">
+  <div class="container">
+    <h1><span class="accent">[</span> {% trans %}Users{% endtrans %} <span class="accent">]</span></h1>
+    <p>// registered participants on this platform</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      {% include "components/errors.html" %}
     </div>
   </div>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        {% if q and field %}
-          <h5 class="text-muted text-center">
-            {% trans %}Searching for users with <strong>{{ field }}</strong> matching <strong>{{ q }}</strong>{% endtrans %}
-          </h5>
-          <h6 class="text-muted text-center pb-3">
-            {% trans page=users.page, total=users.total %}Page {{ page }} of {{ total }} results{% endtrans %}
-          </h6>
-        {% endif %}
 
-        {% with form = Forms.users.PublicUserSearchForm(field=field, q=q) %}
-          <form method="GET" class="row justify-content-around align-items-center">
-            <div class="mb-3 col-md-2">
-              {{ form.field(class="form-select w-100") }}
-            </div>
-            <div class="mb-3 col-md-8">
-              {{ form.q(class="form-control w-100", placeholder=form.q.description) }}
-            </div>
-            <div class="mb-3 col-md-2">
-              <button type="submit" class="btn btn-primary w-100">
-                <i class="fas fa-search" aria-hidden="true"></i>
-              </button>
-            </div>
-          </form>
-        {% endwith %}
+  {% if q and field %}
+    <div class="ctf-search-info mt-3">
+      <i class="fas fa-search"></i>
+      {% trans %}Searching for users with{% endtrans %}
+      <strong>{{ field }}</strong>
+      {% trans %}matching{% endtrans %}
+      <strong>{{ q }}</strong>
+      &mdash;
+      {% trans page=users.page, total=users.total %}Page {{ page }} of {{ total }} results{% endtrans %}
+    </div>
+  {% endif %}
+
+  <!-- Search bar -->
+  {% with form = Forms.users.PublicUserSearchForm(field=field, q=q) %}
+    <form method="GET">
+      <div class="ctf-filter-bar">
+        {{ form.field(class="ctf-select") }}
+        {{ form.q(class="ctf-input", placeholder=form.q.description) }}
+        <button type="submit" class="ctf-submit-btn">
+          <i class="fas fa-search"></i> Search
+        </button>
       </div>
+    </form>
+  {% endwith %}
+
+  <!-- User list -->
+  <div class="ctf-user-list">
+    <!-- Header -->
+    <div class="ctf-user-list-head">
+      <span>{% trans %}User{% endtrans %}</span>
+      <span class="ctf-col-web text-center">{% trans %}Website{% endtrans %}</span>
+      <span class="ctf-col-aff">{% trans %}Affiliation{% endtrans %}</span>
+      <span class="ctf-col-country">{% trans %}Country{% endtrans %}</span>
     </div>
 
-    <hr>
+    {% for user in users.items %}
+      <div class="ctf-user-row">
 
-    <div class="row">
-      <div class="col-md-12">
-        <table class="table table-striped align-middle">
-          <thead>
-          <tr>
-            <th>{% trans %}User{% endtrans %}</th>
-            <th>{% trans %}Website{% endtrans %}</th>
-            <th class="d-none d-md-table-cell">{% trans %}Affiliation{% endtrans %}</th>
-            <th class="d-none d-md-table-cell">{% trans %}Country{% endtrans %}</th>
-          </tr>
-          </thead>
-          <tbody>
-          {% for user in users.items %}
-            <tr>
-              <td>
-                {% if scores_visible() %}
-                  <a href="{{ url_for('users.public', user_id=user.id) }}">
-                    {{ user.name | truncate(50) }}
-                  </a>
-                {% else %}
-                  <span>{{ user.name | truncate(50) }}</span>
-                {% endif %}
-
-                {% if user.bracket_id %}
-                  <span class="badge bg-secondary ms-2">{{ user.bracket.name }}</span>
-                {% endif %}
-
-                {% if user.oauth_id %}
-                  <a href="https://majorleaguecyber.org/u/{{ user.name }}">
-                    <span class="badge bg-primary ms-2">{% trans %}Official{% endtrans %}</span>
-                  </a>
-                {% endif %}
-              </td>
-
-              <td class="text-center" style="width: 10px;">
-                {% if user.website and (user.website.startswith('http://') or user.website.startswith('https://')) %}
-                  <a href="{{ user.website }}" target="_blank" rel="noopener">
-                    <i
-                        class="fas fa-external-link-alt" data-toggle="tooltip" data-placement="top"
-                        title="{{ user.website }}"
-                    ></i>
-                  </a>
-                {% endif %}
-              </td>
-
-              <td class="d-none d-md-table-cell d-lg-table-cell">
-                {% if user.affiliation %}
-                  {% if user.affiliation | length > 50 %}
-                    <span data-toggle="tooltip" data-placement="top" title="{{ user.affiliation }}">
-									{% if user.affiliation %}{{ user.affiliation | truncate(50) }}{% endif %}
-								</span>
-                  {% else %}
-                    <span>
-									{% if user.affiliation %}{{ user.affiliation | truncate(50) }}{% endif %}
-								</span>
-                  {% endif %}
-                {% endif %}
-              </td>
-              <td class="d-none d-md-table-cell d-lg-table-cell">
-								<span>
-									{% if user.country %}
-                    <i class="flag-{{ user.country.lower() }}"></i>
-                    {{ lookup_country_code(user.country) }}
-                  {% endif %}
-								</span>
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    {% if users.pages > 1 %}
-      <div class="row">
-        <div class="col-md-12">
-          <div class="text-center">
-            {% trans %}Page{% endtrans %} <br>
-
-            {% if users.page != 1 %}
-              <a href="{{ prev_page }}">&lt;&lt;&lt;</a>
+        <!-- Name + badges -->
+        <div class="ctf-user-name-cell">
+          <div class="ctf-user-avatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="ctf-user-name-info">
+            {% if scores_visible() %}
+              <a class="ctf-user-name" href="{{ url_for('users.public', user_id=user.id) }}">
+                {{ user.name | truncate(50) }}
+              </a>
+            {% else %}
+              <span class="ctf-user-name--plain">{{ user.name | truncate(50) }}</span>
             {% endif %}
-
-            <select class="page-select">
-              {% for page in range(1, users.pages + 1) %}
-                <option {% if users.page == page %}selected{% endif %}>{{ page }}</option>
-              {% endfor %}
-            </select>
-
-            {% if users.next_num %}
-              <a href="{{ next_page }}">&gt;&gt;&gt;</a>
-            {% endif %}
+            <div class="ctf-user-badges">
+              {% if user.bracket_id %}
+                <span class="ctf-badge">{{ user.bracket.name }}</span>
+              {% endif %}
+              {% if user.oauth_id %}
+                <a href="https://majorleaguecyber.org/u/{{ user.name }}"
+                   class="ctf-badge ctf-badge--official">
+                  <i class="fas fa-shield-alt me-1"></i>{% trans %}Official{% endtrans %}
+                </a>
+              {% endif %}
+            </div>
           </div>
         </div>
+
+        <!-- Website -->
+        <div class="ctf-user-website">
+          {% if user.website and (user.website.startswith('http://') or user.website.startswith('https://')) %}
+            <a href="{{ user.website }}" target="_blank" rel="noopener"
+               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ user.website }}">
+              <i class="fas fa-external-link-alt"></i>
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Affiliation -->
+        <div class="ctf-user-affiliation">
+          {% if user.affiliation %}
+            <span
+              {% if user.affiliation | length > 50 %}
+                data-bs-toggle="tooltip" data-bs-placement="top" title="{{ user.affiliation }}"
+              {% endif %}
+            >{{ user.affiliation | truncate(50) }}</span>
+          {% endif %}
+        </div>
+
+        <!-- Country -->
+        <div class="ctf-user-country">
+          {% if user.country %}
+            <i class="flag-{{ user.country.lower() }}"></i>
+            {{ lookup_country_code(user.country) }}
+          {% endif %}
+        </div>
+
       </div>
-    {% endif %}
+    {% endfor %}
   </div>
+
+  <!-- Pagination -->
+  {% if users.pages > 1 %}
+    <div class="ctf-pagination">
+      {% if users.page != 1 %}
+        <a href="{{ prev_page }}"><i class="fas fa-chevron-left"></i></a>
+      {% endif %}
+
+      <select class="ctf-page-select page-select">
+        {% for page in range(1, users.pages + 1) %}
+          <option {% if users.page == page %}selected{% endif %}>{{ page }}</option>
+        {% endfor %}
+      </select>
+
+      {% if users.next_num %}
+        <a href="{{ next_page }}"><i class="fas fa-chevron-right"></i></a>
+      {% endif %}
+    </div>
+  {% endif %}
+
+</div>
 {% endblock %}
 
 {% block scripts %}

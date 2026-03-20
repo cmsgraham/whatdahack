@@ -126,6 +126,7 @@ class Challenges(db.Model):
     decay = db.Column(db.Integer, nullable=True)
     position = db.Column(db.Integer, nullable=False, default=0)
     function = db.Column(db.String(32), default="static")
+    image = db.Column(db.Text)
 
     requirements = db.Column(db.JSON)
 

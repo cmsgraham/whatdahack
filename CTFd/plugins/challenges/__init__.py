@@ -106,6 +106,7 @@ class BaseChallenge(object):
             "description": challenge.description,
             "attribution": challenge.attribution,
             "connection_info": challenge.connection_info,
+            "image": challenge.image,
             "next_id": challenge.next_id,
             "category": challenge.category,
             "state": challenge.state,

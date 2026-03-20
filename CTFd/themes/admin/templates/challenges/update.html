@@ -58,6 +58,87 @@
 	</div>
 	{% endblock %}
 
+	{% block image %}
+	<div class="form-group">
+		<label>
+			Banner Image<br>
+			<small class="form-text text-muted">
+				Optional image shown on the challenge card on the challenges page.
+				Upload a file or paste a URL.
+			</small>
+		</label>
+		<div class="input-group">
+			<input type="text" class="form-control chal-image" name="image" id="chal-image-url"
+			       placeholder="https://... or upload below"
+			       value="{{ challenge.image | default('', true) }}">
+			<div class="input-group-append">
+				<button class="btn btn-outline-secondary" type="button" id="chal-image-clear"
+				        title="Clear image" onclick="document.getElementById('chal-image-url').value='';">
+					&times;
+				</button>
+			</div>
+		</div>
+		{% if challenge.image %}
+		<div id="chal-image-preview" class="mt-2">
+			<img src="{{ challenge.image }}" alt="Banner preview"
+			     style="max-height:120px;border-radius:6px;border:1px solid #444;">
+		</div>
+		{% endif %}
+		<div class="custom-file mt-2">
+			<input type="file" class="custom-file-input" id="chal-image-upload"
+			       accept="image/*">
+			<label class="custom-file-label" for="chal-image-upload">Choose image file to upload…</label>
+		</div>
+		<small class="form-text text-muted">
+			Uploading a file will store it with this challenge's files and fill in the URL above automatically.
+		</small>
+	</div>
+	<script>
+	(function () {
+		document.getElementById("chal-image-upload").addEventListener("change", function (e) {
+			var file = e.target.files[0];
+			if (!file) return;
+			var label = e.target.nextElementSibling;
+			label.textContent = file.name;
+
+			var fd = new FormData();
+			fd.append("file", file);
+			fd.append("challenge_id", window.CHALLENGE_ID);
+			fd.append("type", "challenge");
+
+			fetch("/api/v1/files", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: { Accept: "application/json" },
+				body: fd,
+			})
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				if (data.success && data.data && data.data[0]) {
+					var url = data.data[0].location;
+					// Prepend the CTFd base path so it resolves correctly
+					if (url && !url.startsWith("http")) {
+						url = "/" + url.replace(/^\//, "");
+					}
+					var urlInput = document.getElementById("chal-image-url");
+					urlInput.value = url;
+
+					// Show/update preview
+					var preview = document.getElementById("chal-image-preview");
+					if (!preview) {
+						preview = document.createElement("div");
+						preview.id = "chal-image-preview";
+						preview.className = "mt-2";
+						urlInput.closest(".form-group").insertBefore(preview, urlInput.closest(".custom-file").previousElementSibling);
+					}
+					preview.innerHTML = '<img src="' + url + '" alt="Banner preview" style="max-height:120px;border-radius:6px;border:1px solid #444;">';
+				}
+			});
+		});
+	})();
+	</script>
+	{% endblock %}
+
 	{% block value %}
 	<div class="form-group">
 		<label for="value">

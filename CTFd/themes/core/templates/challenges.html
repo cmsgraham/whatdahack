@@ -1,73 +1,930 @@
 {% extends "base.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Theme tokens — light (default) ────────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --ctf-bg-page:        #f3f4f6;
+  --ctf-bg-surface:     #ffffff;
+  --ctf-bg-elevated:    #f8f9fa;
+  --ctf-bg-input:       #ffffff;
+  --ctf-text-primary:   #111827;
+  --ctf-text-muted:     #6b7280;
+  --ctf-border:         #d1d5db;
+  --ctf-border-subtle:  #e5e7eb;
+  --ctf-accent:         #059669;
+  --ctf-accent-rgb:     5, 150, 105;
+  --ctf-accent-glow:    rgba(5, 150, 105, .15);
+  --ctf-header-bg1:     #e5e7eb;
+  --ctf-header-bg2:     #d1d5db;
+  --ctf-solved-bg:      #ecfdf5;
+  --ctf-solved-border:  rgba(5, 150, 105, .35);
+  --ctf-badge-bg:       rgba(0,0,0,.06);
+  --ctf-badge-color:    #374151;
+  --ctf-caret-color:    %236b7280;
+  --ctf-shadow-hover:   0 10px 32px rgba(0,0,0,.12), 0 0 0 1px rgba(5,150,105,.18);
+  --ctf-shadow-solved:  0 10px 32px rgba(5,150,105,.1);
+  --ctf-divider:        #e5e7eb;
+  --ctf-spinner-color:  #059669;
+  --ctf-banner-grid:    rgba(0,0,0,.04);
+  --ctf-banner-lum-lo:  72%;
+  --ctf-banner-lum-hi:  85%;
+  --ctf-banner-sat-lo:  40%;
+  --ctf-banner-sat-hi:  55%;
+  --ctf-glow-opacity:   .12;
+}
+
+/* ── Theme tokens — dark ────────────────────────────────────────────────── */
+[data-bs-theme="dark"] {
+  --ctf-bg-page:        #0d1117;
+  --ctf-bg-surface:     #161b22;
+  --ctf-bg-elevated:    #161b22;
+  --ctf-bg-input:       #0d1117;
+  --ctf-text-primary:   #e6edf3;
+  --ctf-text-muted:     #8b949e;
+  --ctf-border:         #30363d;
+  --ctf-border-subtle:  #21262d;
+  --ctf-accent:         #00ff88;
+  --ctf-accent-rgb:     0, 255, 136;
+  --ctf-accent-glow:    rgba(0, 255, 136, .12);
+  --ctf-header-bg1:     #0d1117;
+  --ctf-header-bg2:     #161b22;
+  --ctf-solved-bg:      #0c1a10;
+  --ctf-solved-border:  rgba(0, 255, 136, .2);
+  --ctf-badge-bg:       #21262d;
+  --ctf-badge-color:    #8b949e;
+  --ctf-caret-color:    %238b949e;
+  --ctf-shadow-hover:   0 10px 32px rgba(0,0,0,.45), 0 0 0 1px rgba(0,255,136,.12);
+  --ctf-shadow-solved:  0 10px 32px rgba(0,255,136,.12);
+  --ctf-divider:        #21262d;
+  --ctf-spinner-color:  #00ff88;
+  --ctf-banner-grid:    rgba(255,255,255,.025);
+  --ctf-banner-lum-lo:  16%;
+  --ctf-banner-lum-hi:  11%;
+  --ctf-banner-sat-lo:  55%;
+  --ctf-banner-sat-hi:  38%;
+  --ctf-glow-opacity:   .25;
+}
+
+/* ── Global: fill page background ────────────────────────────────────────── */
+.jumbotron { display: none !important; }
+
+body {
+  background-color: var(--ctf-bg-page) !important;
+}
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.ctf-challenges-header {
+  padding: 2.5rem 0 2rem;
+  background: linear-gradient(135deg, var(--ctf-header-bg1) 0%, var(--ctf-header-bg2) 100%);
+  border-bottom: 1px solid var(--ctf-border);
+  position: relative;
+  overflow: hidden;
+}
+.ctf-challenges-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb), .06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ctf-challenges-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--ctf-accent) 50%, transparent 100%);
+  opacity: .3;
+}
+.ctf-challenges-header h1 {
+  font-size: 1.75rem;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--ctf-text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+.ctf-challenges-header h1 .accent { color: var(--ctf-accent); }
+.ctf-challenges-header p {
+  color: var(--ctf-text-muted);
+  font-size: .75rem;
+  letter-spacing: 2px;
+  margin: .4rem 0 0;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────────────────── */
+.challenge-filters {
+  background: var(--ctf-bg-elevated);
+  border: 1px solid var(--ctf-border);
+  border-radius: 10px;
+  padding: .85rem 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  align-items: center;
+  margin: 1.5rem 0 2rem;
+}
+.cf-select, .cf-search {
+  background: var(--ctf-bg-input);
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-primary);
+  border-radius: 6px;
+  font-size: .78rem;
+  padding: .35rem .8rem;
+  transition: border-color .2s, box-shadow .2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.cf-select {
+  padding-right: 1.9rem;
+  /* caret SVG uses --ctf-caret-color token interpolated into the URL */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='var(--ctf-caret-color)' viewBox='0 0 16 16'%3e%3cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right .5rem center;
+  background-size: .75em;
+  cursor: pointer;
+}
+/* Override caret per theme (CSS vars don't work inside SVG data URIs) */
+[data-bs-theme="dark"] .cf-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%238b949e' viewBox='0 0 16 16'%3e%3cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+}
+[data-bs-theme="light"] .cf-select,
+:root .cf-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 16 16'%3e%3cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3e%3c/svg%3e");
+}
+.cf-search {
+  flex: 1;
+  min-width: 160px;
+  padding-left: 2rem;
+}
+[data-bs-theme="dark"] .cf-search {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%238b949e' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: .65rem center;
+  background-size: .8em;
+}
+[data-bs-theme="light"] .cf-search,
+:root .cf-search {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='%236b7280' viewBox='0 0 16 16'%3e%3cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: .65rem center;
+  background-size: .8em;
+}
+.cf-select:focus, .cf-search:focus {
+  outline: none;
+  border-color: var(--ctf-accent);
+  box-shadow: 0 0 0 2px var(--ctf-accent-glow);
+}
+.cf-select option { color: var(--ctf-text-primary); background: var(--ctf-bg-input); }
+.cf-search::placeholder { color: var(--ctf-text-muted); }
+.cf-count {
+  margin-left: auto;
+  font-size: .72rem;
+  color: var(--ctf-text-muted);
+  white-space: nowrap;
+}
+.cf-count strong { color: var(--ctf-accent); }
+.cf-reset {
+  background: transparent;
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-muted);
+  border-radius: 6px;
+  font-size: .72rem;
+  padding: .35rem .75rem;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.cf-reset:hover { border-color: #ef4444; color: #ef4444; }
+
+/* ── Category section ────────────────────────────────────────────────────── */
+.challenge-section {
+  margin-bottom: 3rem;
+}
+.challenge-section-head {
+  display: flex;
+  align-items: center;
+  gap: .7rem;
+  padding-bottom: .7rem;
+  border-bottom: 1px solid var(--ctf-divider);
+  margin-bottom: 1.5rem;
+}
+.challenge-section-head h3 {
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--ctf-text-primary);
+  margin: 0;
+}
+.csh-icon { color: #f97316; font-size: .8rem; }
+.csh-count {
+  font-size: .68rem;
+  color: var(--ctf-badge-color);
+  background: var(--ctf-badge-bg);
+  padding: .15rem .5rem;
+  border-radius: 10px;
+  border: 1px solid var(--ctf-border);
+}
+.csh-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--ctf-divider), transparent); }
+
+/* ── Challenge card ──────────────────────────────────────────────────────── */
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.challenge-card {
+  background: var(--ctf-bg-surface);
+  border: 1px solid var(--ctf-border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  animation: card-in .3s ease both;
+}
+.challenge-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--ctf-accent);
+  box-shadow: var(--ctf-shadow-hover);
+}
+.challenge-card--solved {
+  border-color: var(--ctf-solved-border);
+  background: var(--ctf-solved-bg);
+}
+.challenge-card--solved:hover {
+  border-color: var(--ctf-accent);
+  box-shadow: var(--ctf-shadow-solved);
+}
+
+/* Banner */
+.challenge-card__banner {
+  height: 100px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: linear-gradient(
+    135deg,
+    hsl(calc(var(--hue) * 1deg), var(--ctf-banner-sat-lo), var(--ctf-banner-lum-lo)) 0%,
+    hsl(calc(var(--hue) * 1deg + 30deg), var(--ctf-banner-sat-hi), var(--ctf-banner-lum-hi)) 100%
+  );
+}
+/* grid overlay */
+.challenge-card__banner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--ctf-banner-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--ctf-banner-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 0;
+}
+/* glow blob */
+.challenge-card__banner::before {
+  content: '';
+  position: absolute;
+  top: -20px; left: -20px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(calc(var(--hue)*1deg), 70%, 50%) 0%, transparent 65%);
+  opacity: var(--ctf-glow-opacity);
+  z-index: 1;
+}
+.challenge-card__banner-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  position: absolute; inset: 0;
+  z-index: 2;
+}
+.challenge-card__badge-solved {
+  position: absolute;
+  top: .55rem; right: .55rem;
+  z-index: 4;
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(var(--ctf-accent-rgb), .5);
+  color: var(--ctf-accent);
+  font-size: .62rem;
+  padding: .18rem .55rem;
+  border-radius: 20px;
+  backdrop-filter: blur(6px);
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+}
+.challenge-card__cat {
+  position: absolute;
+  bottom: .55rem; left: .55rem;
+  z-index: 4;
+  font-size: .62rem;
+  padding: .18rem .55rem;
+  border-radius: 4px;
+  background: rgba(0,0,0,.55);
+  color: #e5e7eb;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  backdrop-filter: blur(4px);
+}
+/* solved overlay tint */
+.challenge-card--solved .challenge-card__banner::after {
+  background-image:
+    linear-gradient(rgba(var(--ctf-accent-rgb), .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--ctf-accent-rgb), .05) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Card body */
+.challenge-card__body {
+  padding: .85rem 1rem .5rem;
+  flex: 1;
+}
+.challenge-card__name {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ctf-text-primary);
+  margin: 0 0 .6rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+.challenge-card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .28rem;
+}
+.chall-tag {
+  font-size: .6rem;
+  padding: .13rem .42rem;
+  border-radius: 3px;
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-muted);
+  background: var(--ctf-bg-elevated);
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+/* difficulty colours — same in both themes */
+.chall-tag.easy    { color: #16a34a; border-color: rgba(22,163,74,.35);    background: rgba(22,163,74,.08); }
+.chall-tag.medium  { color: #d97706; border-color: rgba(217,119,6,.35);    background: rgba(217,119,6,.08); }
+.chall-tag.hard    { color: #dc2626; border-color: rgba(220,38,38,.35);    background: rgba(220,38,38,.08); }
+.chall-tag.insane  { color: #7c3aed; border-color: rgba(124,58,237,.35);   background: rgba(124,58,237,.08); }
+[data-bs-theme="dark"] .chall-tag.easy   { color: #3fb950; border-color: rgba(63,185,80,.35);   background: rgba(63,185,80,.07); }
+[data-bs-theme="dark"] .chall-tag.medium { color: #d29922; border-color: rgba(210,153,34,.35);  background: rgba(210,153,34,.07); }
+[data-bs-theme="dark"] .chall-tag.hard   { color: #f85149; border-color: rgba(248,81,73,.35);   background: rgba(248,81,73,.07); }
+[data-bs-theme="dark"] .chall-tag.insane { color: #a371f7; border-color: rgba(163,113,247,.35); background: rgba(163,113,247,.07); }
+
+/* Card footer */
+.challenge-card__footer {
+  padding: .55rem 1rem .75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--ctf-border-subtle);
+  margin-top: auto;
+}
+.cc-pts {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--ctf-accent);
+  display: flex;
+  align-items: baseline;
+  gap: .28rem;
+}
+.cc-pts i { font-size: .6rem; opacity: .75; }
+.cc-pts small { font-size: .58rem; color: var(--ctf-text-muted); font-weight: 400; text-transform: uppercase; letter-spacing: 1px; }
+.cc-solved-icon { color: var(--ctf-accent); font-size: .85rem; }
+
+/* Accent bottom bar */
+.challenge-card__bar {
+  height: 2px;
+  background: linear-gradient(90deg, hsl(calc(var(--hue)*1deg), 70%, 45%) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity .2s;
+  flex-shrink: 0;
+}
+.challenge-card:hover .challenge-card__bar,
+.challenge-card--solved .challenge-card__bar { opacity: 1; }
+
+/* Empty / loading */
+.challenge-empty {
+  text-align: center;
+  padding: 2.5rem;
+  color: var(--ctf-text-muted);
+  opacity: .6;
+}
+.challenge-empty i { font-size: 2rem; margin-bottom: .75rem; display: block; }
+.challenge-empty p { font-size: .8rem; letter-spacing: 1px; }
+.ctf-spinner { color: var(--ctf-spinner-color); opacity: .8; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CHALLENGE MODAL — theme-aware
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Modal token layer ───────────────────────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --cm-bg:          #ffffff;
+  --cm-surface:     #f8f9fa;
+  --cm-surface-2:   #f0f2f5;
+  --cm-border:      #e2e8f0;
+  --cm-text:        #111827;
+  --cm-muted:       #6b7280;
+  --cm-accent:      #059669;
+  --cm-accent-rgb:  5, 150, 105;
+  --cm-success:     #16a34a;
+  --cm-danger:      #dc2626;
+  --cm-warning:     #d97706;
+  --cm-info:        #3b82f6;
+  --cm-input-bg:    #ffffff;
+  --cm-shadow:      0 24px 80px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
+}
+[data-bs-theme="dark"] {
+  --cm-bg:          #161b22;
+  --cm-surface:     #21262d;
+  --cm-surface-2:   #0d1117;
+  --cm-border:      #30363d;
+  --cm-text:        #e6edf3;
+  --cm-muted:       #8b949e;
+  --cm-accent:      #00ff88;
+  --cm-accent-rgb:  0, 255, 136;
+  --cm-success:     #3fb950;
+  --cm-danger:      #f85149;
+  --cm-warning:     #d29922;
+  --cm-info:        #58a6ff;
+  --cm-input-bg:    #0d1117;
+  --cm-shadow:      0 24px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(0,255,136,.1);
+}
+
+/* ── Modal container ─────────────────────────────────────────────────────── */
+.cm-modal {
+  background: var(--cm-bg) !important;
+  border: 1px solid var(--cm-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--cm-shadow) !important;
+  overflow: hidden;
+  color: var(--cm-text);
+}
+
+/* ── Header: tabs + close ────────────────────────────────────────────────── */
+.cm-header {
+  display: flex;
+  align-items: stretch;
+  background: var(--cm-surface);
+  border-bottom: 1px solid var(--cm-border);
+  padding: 0 .85rem;
+  gap: .5rem;
+  min-height: 50px;
+}
+.cm-header .nav-tabs {
+  border-bottom: none !important;
+  flex: 1;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  align-items: center;
+  gap: .15rem;
+  padding: .45rem 0;
+}
+.cm-header .nav-tabs::-webkit-scrollbar { display: none; }
+.cm-tab {
+  padding: .3rem .8rem !important;
+  border: 1px solid transparent !important;
+  border-radius: 6px !important;
+  font-size: .72rem !important;
+  font-weight: 500 !important;
+  letter-spacing: .5px !important;
+  text-transform: uppercase !important;
+  color: var(--cm-muted) !important;
+  background: transparent !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: .4rem !important;
+  white-space: nowrap !important;
+  transition: color .15s, background .15s, border-color .15s !important;
+  margin-bottom: 0 !important;
+}
+.cm-tab i { font-size: .7rem; }
+.cm-tab:hover:not(.active) { color: var(--cm-text) !important; background: rgba(var(--cm-accent-rgb), .07) !important; }
+.cm-tab.active { color: var(--cm-accent) !important; background: rgba(var(--cm-accent-rgb), .1) !important; border-color: rgba(var(--cm-accent-rgb), .25) !important; }
+.cm-close {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--cm-muted);
+  width: 32px;
+  height: 32px;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: .82rem;
+  transition: all .15s;
+  flex-shrink: 0;
+}
+.cm-close:hover { color: var(--cm-danger); background: rgba(220,38,38,.08); border-color: rgba(220,38,38,.2); }
+
+/* ── Scrollable body ─────────────────────────────────────────────────────── */
+.cm-body {
+  flex: 1 1 auto;
+  padding: 1.5rem 1.5rem 1.25rem;
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+.cm-body::-webkit-scrollbar { width: 5px; }
+.cm-body::-webkit-scrollbar-track { background: transparent; }
+.cm-body::-webkit-scrollbar-thumb { background: var(--cm-border); border-radius: 3px; }
+
+/* ── Hero ────────────────────────────────────────────────────────────────── */
+.cm-hero { margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--cm-border); }
+.cm-title { font-size: 1.4rem; font-weight: 700; color: var(--cm-text); margin: 0 0 .7rem; line-height: 1.3; word-break: break-word; }
+.cm-meta { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; }
+.cm-pts-badge {
+  display: inline-flex;
+  align-items: baseline;
+  gap: .25rem;
+  background: rgba(var(--cm-accent-rgb), .1);
+  border: 1px solid rgba(var(--cm-accent-rgb), .3);
+  color: var(--cm-accent);
+  font-size: .78rem;
+  font-weight: 700;
+  padding: .22rem .65rem;
+  border-radius: 20px;
+  line-height: 1;
+}
+.cm-pts-badge i { font-size: .58rem; }
+.cm-pts-badge small { font-size: .6rem; font-weight: 400; opacity: .75; }
+.cm-tag-chip { font-size: .65rem; padding: .18rem .5rem; border-radius: 4px; background: var(--cm-surface); border: 1px solid var(--cm-border); color: var(--cm-muted); text-transform: uppercase; letter-spacing: .3px; }
+.cm-byline, .cm-pub-ratings { font-size: .72rem; color: var(--cm-muted); display: inline-flex; align-items: center; gap: .3rem; }
+.cm-pct { opacity: .7; }
+
+/* ── Section card ────────────────────────────────────────────────────────── */
+.cm-section {
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: 9px;
+  padding: 1rem 1.1rem;
+  margin-bottom: .85rem;
+  font-size: .88rem;
+  line-height: 1.75;
+  color: var(--cm-text);
+}
+.cm-section-label { font-size: .62rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--cm-muted); margin-bottom: .6rem; display: flex; align-items: center; gap: .35rem; }
+.cm-section-label i { color: var(--cm-accent); }
+.cm-desc .challenge-desc { display: block; }
+.cm-desc pre, .cm-desc .challenge-desc pre { background: var(--cm-surface-2); border-radius: 6px; padding: .7rem 1rem; overflow-x: auto; font-size: .8rem; margin: .7rem 0; }
+.cm-desc code, .cm-desc .challenge-desc code { background: var(--cm-surface-2); border-radius: 4px; padding: .1rem .3rem; font-size: .83em; }
+.cm-desc a, .cm-desc .challenge-desc a { color: var(--cm-accent); }
+.cm-desc a:hover { text-decoration: underline; }
+.cm-connection .challenge-connection-info code { background: var(--cm-surface-2); border-radius: 5px; padding: .28rem .65rem; font-size: .82rem; color: var(--cm-accent); border: 1px solid var(--cm-border); display: inline-block; word-break: break-all; }
+.cm-connection .challenge-connection-info a { color: var(--cm-accent); }
+
+/* ── Hints ───────────────────────────────────────────────────────────────── */
+.cm-hints-section { padding-bottom: .55rem !important; }
+.cm-hint { margin-bottom: .4rem; }
+.cm-hint-details { border: 1px solid var(--cm-border); border-radius: 8px; background: var(--cm-surface); overflow: hidden; }
+.cm-hint-summary { display: flex; align-items: center; gap: .5rem; padding: .62rem .9rem; cursor: pointer; font-size: .83rem; font-weight: 500; color: var(--cm-text); list-style: none; user-select: none; transition: background .15s; }
+.cm-hint-summary:hover { background: var(--cm-surface-2); }
+.cm-hint-summary::-webkit-details-marker { display: none; }
+.cm-hint-chevron { color: var(--cm-accent); font-size: .62rem; transition: transform .2s; flex-shrink: 0; }
+details[open] .cm-hint-chevron { transform: rotate(90deg); }
+.cm-hint-title { flex: 1; }
+.cm-hint-cost { font-size: .64rem; background: rgba(var(--cm-accent-rgb), .1); border: 1px solid rgba(var(--cm-accent-rgb), .25); color: var(--cm-accent); padding: .1rem .42rem; border-radius: 10px; white-space: nowrap; }
+.cm-hint-body { padding: .72rem .9rem; border-top: 1px solid var(--cm-border); font-size: .85rem; line-height: 1.65; color: var(--cm-text); background: var(--cm-bg); }
+
+/* ── Files ───────────────────────────────────────────────────────────────── */
+.cm-files-grid { display: flex; flex-wrap: wrap; gap: .4rem; }
+.cm-file-chip { display: inline-flex; align-items: center; gap: .42rem; padding: .36rem .72rem; background: var(--cm-bg); border: 1px solid var(--cm-border); border-radius: 6px; font-size: .77rem; color: var(--cm-text); text-decoration: none; max-width: 220px; transition: border-color .15s, background .15s; }
+.cm-file-chip:hover { border-color: var(--cm-accent); background: rgba(var(--cm-accent-rgb), .06); color: var(--cm-text); text-decoration: none; }
+.cm-file-chip > .fa-file-code { color: var(--cm-accent); flex-shrink: 0; }
+.cm-file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.cm-file-dl-icon { color: var(--cm-muted); font-size: .68rem; flex-shrink: 0; }
+
+/* ── Attempts ────────────────────────────────────────────────────────────── */
+.cm-attempts { font-size: .78rem; color: var(--cm-warning); background: rgba(217,119,6,.08); border: 1px solid rgba(217,119,6,.2); border-radius: 6px; padding: .38rem .85rem; margin-bottom: .75rem; display: flex; align-items: center; gap: .35rem; }
+[data-bs-theme="dark"] .cm-attempts { background: rgba(210,153,34,.07); border-color: rgba(210,153,34,.2); }
+
+/* ── Submit panel ────────────────────────────────────────────────────────── */
+.cm-submit-panel { background: var(--cm-surface); border: 1px solid var(--cm-border); border-radius: 9px; padding: .9rem 1rem; }
+.cm-submit-row { display: flex; gap: .55rem; }
+.cm-flag-input { flex: 1; background: var(--cm-input-bg) !important; border: 1px solid var(--cm-border) !important; color: var(--cm-text) !important; border-radius: 7px !important; padding: .52rem .9rem !important; font-size: .85rem !important; font-family: 'Courier New', monospace !important; transition: border-color .2s, box-shadow .2s !important; }
+.cm-flag-input::placeholder { color: var(--cm-muted) !important; font-family: inherit !important; }
+.cm-flag-input:focus { outline: none !important; border-color: var(--cm-accent) !important; box-shadow: 0 0 0 3px rgba(var(--cm-accent-rgb), .11) !important; }
+.cm-submit-btn { background: rgba(var(--cm-accent-rgb), .1) !important; border: 1px solid var(--cm-accent) !important; color: var(--cm-accent) !important; border-radius: 7px !important; padding: .52rem 1.2rem !important; font-size: .82rem !important; font-weight: 600 !important; cursor: pointer; transition: background .2s, box-shadow .2s !important; white-space: nowrap; display: inline-flex; align-items: center; gap: .4rem; }
+.cm-submit-btn:hover { background: rgba(var(--cm-accent-rgb), .2) !important; box-shadow: 0 0 14px rgba(var(--cm-accent-rgb), .2) !important; }
+
+/* ── Response notification ───────────────────────────────────────────────── */
+.cm-response { border-radius: 9px; padding: .88rem 1.1rem; border: 1px solid; }
+.cm-response--correct { background: rgba(22,163,74,.07);  border-color: rgba(22,163,74,.3);  color: var(--cm-success); }
+.cm-response--info    { background: rgba(59,130,246,.07); border-color: rgba(59,130,246,.3); color: var(--cm-info); }
+.cm-response--wrong   { background: rgba(220,38,38,.07);  border-color: rgba(220,38,38,.3);  color: var(--cm-danger); }
+.cm-response--warning { background: rgba(217,119,6,.07);  border-color: rgba(217,119,6,.3);  color: var(--cm-warning); }
+[data-bs-theme="dark"] .cm-response--correct { background: rgba(63,185,80,.07);  border-color: rgba(63,185,80,.25); }
+[data-bs-theme="dark"] .cm-response--wrong   { background: rgba(248,81,73,.07);  border-color: rgba(248,81,73,.25); }
+.cm-response-msg { display: flex; align-items: center; gap: .58rem; font-size: .88rem; font-weight: 600; margin-bottom: .55rem; }
+.cm-response-icon { font-size: 1.05rem; }
+.cm-post-row { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: .5rem; align-items: center; }
+.cm-btn { display: inline-flex; align-items: center; gap: .35rem; padding: .35rem .85rem; border-radius: 6px; font-size: .78rem; font-weight: 600; cursor: pointer; transition: all .15s; border: 1px solid; text-decoration: none; white-space: nowrap; }
+.cm-btn--accent { background: var(--cm-accent); border-color: var(--cm-accent); color: #000; }
+.cm-btn--accent:hover { opacity: .85; }
+.cm-btn--ghost { background: transparent; border-color: currentColor; color: inherit; }
+.cm-btn--ghost:hover { background: rgba(var(--cm-accent-rgb), .08); }
+.cm-btn:disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+.cm-share-group { display: inline-flex; gap: .3rem; align-items: center; }
+.cm-share-btn { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--cm-border); background: transparent; color: var(--cm-muted); display: inline-flex; align-items: center; justify-content: center; font-size: .8rem; cursor: pointer; text-decoration: none; transition: all .15s; }
+.cm-share-btn:hover { border-color: var(--cm-accent); color: var(--cm-accent); background: rgba(var(--cm-accent-rgb), .07); }
+
+/* ── Rating panel ────────────────────────────────────────────────────────── */
+.cm-rating-panel { margin-top: .9rem; padding-top: .9rem; border-top: 1px solid var(--cm-border); }
+.cm-rating-label { font-size: .62rem; font-weight: 700; color: var(--cm-muted); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: .6rem; }
+.cm-rating-btns { display: flex; gap: .5rem; margin-bottom: .6rem; }
+.cm-rate-btn { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--cm-border); background: transparent; color: var(--cm-muted); font-size: .88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.cm-rate-up:hover,   .cm-rate-up.is-active   { color: var(--cm-success); border-color: var(--cm-success); background: rgba(22,163,74,.1); }
+.cm-rate-down:hover, .cm-rate-down.is-active { color: var(--cm-danger);  border-color: var(--cm-danger);  background: rgba(220,38,38,.1); }
+[data-bs-theme="dark"] .cm-rate-up.is-active   { background: rgba(63,185,80,.1); }
+[data-bs-theme="dark"] .cm-rate-down.is-active { background: rgba(248,81,73,.1); }
+.cm-review-input { width: 100%; background: var(--cm-input-bg) !important; border: 1px solid var(--cm-border) !important; border-radius: 7px; padding: .48rem .75rem; font-size: .83rem; color: var(--cm-text) !important; resize: vertical; transition: border-color .2s, box-shadow .2s; }
+.cm-review-input::placeholder { color: var(--cm-muted) !important; }
+.cm-review-input:focus { outline: none; border-color: var(--cm-accent) !important; box-shadow: 0 0 0 3px rgba(var(--cm-accent-rgb), .1) !important; }
+.cm-rating-footer { display: flex; align-items: center; gap: .75rem; margin-top: .6rem; }
+.cm-rating-thanks { color: var(--cm-success); font-size: .75rem; display: inline-flex; align-items: center; gap: .3rem; }
+
+/* ── Tables: solves + submissions ────────────────────────────────────────── */
+.cm-table { width: 100%; border-collapse: collapse; font-size: .83rem; margin-top: .75rem; }
+.cm-table thead tr { border-bottom: 2px solid var(--cm-border); }
+.cm-table th { padding: .55rem .85rem; text-align: left; font-size: .62rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--cm-muted); }
+.cm-table td { padding: .6rem .85rem; color: var(--cm-text); border-bottom: 1px solid var(--cm-border); vertical-align: middle; }
+.cm-table tbody tr:last-child td { border-bottom: none; }
+.cm-table tbody tr:hover td { background: var(--cm-surface); }
+.cm-table code { background: var(--cm-surface-2); border-radius: 4px; padding: .1rem .3rem; font-size: .8em; }
+.cm-reveal-btn { background: none; border: none; color: var(--cm-muted); cursor: pointer; padding: 0 .32rem; font-size: .78rem; vertical-align: middle; }
+.cm-reveal-btn:hover { color: var(--cm-accent); }
+.cm-type-badge { font-size: .62rem; padding: .12rem .38rem; border-radius: 4px; border: 1px solid var(--cm-border); background: var(--cm-surface); color: var(--cm-muted); text-transform: uppercase; letter-spacing: .3px; }
+.cm-solve-link { color: var(--cm-accent); text-decoration: none; }
+.cm-solve-link:hover { text-decoration: underline; }
+
+/* ── Solution tab ────────────────────────────────────────────────────────── */
+.cm-solution-panel { padding: 1rem 1.1rem; background: var(--cm-surface); border: 1px solid var(--cm-border); border-radius: 9px; margin-top: .75rem; font-size: .88rem; line-height: 1.75; color: var(--cm-text); }
+.cm-solution-panel pre { background: var(--cm-surface-2); border-radius: 6px; padding: .7rem 1rem; overflow-x: auto; }
+.cm-solution-panel code { background: var(--cm-surface-2); border-radius: 4px; padding: .1rem .3rem; font-size: .83em; }
+.cm-solution-panel a { color: var(--cm-accent); }
+
+/* Responsive */
+@media (max-width: 576px) {
+  .challenge-filters { flex-direction: column; }
+  .cf-count { margin-left: 0; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>
-        {% trans %}Challenges{% endtrans %}
-      </h1>
+<!-- Page header -->
+<div class="ctf-challenges-header">
+  <div class="container">
+    <h1><span class="accent">[</span> {% trans %}Challenges{% endtrans %} <span class="accent">]</span></h1>
+    <p>// browse, filter, and pwn your way to the top</p>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <div class="col-md-12">
+      {% include "components/errors.html" %}
     </div>
   </div>
 
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        {% include "components/errors.html" %}
-      </div>
-    </div>
+  <!-- Outer scope: filter state (Alpine v3 scope inheritance makes these visible inside ChallengeBoard) -->
+  <div x-data="{ filterCat: 'all', filterDiff: 'all', sortBy: 'default', searchQ: '' }">
 
-    <div 
-      x-data="ChallengeBoard" 
-      @load-challenges.window="loadChallenges()" 
+    <!-- ChallengeBoard: all original logic untouched -->
+    <div
+      x-data="ChallengeBoard"
+      @load-challenges.window="loadChallenges()"
       @load-challenge.window="loadChallenge($event.detail)"
     >
+      <!-- Modal — DO NOT MODIFY -->
       <div
-          x-ref="challengeWindow" id="challenge-window" class="modal fade" tabindex="-1" role="dialog" x-data=""
-          x-html="$store.challenge.data.view"
+        x-ref="challengeWindow"
+        id="challenge-window"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        x-data=""
+        x-html="$store.challenge.data.view"
       ></div>
 
+      <!-- Loading state -->
       <div x-show="!loaded">
         <div class="min-vh-50 d-flex align-items-center">
-          <div class="text-center w-100">
-            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+          <div class="text-center w-100 ctf-spinner">
+            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw"></i>
+            <p class="mt-3" style="font-size:.75rem;letter-spacing:2px;color:#8b949e;">LOADING CHALLENGES...</p>
           </div>
         </div>
       </div>
 
-      <div x-show="loaded">
+      <!-- Filter bar (inside ChallengeBoard so getCategories() is accessible) -->
+      <div x-show="loaded" class="challenge-filters" style="display:none!important" x-cloak>
+        <!-- Category filter -->
+        <select class="cf-select" x-model="filterCat">
+          <option value="all">All Categories</option>
+          <template x-for="cat in getCategories()" :key="cat">
+            <option :value="cat" x-text="cat"></option>
+          </template>
+        </select>
+
+        <!-- Difficulty filter (tag-based) -->
+        <select class="cf-select" x-model="filterDiff">
+          <option value="all">All Difficulties</option>
+          <option value="easy">Easy</option>
+          <option value="medium">Medium</option>
+          <option value="hard">Hard</option>
+          <option value="insane">Insane</option>
+        </select>
+
+        <!-- Sort -->
+        <select class="cf-select" x-model="sortBy">
+          <option value="default">Default Order</option>
+          <option value="pts-asc">Points: Low → High</option>
+          <option value="pts-desc">Points: High → Low</option>
+          <option value="name">Name A → Z</option>
+          <option value="unsolved">Unsolved First</option>
+        </select>
+
+        <!-- Search -->
+        <input
+          type="text"
+          class="cf-search"
+          placeholder="Search challenges..."
+          x-model.debounce.200ms="searchQ"
+        >
+
+        <!-- Result count (only when filtering) -->
+        <span
+          class="cf-count"
+          x-show="filterCat !== 'all' || filterDiff !== 'all' || searchQ !== ''"
+        >
+          <strong x-text="
+            getCategories()
+              .filter(cat => filterCat === 'all' || filterCat === cat)
+              .reduce((n, cat) => n + getChallenges(cat)
+                .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
+                .length, 0)
+          "></strong> results
+        </span>
+
+        <!-- Reset button (when filtering) -->
+        <button
+          class="cf-reset"
+          x-show="filterCat !== 'all' || filterDiff !== 'all' || searchQ !== '' || sortBy !== 'default'"
+          @click="filterCat = 'all'; filterDiff = 'all'; sortBy = 'default'; searchQ = ''"
+        >
+          <i class="fas fa-times me-1"></i> Reset
+        </button>
+      </div>
+
+      <!-- Challenge grid -->
+      <div x-show="loaded" style="display:none!important" x-cloak>
         <template x-for="(category, idx) in getCategories()" :key="idx">
-          <div class="pt-5">
-            <div class="category-header mb-3">
+
+          <!-- Section: visible only when category matches filter AND has results -->
+          <div
+            class="challenge-section"
+            x-show="
+              (filterCat === 'all' || filterCat === category) &&
+              getChallenges(category)
+                .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
+                .length > 0
+            "
+            :style="`--hue: ${(idx * 47 + 190) % 360}`"
+          >
+            <!-- Section header -->
+            <div class="challenge-section-head">
+              <span class="csh-icon"><i class="fas fa-folder-open"></i></span>
               <h3 x-text="category"></h3>
+              <span class="csh-count" x-text="
+                getChallenges(category)
+                  .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                  .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
+                  .length + ' challenges'
+              "></span>
+              <div class="csh-line"></div>
             </div>
 
-            <div class="category-challenges d-flex flex-column">
-              <div class="challenges-row row">
-                <template x-for="(c, idx) in getChallenges(category)" :key="c.id">
-                  <div class="col-sm-6 col-md-4 col-lg-3 my-3">
-                    <button
-                        class="challenge-button btn btn-dark w-100 h-100"
-                        :class="[
-                          c.solved_by_me ? 'challenge-solved' : '',
-                          ...c.tags.map((tag) => `tag-${tag.value.replace(/ /g, '-')}`),
-                        ];"
-                        :value="c.id" @click="loadChallenge(c.id)"
-                    >
+            <!-- Cards row -->
+            <div class="row g-3 challenges-row">
+              <template x-for="c in
+                getChallenges(category)
+                  .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                  .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
+                  .slice()
+                  .sort((a, b) =>
+                    sortBy === 'pts-asc'  ? a.value - b.value :
+                    sortBy === 'pts-desc' ? b.value - a.value :
+                    sortBy === 'name'     ? a.name.localeCompare(b.name) :
+                    sortBy === 'unsolved' ? (a.solved_by_me ? 1 : 0) - (b.solved_by_me ? 1 : 0) : 0
+                  )
+              " :key="c.id">
+                <div class="col-lg-4 col-md-6">
+                  <div
+                    class="challenge-card"
+                    :class="c.solved_by_me ? 'challenge-card--solved' : ''"
+                    :style="`--hue: ${(idx * 47 + 190) % 360}`"
+                    @click="loadChallenge(c.id)"
+                    role="button"
+                    :aria-label="c.name"
+                  >
+                    <!-- Banner -->
+                    <div class="challenge-card__banner">
+                      <!-- Challenge image if available -->
+                      <template x-if="c.image">
+                        <img :src="c.image" :alt="c.name" class="challenge-card__banner-img">
+                      </template>
 
-                      <div class="challenge-inner my-3">
-                        <p x-text="c.name"></p>
-                        <span x-text="c.value"></span>
+                      <!-- Solved badge -->
+                      <template x-if="c.solved_by_me">
+                        <span class="challenge-card__badge-solved">
+                          <i class="fas fa-check-circle"></i> Solved
+                        </span>
+                      </template>
+
+                      <!-- Category label -->
+                      <span class="challenge-card__cat" x-text="c.category"></span>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="challenge-card__body">
+                      <h6 class="challenge-card__name" x-text="c.name"></h6>
+
+                      <!-- Tags (max 3) -->
+                      <div class="challenge-card__tags">
+                        <template x-for="tag in c.tags.slice(0, 3)" :key="tag.value">
+                          <span
+                            class="chall-tag"
+                            :class="{
+                              'easy':   tag.value.toLowerCase() === 'easy',
+                              'medium': tag.value.toLowerCase() === 'medium',
+                              'hard':   tag.value.toLowerCase() === 'hard',
+                              'insane': tag.value.toLowerCase() === 'insane',
+                            }"
+                            x-text="tag.value"
+                          ></span>
+                        </template>
                       </div>
-                    </button>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="challenge-card__footer">
+                      <span class="cc-pts">
+                        <i class="fas fa-star"></i>
+                        <span x-text="c.value"></span>
+                        <small>pts</small>
+                      </span>
+                      <template x-if="c.solved_by_me">
+                        <span class="cc-solved-icon" title="Solved">
+                          <i class="fas fa-check-circle"></i>
+                        </span>
+                      </template>
+                    </div>
+
+                    <!-- Accent bar -->
+                    <div class="challenge-card__bar"></div>
                   </div>
-                </template>
-              </div>
+                </div>
+              </template>
             </div>
           </div>
+
         </template>
+
+        <!-- Global empty state (all filters return nothing) -->
+        <div
+          class="challenge-empty"
+          x-show="
+            getCategories()
+              .filter(cat => filterCat === 'all' || filterCat === cat)
+              .every(cat =>
+                getChallenges(cat)
+                  .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                  .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
+                  .length === 0
+              )
+          "
+        >
+          <i class="fas fa-search"></i>
+          <p>No challenges match your current filters.</p>
+        </div>
+
       </div>
     </div>
   </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

@@ -1,66 +1,357 @@
 {% extends "base.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Design tokens — light ───────────────────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --ctf-bg-page:        #f3f4f6;
+  --ctf-bg-surface:     #ffffff;
+  --ctf-bg-elevated:    #f8f9fa;
+  --ctf-bg-input:       #ffffff;
+  --ctf-text-primary:   #111827;
+  --ctf-text-muted:     #6b7280;
+  --ctf-border:         #d1d5db;
+  --ctf-border-subtle:  #e5e7eb;
+  --ctf-accent:         #059669;
+  --ctf-accent-rgb:     5, 150, 105;
+  --ctf-accent-glow:    rgba(5,150,105,.15);
+  --ctf-header-bg1:     #e5e7eb;
+  --ctf-header-bg2:     #d1d5db;
+  --ctf-badge-bg:       rgba(0,0,0,.06);
+  --ctf-badge-color:    #374151;
+  --ctf-divider:        #e5e7eb;
+}
+/* ── Design tokens — dark ────────────────────────────────────────────────── */
+[data-bs-theme="dark"] {
+  --ctf-bg-page:        #0d1117;
+  --ctf-bg-surface:     #161b22;
+  --ctf-bg-elevated:    #161b22;
+  --ctf-bg-input:       #0d1117;
+  --ctf-text-primary:   #e6edf3;
+  --ctf-text-muted:     #8b949e;
+  --ctf-border:         #30363d;
+  --ctf-border-subtle:  #21262d;
+  --ctf-accent:         #00ff88;
+  --ctf-accent-rgb:     0, 255, 136;
+  --ctf-accent-glow:    rgba(0,255,136,.12);
+  --ctf-header-bg1:     #0d1117;
+  --ctf-header-bg2:     #161b22;
+  --ctf-badge-bg:       #21262d;
+  --ctf-badge-color:    #8b949e;
+  --ctf-divider:        #21262d;
+}
+
+.jumbotron { display: none !important; }
+body { background-color: var(--ctf-bg-page) !important; }
+
+/* ── Page header ─────────────────────────────────────────────────────────── */
+.ctf-page-header {
+  padding: 2.5rem 0 2rem;
+  background: linear-gradient(135deg, var(--ctf-header-bg1) 0%, var(--ctf-header-bg2) 100%);
+  border-bottom: 1px solid var(--ctf-border);
+  position: relative;
+  overflow: hidden;
+}
+.ctf-page-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb), .06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.ctf-page-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, var(--ctf-accent) 50%, transparent 100%);
+  opacity: .3;
+}
+.ctf-page-header h1 {
+  font-size: 1.75rem;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  color: var(--ctf-text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+.ctf-page-header h1 .accent { color: var(--ctf-accent); }
+.ctf-page-header p {
+  color: var(--ctf-text-muted);
+  font-size: .75rem;
+  letter-spacing: 2px;
+  margin: .4rem 0 0;
+}
+
+/* ── Score graph card ────────────────────────────────────────────────────── */
+.sb-graph-card {
+  background: var(--ctf-bg-surface);
+  border: 1px solid var(--ctf-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  min-height: 80px;
+}
+.sb-graph-spinner { color: var(--ctf-accent); opacity: .8; }
+
+/* ── Bracket filter pills ────────────────────────────────────────────────── */
+.sb-bracket-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .45rem;
+  margin-bottom: 1.25rem;
+}
+.sb-bracket-btn {
+  background: var(--ctf-bg-elevated);
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-muted);
+  padding: .32rem .85rem;
+  border-radius: 20px;
+  font-size: .75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1;
+}
+.sb-bracket-btn:hover {
+  border-color: var(--ctf-accent);
+  color: var(--ctf-accent);
+}
+.sb-bracket-btn.active {
+  background: rgba(var(--ctf-accent-rgb), .1);
+  border-color: var(--ctf-accent);
+  color: var(--ctf-accent);
+  font-weight: 600;
+}
+
+/* ── Leaderboard container ───────────────────────────────────────────────── */
+.sb-leaderboard { margin-bottom: 2.5rem; }
+
+/* Column header row */
+.sb-thead {
+  display: grid;
+  grid-template-columns: 72px 1fr 130px;
+  padding: .52rem 1.2rem;
+  background: var(--ctf-bg-elevated);
+  border: 1px solid var(--ctf-border);
+  border-bottom: 2px solid var(--ctf-border);
+  border-radius: 10px 10px 0 0;
+  gap: .5rem;
+}
+.sb-thead span {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ctf-text-muted);
+}
+
+/* Standing row */
+.sb-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 130px;
+  align-items: center;
+  padding: .78rem 1.2rem;
+  border: 1px solid var(--ctf-border-subtle);
+  border-top: none;
+  background: var(--ctf-bg-surface);
+  transition: background .15s;
+  gap: .5rem;
+}
+.sb-row:last-child { border-radius: 0 0 10px 10px; }
+.sb-row:hover { background: var(--ctf-bg-elevated); }
+
+/* Top-3 row accents */
+.sb-row--gold   { border-left: 3px solid #f59e0b; background: rgba(245,158,11,.05) !important; }
+.sb-row--silver { border-left: 3px solid #94a3b8; background: rgba(148,163,184,.04) !important; }
+.sb-row--bronze { border-left: 3px solid #cd7c32; background: rgba(205,127,50,.04) !important; }
+[data-bs-theme="dark"] .sb-row--gold   { background: rgba(245,158,11,.07) !important; }
+[data-bs-theme="dark"] .sb-row--silver { background: rgba(148,163,184,.05) !important; }
+[data-bs-theme="dark"] .sb-row--bronze { background: rgba(205,127,50,.06) !important; }
+.sb-row--gold:hover,
+.sb-row--silver:hover,
+.sb-row--bronze:hover { filter: brightness(1.04); }
+
+/* Rank cell */
+.sb-rank { display: flex; align-items: center; justify-content: center; }
+.sb-rank-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-size: .82rem;
+  font-weight: 700;
+  background: var(--ctf-badge-bg);
+  color: var(--ctf-text-muted);
+  border: 1px solid var(--ctf-border);
+  line-height: 1;
+}
+.sb-rank-num--gold   { width: 36px; height: 36px; font-size: 1rem;  background: rgba(245,158,11,.15); color: #f59e0b; border-color: rgba(245,158,11,.45); }
+.sb-rank-num--silver { width: 33px; height: 33px; font-size: .9rem; background: rgba(148,163,184,.15); color: #94a3b8; border-color: rgba(148,163,184,.45); }
+.sb-rank-num--bronze { width: 31px; height: 31px;                   background: rgba(205,127,50,.15); color: #cd7c32; border-color: rgba(205,127,50,.45); }
+
+/* Name cell */
+.sb-name-cell { display: flex; align-items: center; gap: .55rem; min-width: 0; }
+.sb-name {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ctf-text-primary);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .15s;
+}
+.sb-name:hover { color: var(--ctf-accent); text-decoration: none; }
+.sb-bracket-badge {
+  font-size: .6rem;
+  padding: .1rem .4rem;
+  border-radius: 4px;
+  background: var(--ctf-badge-bg);
+  color: var(--ctf-badge-color);
+  border: 1px solid var(--ctf-border);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Score cell */
+.sb-score-cell { display: flex; align-items: baseline; gap: .28rem; }
+.sb-score-val {
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--ctf-accent);
+}
+.sb-score-label {
+  font-size: .6rem;
+  font-weight: 400;
+  color: var(--ctf-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Empty state */
+.sb-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--ctf-text-muted);
+  opacity: .65;
+}
+.sb-empty i { font-size: 2rem; display: block; margin-bottom: .75rem; }
+.sb-empty p { font-size: .8rem; letter-spacing: 1px; margin: 0; }
+
+/* Responsive */
+@media (max-width: 575.98px) {
+  .sb-thead { grid-template-columns: 52px 1fr 90px; padding: .5rem .85rem; }
+  .sb-row  { grid-template-columns: 52px 1fr 90px; padding: .75rem .85rem; }
+  .sb-score-label { display: none; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>
-        {% trans %}Scoreboard{% endtrans %}
-      </h1>
+<!-- Page header -->
+<div class="ctf-page-header">
+  <div class="container">
+    <h1><span class="accent">[</span> {% trans %}Scoreboard{% endtrans %} <span class="accent">]</span></h1>
+    <p>// rankings &amp; standings</p>
+  </div>
+</div>
+
+<div class="container">
+  {% include "components/errors.html" %}
+
+  <!-- Score graph -->
+  <div
+    id="score-graph"
+    class="sb-graph-card align-items-center"
+    :class="{'d-flex': show, 'd-none': !show}"
+    x-data="ScoreboardDetail"
+    x-ref="scoregraph"
+    @bracket-change.window="activeBracket=$event.detail; update();"
+  >
+    <div class="col-md-12 text-center">
+      <i class="fas fa-circle-notch fa-spin fa-3x fa-fw sb-graph-spinner"></i>
     </div>
   </div>
-  <div class="container">
-    {% include "components/errors.html" %}
 
-    <div id="score-graph" class="align-items-center" :class="{'d-flex': show, 'd-none': !show}" x-data="ScoreboardDetail" x-ref="scoregraph" @bracket-change.window="activeBracket=$event.detail; update();">
-      <div class="col-md-12 text-center">
-        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+  <!-- Scoreboard -->
+  <div id="scoreboard" x-data="ScoreboardList">
+
+    <!-- Bracket filter pills -->
+    <template x-if="brackets.length && standings.length">
+      <div class="sb-bracket-nav">
+        <button
+          :class="{'sb-bracket-btn': true, 'active': !activeBracket}"
+          @click="activeBracket=null"
+        >{% trans %}All{% endtrans %}</button>
+        <template x-for="bracket in brackets">
+          <button
+            :class="{'sb-bracket-btn': true, 'active': activeBracket == bracket.id}"
+            x-text="bracket.name"
+            @click="activeBracket=bracket.id"
+          ></button>
+        </template>
       </div>
-    </div>
+    </template>
 
-    <div id="scoreboard" class="row" x-data="ScoreboardList">
-      <template x-if="brackets.length && standings.length">
-        <div class="col-md-12 py-3">
-          <nav class="nav nav-pills nav-fill">
-            <button :class="{'nav-link': true, 'active': !activeBracket}" @click="activeBracket=null">{% trans %}All{% endtrans %}</button>
-            <template x-for="bracket in brackets">
-              <button :class="{'nav-link': true, 'active': activeBracket == bracket.id}" x-text="bracket.name" @click="activeBracket=bracket.id"></button>
+    <!-- Leaderboard -->
+    <div class="sb-leaderboard" x-show="standings.length">
+      <!-- Header -->
+      <div class="sb-thead">
+        <span class="text-center">{% trans %}Place{% endtrans %}</span>
+        <span>{{ get_mode_as_word(capitalize=True) }}</span>
+        <span>{% trans %}Score{% endtrans %}</span>
+      </div>
+
+      <!-- Rows -->
+      <template x-for="(standing, index) in standings.filter(i => activeBracket ? i.bracket_id==activeBracket : true)">
+        <div
+          class="sb-row"
+          :class="{
+            'sb-row--gold':   index === 0,
+            'sb-row--silver': index === 1,
+            'sb-row--bronze': index === 2,
+          }"
+        >
+          <!-- Rank -->
+          <div class="sb-rank">
+            <span
+              class="sb-rank-num"
+              :class="{
+                'sb-rank-num--gold':   index === 0,
+                'sb-rank-num--silver': index === 1,
+                'sb-rank-num--bronze': index === 2,
+              }"
+              x-text="index + 1"
+            ></span>
+          </div>
+
+          <!-- Name + bracket -->
+          <div class="sb-name-cell">
+            <a :href="standing.account_url" class="sb-name" x-text="standing.name"></a>
+            <template x-if="standing.bracket_name">
+              <span class="sb-bracket-badge" x-text="standing.bracket_name"></span>
             </template>
-          </nav>
+          </div>
+
+          <!-- Score -->
+          <div class="sb-score-cell">
+            <span class="sb-score-val" x-text="standing.score"></span>
+            <span class="sb-score-label">pts</span>
+          </div>
         </div>
       </template>
-
-      <div class="col-md-12" x-show="standings.length">
-        <table class="table table-striped align-middle">
-          <thead>
-          <tr>
-            <th style="width: 10px">{% trans %}Place{% endtrans %}</th>
-            <th class="text-start ps-3">{{ get_mode_as_word(capitalize=True) }}</th>
-            <th>{% trans %}Score{% endtrans %}</th>
-          </tr>
-          </thead>
-
-          <tbody>
-            <template x-for="(standing, index) in standings.filter(i => activeBracket ? i.bracket_id==activeBracket : true)">
-              <tr>
-                <th scope="row" class="text-center" x-text="index + 1"></th>
-                <td class="text-start">
-                  <a :href="standing.account_url" x-text="standing.name"></a>
-                  <template x-if="standing.bracket_name">
-                    <span class="badge bg-secondary ms-2" x-text="standing.bracket_name"></span>
-                  </template>
-                </td>
-                <td x-text="standing.score"></td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="col-md-12" x-show="! standings.length">
-        <h3 class="text-center text-muted">{% trans %}Scoreboard is empty{% endtrans %}</h3>
-      </div>
     </div>
+
+    <!-- Empty state -->
+    <div class="sb-empty" x-show="!standings.length">
+      <i class="fas fa-trophy"></i>
+      <p>{% trans %}Scoreboard is empty{% endtrans %}</p>
+    </div>
+
   </div>
+</div>
 {% endblock %}
 
 {% block scripts %}

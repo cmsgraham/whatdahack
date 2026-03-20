@@ -23,6 +23,7 @@ ChallengeFields = [
     "tags",
     "requirements",
     "position",
+    "image",
 ]
 Challenge = namedtuple(
     "Challenge",
@@ -67,6 +68,7 @@ def get_all_challenges(admin=False, field=None, q=None, **query_args):
             tags=tag_schema.dump(c.tags).data,
             requirements=c.requirements,
             position=c.position,
+            image=c.image,
         )
         results.append(ct)
     return results

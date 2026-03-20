@@ -1,92 +1,470 @@
 {% extends "base.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Auth token layer — light ──────────────────────────────────────────── */
+:root,
+[data-bs-theme="light"] {
+  --auth-bg:           #f0f4f8;
+  --auth-surface:      #ffffff;
+  --auth-surface-2:    #f8f9fa;
+  --auth-text:         #111827;
+  --auth-muted:        #6b7280;
+  --auth-border:       #d1d5db;
+  --auth-accent:       #059669;
+  --auth-accent-rgb:   5, 150, 105;
+  --auth-accent-glow:  rgba(5, 150, 105, .15);
+  --auth-input-bg:     #ffffff;
+  --auth-input-border: #d1d5db;
+  --auth-input-text:   #111827;
+  --auth-shadow:       0 20px 60px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.05);
+  --auth-grid:         rgba(0,0,0,.03);
+  --auth-danger:       #dc2626;
+  --auth-warning:      #d97706;
+  --auth-info:         #3b82f6;
+}
+/* ── Auth token layer — dark ───────────────────────────────────────────── */
+[data-bs-theme="dark"] {
+  --auth-bg:           #06090f;
+  --auth-surface:      #0d1420;
+  --auth-surface-2:    #161b22;
+  --auth-text:         #e6edf3;
+  --auth-muted:        #8b949e;
+  --auth-border:       #21262d;
+  --auth-accent:       #00ff88;
+  --auth-accent-rgb:   0, 255, 136;
+  --auth-accent-glow:  rgba(0, 255, 136, .12);
+  --auth-input-bg:     #0d1117;
+  --auth-input-border: #30363d;
+  --auth-input-text:   #e6edf3;
+  --auth-shadow:       0 20px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(0,255,136,.08);
+  --auth-grid:         rgba(255,255,255,.022);
+  --auth-danger:       #f85149;
+  --auth-warning:      #d29922;
+  --auth-info:         #58a6ff;
+}
+
+/* ── Shell ─────────────────────────────────────────────────────────────── */
+.auth-shell {
+  min-height: calc(100vh - 60px);
+  background-color: var(--auth-bg);
+  background-image:
+    linear-gradient(var(--auth-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--auth-grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+/* ── Split layout ──────────────────────────────────────────────────────── */
+.auth-wrap {
+  display: flex;
+  width: 100%;
+  max-width: 900px;
+  background: var(--auth-surface);
+  border: 1px solid var(--auth-border);
+  border-radius: 16px;
+  box-shadow: var(--auth-shadow);
+  overflow: hidden;
+}
+
+/* Left panel */
+.auth-brand-panel {
+  flex: 1;
+  background: linear-gradient(150deg, #06090f 0%, #0d1420 60%, #0f1f12 100%);
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+.auth-brand-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+.auth-brand-panel::after {
+  content: '';
+  position: absolute;
+  bottom: -80px; right: -80px;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,136,.07) 0%, transparent 65%);
+  pointer-events: none;
+}
+.auth-brand-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #00ff88;
+  border: 1px solid rgba(0,255,136,.22);
+  background: rgba(0,255,136,.06);
+  padding: .3rem .75rem;
+  border-radius: 20px;
+  width: fit-content;
+  margin-bottom: 2rem;
+}
+.auth-brand-eyebrow i { font-size: .6rem; }
+.auth-brand-title {
+  font-size: 1.65rem;
+  font-weight: 700;
+  color: #e6edf3;
+  line-height: 1.3;
+  margin-bottom: .85rem;
+}
+.auth-brand-title .ab-accent { color: #00ff88; }
+.auth-brand-desc {
+  font-size: .82rem;
+  color: #8b949e;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+.auth-brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  margin-top: auto;
+}
+.auth-brand-feat {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  font-size: .78rem;
+  color: #8b949e;
+}
+.auth-brand-feat-icon {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: rgba(0,255,136,.08);
+  border: 1px solid rgba(0,255,136,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00ff88;
+  font-size: .68rem;
+  flex-shrink: 0;
+}
+
+/* Right panel — form */
+.auth-form-panel {
+  width: 420px;
+  flex-shrink: 0;
+  padding: 3rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  background: var(--auth-surface);
+}
+.auth-form-header {
+  margin-bottom: 1.75rem;
+}
+.auth-form-label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--auth-accent);
+  margin-bottom: .5rem;
+}
+.auth-form-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--auth-text);
+  margin: 0 0 .4rem;
+  line-height: 1.3;
+}
+.auth-form-subtitle {
+  font-size: .8rem;
+  color: var(--auth-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* MLC OAuth */
+.auth-mlc-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  padding: .6rem 1rem;
+  border: 1px solid var(--auth-border);
+  border-radius: 8px;
+  background: var(--auth-surface-2);
+  color: var(--auth-text);
+  font-size: .82rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color .2s, background .2s;
+}
+.auth-mlc-btn:hover { border-color: var(--auth-accent); background: rgba(var(--auth-accent-rgb), .06); color: var(--auth-text); text-decoration: none; }
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: 1.25rem 0;
+  font-size: .68rem;
+  color: var(--auth-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--auth-border);
+}
+
+/* Field group */
+.auth-field {
+  margin-bottom: 1.1rem;
+}
+.auth-label {
+  display: block;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--auth-text);
+  margin-bottom: .4rem;
+  letter-spacing: .3px;
+}
+.auth-label .req { color: var(--auth-accent); margin-left: .2rem; }
+.auth-input {
+  display: block;
+  width: 100%;
+  background: var(--auth-input-bg) !important;
+  border: 1px solid var(--auth-input-border) !important;
+  color: var(--auth-input-text) !important;
+  border-radius: 8px !important;
+  padding: .6rem .9rem !important;
+  font-size: .85rem !important;
+  transition: border-color .2s, box-shadow .2s !important;
+  line-height: 1.5 !important;
+}
+.auth-input::placeholder { color: var(--auth-muted) !important; }
+.auth-input:focus {
+  outline: none !important;
+  border-color: var(--auth-accent) !important;
+  box-shadow: 0 0 0 3px var(--auth-accent-glow) !important;
+}
+.auth-hint {
+  font-size: .71rem;
+  color: var(--auth-muted);
+  margin-top: .3rem;
+  line-height: 1.4;
+}
+
+/* Submit row */
+.auth-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+.auth-submit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .6rem 1.6rem;
+  background: rgba(var(--auth-accent-rgb), .1);
+  border: 1px solid var(--auth-accent);
+  color: var(--auth-accent);
+  border-radius: 8px;
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, box-shadow .2s;
+  white-space: nowrap;
+}
+.auth-submit-btn:hover {
+  background: rgba(var(--auth-accent-rgb), .2);
+  box-shadow: 0 0 16px rgba(var(--auth-accent-rgb), .2);
+}
+input.auth-submit-btn { border: 1px solid var(--auth-accent) !important; }
+
+/* ToS */
+.auth-tos {
+  margin-top: 1rem;
+  font-size: .72rem;
+  color: var(--auth-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+.auth-tos a { color: var(--auth-accent); text-decoration: none; }
+.auth-tos a:hover { text-decoration: underline; }
+
+/* Footer link */
+.auth-footer-link {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--auth-border);
+  font-size: .78rem;
+  color: var(--auth-muted);
+  text-align: center;
+}
+.auth-footer-link a { color: var(--auth-accent); text-decoration: none; }
+.auth-footer-link a:hover { text-decoration: underline; }
+
+/* Alert overrides */
+.auth-alert {
+  border-radius: 8px;
+  padding: .75rem 1rem;
+  font-size: .82rem;
+  border: 1px solid;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: .5rem;
+}
+.auth-alert i { margin-top: .1rem; flex-shrink: 0; }
+.auth-alert.alert-danger  { background: rgba(220,38,38,.07);  border-color: rgba(220,38,38,.25);  color: var(--auth-danger);  }
+.auth-alert.alert-warning { background: rgba(217,119,6,.07);  border-color: rgba(217,119,6,.25);  color: var(--auth-warning); }
+.auth-alert.alert-info    { background: rgba(59,130,246,.07); border-color: rgba(59,130,246,.25); color: var(--auth-info);    }
+.auth-alert.alert-success { background: rgba(5,150,105,.07);  border-color: rgba(5,150,105,.25);  color: var(--auth-accent);  }
+[data-bs-theme="dark"] .auth-alert.alert-success { border-color: rgba(0,255,136,.2); }
+
+/* Responsive */
+@media (max-width: 767px) {
+  .auth-brand-panel { display: none; }
+  .auth-wrap { max-width: 460px; border-radius: 14px; }
+  .auth-form-panel { width: 100%; padding: 2.5rem 1.75rem; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>
-        {% trans %}Register{% endtrans %}
-      </h1>
-    </div>
-  </div>
+<div class="auth-shell">
+  <div class="auth-wrap">
 
-  <div class="container">
-    <div class="row">
-      <div class="col-md-6 offset-md-3">
-        {% include "components/errors.html" %}
-
-        {% if integrations.mlc() %}
-          <a class="btn btn-secondary btn-lg btn-block w-100" href="{{ url_for('auth.oauth_login') }}">
-            Login with Major League Cyber
-          </a>
-
-          <hr>
-        {% endif %}
-
-        {% with form = Forms.auth.RegistrationForm() %}
-
-          {% from "macros/forms.html" import render_extra_fields %}
-
-          <form method="post" accept-charset="utf-8" role="form">
-
-            <div class="mb-3">
-              <b>
-                {{ form.name.label(class="form-label") }}
-                <span class="text-danger">*</span>
-              </b>
-              {{ form.name(class="form-control", value=name, autocomplete="username") }}
-              <small class="form-text text-muted">
-                {% trans %}Your username on the site{% endtrans %}
-              </small>
-            </div>
-
-            <div class="mb-3">
-              <b>
-                {{ form.email.label(class="form-label") }}
-                <span class="text-danger">*</span>
-              </b>
-              {{ form.email(class="form-control", value=email, autocomplete="email") }}
-              <small class="form-text text-muted">
-                {% trans %}Never shown to the public{% endtrans %}
-              </small>
-            </div>
-
-            <div class="mb-3">
-              <b>
-                {{ form.password.label(class="form-label") }}
-                <span class="text-danger">*</span>
-              </b>
-              {{ form.password(class="form-control", value=password, autocomplete="new-password") }}
-              <small class="form-text text-muted">
-                {% trans %}Password used to log into your account{% endtrans %}
-              </small>
-            </div>
-
-            {{ form.nonce() }}
-
-            {{ render_extra_fields(form.extra) }}
-
-            <div class="row pt-3">
-              <div class="col-6 col-md-4 offset-6 offset-md-8">
-                {{ form.submit(class="btn btn-block btn-primary w-100") }}
-              </div>
-            </div>
-
-            {% if Configs.tos_or_privacy %}
-              <div class="row pt-3">
-                <div class="col-md-12 text-center">
-                  <small class="text-muted text-center">
-                    {% trans trimmed privacy_link=Configs.privacy_link, tos_link=Configs.tos_link %}
-                    By registering, you agree to the
-                    <a href="{{ privacy_link }}" target="_blank">privacy policy</a>
-                    and <a href="{{ tos_link }}" target="_blank">terms of service</a>
-                    {% endtrans %}
-                  </small>
-                </div>
-              </div>
-            {% endif %}
-          </form>
-        {% endwith %}
+    <!-- Left: brand panel -->
+    <div class="auth-brand-panel d-none d-md-flex">
+      <div>
+        <span class="auth-brand-eyebrow">
+          <i class="fas fa-shield-alt"></i> Security Platform
+        </span>
+        <h2 class="auth-brand-title">
+          Join<br><span class="ab-accent">Whatdahack CTF</span>
+        </h2>
+        <p class="auth-brand-desc">
+          Create your account and start competing in multi-discipline cybersecurity
+          challenges. Build hands-on skills, gain recognition, and track your progress.
+        </p>
+      </div>
+      <div class="auth-brand-features">
+        <div class="auth-brand-feat">
+          <div class="auth-brand-feat-icon"><i class="fas fa-user-shield"></i></div>
+          <span>Free to participate — open global registration</span>
+        </div>
+        <div class="auth-brand-feat">
+          <div class="auth-brand-feat-icon"><i class="fas fa-layer-group"></i></div>
+          <span>6+ challenge categories across real security domains</span>
+        </div>
+        <div class="auth-brand-feat">
+          <div class="auth-brand-feat-icon"><i class="fas fa-trophy"></i></div>
+          <span>Public rankings and performance tracking</span>
+        </div>
       </div>
     </div>
+
+    <!-- Right: registration form -->
+    <div class="auth-form-panel">
+      <div class="auth-form-header">
+        <div class="auth-form-label">Create Account</div>
+        <h1 class="auth-form-title">{% trans %}Get started{% endtrans %}</h1>
+        <p class="auth-form-subtitle">{% trans %}Register to access all challenges and compete on the leaderboard.{% endtrans %}</p>
+      </div>
+
+      <!-- Errors -->
+      <div>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="auth-alert alert-{{ category }}">
+                <i class="fas fa-{% if category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% elif category == 'success' %}check-circle{% else %}info-circle{% endif %}"></i>
+                <span>{{ message }}</span>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        {% include "components/errors.html" %}
+      </div>
+
+      {% if integrations.mlc() %}
+        <a class="auth-mlc-btn" href="{{ url_for('auth.oauth_login') }}">
+          <i class="fas fa-external-link-alt"></i>
+          {% trans %}Continue with Major League Cyber{% endtrans %}
+        </a>
+        <div class="auth-divider">or register with email</div>
+      {% endif %}
+
+      {% with form = Forms.auth.RegistrationForm() %}
+        {% from "macros/forms.html" import render_extra_fields %}
+
+        <form method="post" accept-charset="utf-8" role="form">
+
+          <div class="auth-field">
+            <label class="auth-label" for="{{ form.name.id }}">
+              {{ form.name.label.text }}<span class="req">*</span>
+            </label>
+            {{ form.name(class="auth-input form-control", value=name, autocomplete="username", placeholder="Choose a username") }}
+            <p class="auth-hint">{% trans %}Your public display name on the platform{% endtrans %}</p>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="{{ form.email.id }}">
+              {{ form.email.label.text }}<span class="req">*</span>
+            </label>
+            {{ form.email(class="auth-input form-control", value=email, autocomplete="email", placeholder="your@email.com") }}
+            <p class="auth-hint">{% trans %}Used for account recovery — never shown publicly{% endtrans %}</p>
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="{{ form.password.id }}">
+              {{ form.password.label.text }}<span class="req">*</span>
+            </label>
+            {{ form.password(class="auth-input form-control", value=password, autocomplete="new-password", placeholder="Create a strong password") }}
+            <p class="auth-hint">{% trans %}Use a unique password for this account{% endtrans %}</p>
+          </div>
+
+          {{ form.nonce() }}
+
+          {{ render_extra_fields(form.extra) }}
+
+          <div class="auth-submit-row">
+            {{ form.submit(class="auth-submit-btn") }}
+          </div>
+
+          {% if Configs.tos_or_privacy %}
+            <div class="auth-tos">
+              {% trans trimmed privacy_link=Configs.privacy_link, tos_link=Configs.tos_link %}
+              By registering, you agree to the
+              <a href="{{ privacy_link }}" target="_blank">privacy policy</a>
+              and <a href="{{ tos_link }}" target="_blank">terms of service</a>
+              {% endtrans %}
+            </div>
+          {% endif %}
+        </form>
+      {% endwith %}
+
+      <div class="auth-footer-link">
+        {% trans %}Already have an account?{% endtrans %}
+        <a href="{{ url_for('auth.login') }}">{% trans %}Sign in{% endtrans %}</a>
+      </div>
+    </div>
+
   </div>
+</div>
 {% endblock %}
