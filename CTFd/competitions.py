@@ -45,7 +45,7 @@ from CTFd.utils.decorators.visibility import (
     check_score_visibility,
 )
 from CTFd.utils.helpers import get_errors, get_infos
-from CTFd.utils.scores import get_standings
+from CTFd.utils.scores import get_competition_standings, get_standings
 from CTFd.utils.user import authed, get_current_team, get_current_user, is_admin
 
 competitions = Blueprint("competitions", __name__)
@@ -197,10 +197,31 @@ def scoreboard(slug):
     if is_admin() is True and scores_visible() is False:
         infos.append("Scores are not currently visible to users")
 
-    standings = get_standings(competition_id=competition.id)
+    standings = get_competition_standings(competition_id=competition.id)
     return render_template(
         "competitions/scoreboard.html",
         competition=competition,
+        standings=standings,
+        infos=infos,
+    )
+
+
+@competitions.route("/leaderboard")
+@check_account_visibility
+@check_score_visibility
+def leaderboard():
+    """Render the platform-wide leaderboard (platform-scoped challenges only)."""
+    infos = get_infos()
+
+    if config.is_scoreboard_frozen():
+        infos.append("Scoreboard has been frozen")
+
+    if is_admin() is True and scores_visible() is False:
+        infos.append("Scores are not currently visible to users")
+
+    standings = get_standings()
+    return render_template(
+        "competitions/leaderboard.html",
         standings=standings,
         infos=infos,
     )

@@ -1,7 +1,7 @@
 from sqlalchemy.sql.expression import union_all
 
 from CTFd.cache import cache
-from CTFd.models import Awards, Brackets, Challenges, Solves, Submissions, Teams, Users, db
+from CTFd.models import Awards, Brackets, Challenges, CompetitionSolves, Solves, Submissions, Teams, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc
 from CTFd.utils.modes import get_model
@@ -10,16 +10,18 @@ from CTFd.utils.modes import get_model
 @cache.memoize(timeout=60)
 def get_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
     """
-    Get standings as a list of tuples containing account_id, name, and score e.g. [(account_id, team_name, score)].
+    Platform leaderboard — queries the Solves table filtered to scope='platform'.
 
-    Ties are broken by who reached a given score first based on the solve ID. Two users can have the same score but one
-    user will have a solve ID that is before the others. That user will be considered the tie-winner.
-
-    Challenges & Awards with a value of zero are filtered out of the calculations to avoid incorrect tie breaks.
-
-    Pass competition_id to scope results to a specific competition. If None, returns global standings
-    (existing behavior preserved for backward compatibility).
+    Pass competition_id=N to get competition standings via get_competition_standings()
+    instead; passing it here is kept for backward compatibility but redirects
+    internally to the competition-scoped helper.
     """
+    if competition_id is not None:
+        return get_competition_standings(
+            count=count, bracket_id=bracket_id, admin=admin, fields=fields,
+            competition_id=competition_id,
+        )
+
     if fields is None:
         fields = []
     Model = get_model()
@@ -33,6 +35,8 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None, competi
         )
         .join(Challenges)
         .filter(Challenges.value != 0)
+        # Platform leaderboard: only count platform-scoped challenge solves.
+        .filter(Challenges.scope == "platform")
         .group_by(Solves.account_id)
     )
 
@@ -47,30 +51,13 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None, competi
         .group_by(Awards.account_id)
     )
 
-    """
-    Filter out solves and awards that are before a specific time point.
-    """
     freeze = get_config("freeze")
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
 
-    """
-    Scope to a specific competition when competition_id is provided.
-    Solves.competition_id resolves via the parent Submissions table (joined table inheritance).
-    """
-    if competition_id is not None:
-        scores = scores.filter(Submissions.competition_id == competition_id)
-        awards = awards.filter(Awards.competition_id == competition_id)
-
-    """
-    Combine awards and solves with a union. They should have the same amount of columns
-    """
     results = union_all(scores, awards).alias("results")
 
-    """
-    Sum each of the results by the team id to get their score.
-    """
     sumscores = (
         db.session.query(
             results.columns.account_id,
@@ -82,14 +69,6 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None, competi
         .subquery()
     )
 
-    """
-    Admins can see scores for all users but the public cannot see banned users.
-
-    Filters out banned users.
-    Properly resolves value ties by ID.
-
-    Different databases treat time precision differently so resolve by the row ID instead.
-    """
     if admin:
         standings_query = (
             db.session.query(
@@ -132,11 +111,115 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None, competi
             )
         )
 
-    # Filter on a bracket if asked
     if bracket_id is not None:
         standings_query = standings_query.filter(Model.bracket_id == bracket_id)
 
-    # Only select a certain amount of users if asked.
+    if count is None:
+        standings = standings_query.all()
+    else:
+        standings = standings_query.limit(count).all()
+
+    return standings
+
+
+@cache.memoize(timeout=60)
+def get_competition_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
+    """
+    Competition leaderboard — queries competition_solves for a specific competition.
+
+    Completely isolated from Solves / the platform leaderboard.
+    competition_id is required; returns [] if None.
+    """
+    if competition_id is None:
+        return []
+
+    if fields is None:
+        fields = []
+    Model = get_model()
+
+    scores = (
+        db.session.query(
+            CompetitionSolves.user_id.label("account_id"),
+            db.func.sum(Challenges.value).label("score"),
+            db.func.max(CompetitionSolves.id).label("id"),
+            db.func.max(CompetitionSolves.date).label("date"),
+        )
+        .join(Challenges, Challenges.id == CompetitionSolves.challenge_id)
+        .filter(CompetitionSolves.competition_id == competition_id)
+        .filter(Challenges.value != 0)
+        .group_by(CompetitionSolves.user_id)
+    )
+
+    awards = (
+        db.session.query(
+            Awards.account_id.label("account_id"),
+            db.func.sum(Awards.value).label("score"),
+            db.func.max(Awards.id).label("id"),
+            db.func.max(Awards.date).label("date"),
+        )
+        .filter(Awards.value != 0)
+        .filter(Awards.competition_id == competition_id)
+        .group_by(Awards.account_id)
+    )
+
+    results = union_all(scores, awards).alias("results")
+
+    sumscores = (
+        db.session.query(
+            results.columns.account_id,
+            db.func.sum(results.columns.score).label("score"),
+            db.func.max(results.columns.id).label("id"),
+            db.func.max(results.columns.date).label("date"),
+        )
+        .group_by(results.columns.account_id)
+        .subquery()
+    )
+
+    if admin:
+        standings_query = (
+            db.session.query(
+                Model.id.label("account_id"),
+                Model.oauth_id.label("oauth_id"),
+                Model.name.label("name"),
+                Model.bracket_id.label("bracket_id"),
+                Brackets.name.label("bracket_name"),
+                Model.hidden,
+                Model.banned,
+                sumscores.columns.score,
+                *fields,
+            )
+            .join(sumscores, Model.id == sumscores.columns.account_id)
+            .join(Brackets, isouter=True)
+            .order_by(
+                sumscores.columns.score.desc(),
+                sumscores.columns.date.asc(),
+                sumscores.columns.id.asc(),
+            )
+        )
+    else:
+        standings_query = (
+            db.session.query(
+                Model.id.label("account_id"),
+                Model.oauth_id.label("oauth_id"),
+                Model.name.label("name"),
+                Model.bracket_id.label("bracket_id"),
+                Brackets.name.label("bracket_name"),
+                sumscores.columns.score,
+                *fields,
+            )
+            .join(sumscores, Model.id == sumscores.columns.account_id)
+            .join(Brackets, isouter=True)
+            .filter(Model.banned == False, Model.hidden == False)
+            .order_by(
+                sumscores.columns.score.desc(),
+                sumscores.columns.date.asc(),
+                sumscores.columns.id.asc(),
+            )
+        )
+
+    if bracket_id is not None:
+        standings_query = standings_query.filter(Model.bracket_id == bracket_id)
+
     if count is None:
         standings = standings_query.all()
     else:
@@ -172,14 +255,13 @@ def get_team_standings(count=None, bracket_id=None, admin=False, fields=None, co
         .group_by(Awards.team_id)
     )
 
+    # Platform-only: exclude competition-scoped solves
+    scores = scores.filter(Challenges.scope == "platform")
+
     freeze = get_config("freeze")
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
-
-    if competition_id is not None:
-        scores = scores.filter(Submissions.competition_id == competition_id)
-        awards = awards.filter(Awards.competition_id == competition_id)
 
     results = union_all(scores, awards).alias("results")
 
@@ -275,14 +357,13 @@ def get_user_standings(count=None, bracket_id=None, admin=False, fields=None, co
         .group_by(Awards.user_id)
     )
 
+    # Platform-only: exclude competition-scoped solves
+    scores = scores.filter(Challenges.scope == "platform")
+
     freeze = get_config("freeze")
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
-
-    if competition_id is not None:
-        scores = scores.filter(Submissions.competition_id == competition_id)
-        awards = awards.filter(Awards.competition_id == competition_id)
 
     results = union_all(scores, awards).alias("results")
 

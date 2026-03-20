@@ -13,7 +13,7 @@ from CTFd.utils.decorators.visibility import (
 )
 from CTFd.utils.modes import TEAMS_MODE, generate_account_url, get_mode_as_word
 from CTFd.utils.scoreboard import get_scoreboard_detail
-from CTFd.utils.scores import get_standings, get_user_standings
+from CTFd.utils.scores import get_competition_standings, get_standings, get_user_standings
 
 scoreboard_namespace = Namespace(
     "scoreboard", description="Endpoint to retrieve scores"
@@ -41,12 +41,17 @@ class ScoreboardList(Resource):
             except (ValueError, TypeError):
                 pass
 
-        standings = get_standings(competition_id=competition_id)
+        if competition_id is not None:
+            standings = get_competition_standings(competition_id=competition_id)
+        else:
+            standings = get_standings()
         response = []
         mode = get_config("user_mode")
         account_type = get_mode_as_word()
 
-        if mode == TEAMS_MODE:
+        # Member-score enrichment only applies to platform (global) team standings.
+        # Competition standings are tracked per-competition and don't use global team_id.
+        if mode == TEAMS_MODE and competition_id is None:
             r = db.session.execute(
                 select(
                     [
@@ -76,8 +81,7 @@ class ScoreboardList(Resource):
                         "bracket_name": u.bracket_name,
                     }
 
-            # Get user_standings as a dict so that we can more quickly get member scores
-            user_standings = get_user_standings(competition_id=competition_id)
+            user_standings = get_user_standings()
             for u in user_standings:
                 membership[u.team_id][u.user_id]["score"] = int(u.score)
 
@@ -94,7 +98,7 @@ class ScoreboardList(Resource):
                 "bracket_name": x.bracket_name,
             }
 
-            if mode == TEAMS_MODE:
+            if mode == TEAMS_MODE and competition_id is None:
                 entry["members"] = list(membership[x.account_id].values())
 
             response.append(entry)

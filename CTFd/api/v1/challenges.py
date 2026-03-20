@@ -20,6 +20,7 @@ from CTFd.models import ChallengeFiles as ChallengeFilesModel
 from CTFd.models import Challenges
 from CTFd.models import ChallengeTopics as ChallengeTopicsModel
 from CTFd.models import (
+    CompetitionSolves,
     Fails,
     Flags,
     Hints,
@@ -848,17 +849,17 @@ class ChallengeAttempt(Resource):
         cache.inc(acc_kpm_key)
         cache.expire(acc_kpm_key, time_delay)
 
-        # Check if this user/team has already solved this challenge in the
-        # current competition.  When competition_id is None (no competition
-        # context) fall back to the global check to preserve legacy behaviour.
-        solves_q = Solves.query.filter_by(
-            account_id=user.account_id, challenge_id=challenge_id
-        )
-        if competition_id is not None:
-            solves_q = solves_q.filter(
-                Submissions.competition_id == competition_id
-            )
-        solves = solves_q.first()
+        # Check if this user/team has already solved this challenge.
+        # Competition challenges: query CompetitionSolves (never in Solves).
+        # Platform challenges: query Solves (global, no competition scope).
+        if challenge.scope == "competition":
+            solves = CompetitionSolves.query.filter_by(
+                user_id=user.id, challenge_id=challenge_id
+            ).first()
+        else:
+            solves = Solves.query.filter_by(
+                account_id=user.account_id, challenge_id=challenge_id
+            ).first()
 
         # Challenge not solved yet
         if not solves:
@@ -903,7 +904,7 @@ class ChallengeAttempt(Resource):
                             },
                         }
 
-                    clear_standings_for_competition(competition_id)
+                    clear_standings_for_competition(competition_id) if challenge.scope == "competition" else clear_standings()
                     clear_challenges()
 
                 log(
@@ -924,7 +925,7 @@ class ChallengeAttempt(Resource):
                     chal_class.partial(
                         user=user, team=team, challenge=challenge, request=request
                     )
-                    clear_standings_for_competition(competition_id)
+                    clear_standings_for_competition(competition_id) if challenge.scope == "competition" else clear_standings()
                     clear_challenges()
 
                 log(

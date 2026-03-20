@@ -5,7 +5,7 @@ from sqlalchemy import func as sa_func
 from sqlalchemy.sql import and_, false, true
 
 from CTFd.cache import cache
-from CTFd.models import Challenges, Ratings, Solves, Submissions, Users, db
+from CTFd.models import Challenges, CompetitionSolves, Ratings, Solves, Submissions, Users, db
 from CTFd.schemas.submissions import SubmissionSchema
 from CTFd.schemas.tags import TagSchema
 from CTFd.utils import get_config
@@ -43,10 +43,18 @@ def get_all_challenges(admin=False, field=None, q=None, competition_id=None, **q
         chal_q = chal_q.filter(
             and_(Challenges.state != "hidden", Challenges.state != "locked")
         )
-    # Scope to a specific competition when provided.
-    # When None, fall back to returning all challenges (legacy behavior).
+
+    # Dual-mode scope filtering:
+    # - With competition_id: return only competition-scoped challenges for that event.
+    # - Without competition_id: return only platform-scoped (evergreen) challenges.
+    #   The previous "fall back to returning all" legacy behaviour is removed.
     if competition_id is not None:
-        chal_q = chal_q.filter(Challenges.competition_id == competition_id)
+        chal_q = chal_q.filter(
+            Challenges.scope == "competition",
+            Challenges.competition_id == competition_id,
+        )
+    else:
+        chal_q = chal_q.filter(Challenges.scope == "platform")
     chal_q = (
         chal_q.filter_by(**query_args)
         .filter(*filters)
@@ -134,17 +142,24 @@ def get_submissions_for_user_id_for_challenge_id(user_id, challenge_id):
 @cache.memoize(timeout=60)
 def get_solve_ids_for_user_id(user_id, competition_id=None):
     user = Users.query.filter_by(id=user_id).first()
-    solve_ids_q = (
-        Solves.query.with_entities(Solves.challenge_id)
-        .filter(Solves.account_id == user.account_id)
-    )
-    # When a competition_id is provided, restrict solves to that competition.
-    # Solves inherits from Submissions (joined table inheritance) so
-    # Submissions.competition_id is reachable without an explicit extra join.
+
     if competition_id is not None:
-        solve_ids_q = solve_ids_q.filter(
-            Submissions.competition_id == competition_id
+        # Competition challenges are tracked in competition_solves, not solves.
+        solve_ids_q = (
+            CompetitionSolves.query
+            .with_entities(CompetitionSolves.challenge_id)
+            .filter(
+                CompetitionSolves.user_id == user_id,
+                CompetitionSolves.competition_id == competition_id,
+            )
         )
+    else:
+        # Platform challenges are tracked in solves.
+        solve_ids_q = (
+            Solves.query.with_entities(Solves.challenge_id)
+            .filter(Solves.account_id == user.account_id)
+        )
+
     solve_ids = solve_ids_q.all()
     solve_ids = {value for (value,) in solve_ids}
     return solve_ids

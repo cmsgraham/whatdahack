@@ -133,6 +133,10 @@ class Challenges(db.Model):
     competition_id = db.Column(
         db.Integer, db.ForeignKey("competitions.id", ondelete="SET NULL"), nullable=True
     )
+    # Dual-mode discriminator: 'platform' (evergreen, scores to Solves) or
+    # 'competition' (event-scoped, scores to CompetitionSolves).
+    # Invariant: platform → competition_id is NULL; competition → competition_id is set.
+    scope = db.Column(db.String(16), nullable=False, default="platform")
 
     files = db.relationship("ChallengeFiles", backref="challenge")
     tags = db.relationship("Tags", backref="challenge")
@@ -1395,6 +1399,70 @@ class CompetitionTeamMember(db.Model):
             "<CompetitionTeamMember competition_id={} team_id={} user_id={}>".format(
                 self.competition_id, self.team_id, self.user_id
             )
+        )
+
+
+class CompetitionSolves(db.Model):
+    """
+    Solve records for competition-scoped challenges (scope='competition').
+
+    These rows are written by the submission handler when challenge.scope == 'competition'.
+    They are NEVER written to the Solves table and never contribute to the global
+    platform leaderboard.
+
+    Uniqueness is enforced per (challenge, user) pair within a competition — a user
+    cannot solve the same competition challenge twice even across different competitions
+    that reuse the same challenge row (edge case; handled at app level).
+    """
+
+    __tablename__ = "competition_solves"
+    id = db.Column(db.Integer, primary_key=True)
+    challenge_id = db.Column(
+        db.Integer,
+        db.ForeignKey("challenges.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    competition_id = db.Column(
+        db.Integer,
+        db.ForeignKey("competitions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    team_id = db.Column(
+        db.Integer,
+        db.ForeignKey("teams.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    ip = db.Column(db.String(46), nullable=True)
+    provided = db.Column(db.Text, nullable=True)
+    date = db.Column(db.DateTime, default=datetime.datetime.utcnow, nullable=False)
+
+    challenge = db.relationship(
+        "Challenges", foreign_keys=[challenge_id], lazy="select"
+    )
+    competition = db.relationship(
+        "Competition", foreign_keys=[competition_id], lazy="select"
+    )
+    user = db.relationship("Users", foreign_keys=[user_id], lazy="select")
+    team = db.relationship("Teams", foreign_keys=[team_id], lazy="select")
+
+    __table_args__ = (
+        db.UniqueConstraint(
+            "challenge_id", "user_id", name="uq_comp_solve_user"
+        ),
+        {},
+    )
+
+    def __init__(self, *args, **kwargs):
+        super(CompetitionSolves, self).__init__(**kwargs)
+
+    def __repr__(self):
+        return "<CompetitionSolves challenge_id={} user_id={} competition_id={}>".format(
+            self.challenge_id, self.user_id, self.competition_id
         )
 
 

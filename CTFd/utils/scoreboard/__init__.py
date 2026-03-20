@@ -1,30 +1,38 @@
 from collections import defaultdict
 
 from CTFd.cache import cache
-from CTFd.models import Awards, Solves
+from CTFd.models import Awards, CompetitionSolves, Solves
 from CTFd.utils import get_config
 from CTFd.utils.dates import isoformat, unix_time_to_utc
 from CTFd.utils.modes import generate_account_url
-from CTFd.utils.scores import get_standings
+from CTFd.utils.scores import get_competition_standings, get_standings
 
 
 @cache.memoize(timeout=60)
 def get_scoreboard_detail(count, bracket_id=None, competition_id=None):
     response = {}
 
-    standings = get_standings(
-        count=count, bracket_id=bracket_id, competition_id=competition_id
-    )
+    if competition_id is not None:
+        standings = get_competition_standings(
+            count=count, bracket_id=bracket_id, competition_id=competition_id
+        )
+    else:
+        standings = get_standings(count=count, bracket_id=bracket_id)
 
     team_ids = [team.account_id for team in standings]
 
-    solves = Solves.query.filter(Solves.account_id.in_(team_ids))
-    awards = Awards.query.filter(Awards.account_id.in_(team_ids))
-
-    # Scope to competition if requested
     if competition_id is not None:
-        solves = solves.filter(Solves.competition_id == competition_id)
-        awards = awards.filter(Awards.competition_id == competition_id)
+        solves = CompetitionSolves.query.filter(
+            CompetitionSolves.account_id.in_(team_ids),
+            CompetitionSolves.competition_id == competition_id,
+        )
+        awards = Awards.query.filter(
+            Awards.account_id.in_(team_ids),
+            Awards.competition_id == competition_id,
+        )
+    else:
+        solves = Solves.query.filter(Solves.account_id.in_(team_ids))
+        awards = Awards.query.filter(Awards.account_id.in_(team_ids))
 
     freeze = get_config("freeze")
 

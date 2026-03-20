@@ -11,6 +11,7 @@ from CTFd.exceptions.challenges import (
 from CTFd.models import (
     ChallengeFiles,
     Challenges,
+    CompetitionSolves,
     Fails,
     Flags,
     Hints,
@@ -254,13 +255,40 @@ class BaseChallenge(object):
         data = request.form or request.get_json()
         submission = data["submission"].strip()
 
-        solve = Solves(
-            user_id=user.id,
-            team_id=team.id if team else None,
-            challenge_id=challenge.id,
-            ip=get_ip(req=request),
-            provided=submission,
-        )
+        if challenge.scope == "competition":
+            # competition_id comes from the challenge itself.
+            # team_id uses the competition-specific team (resolved here in case
+            # the user's global team differs from their per-competition team).
+            comp_team_id = team.id if team else None
+            if challenge.competition_id is not None and user is not None:
+                from sqlalchemy import text as _text
+                row = db.session.execute(
+                    _text(
+                        "SELECT team_id FROM competition_team_members "
+                        "WHERE competition_id = :cid AND user_id = :uid"
+                    ),
+                    {"cid": challenge.competition_id, "uid": user.id},
+                ).fetchone()
+                if row:
+                    comp_team_id = row[0]
+
+            solve = CompetitionSolves(
+                user_id=user.id,
+                team_id=comp_team_id,
+                challenge_id=challenge.id,
+                competition_id=challenge.competition_id,
+                ip=get_ip(req=request),
+                provided=submission,
+            )
+        else:
+            # Platform-scoped challenge → write to solves (existing behaviour).
+            solve = Solves(
+                user_id=user.id,
+                team_id=team.id if team else None,
+                challenge_id=challenge.id,
+                ip=get_ip(req=request),
+                provided=submission,
+            )
 
         try:
             db.session.add(solve)

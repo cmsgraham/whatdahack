@@ -1,0 +1,60 @@
+{% extends "scoreboard.html" %}
+
+{#
+  Platform-wide leaderboard page.
+
+  Extends the base scoreboard.html template and:
+  1. Does NOT inject window.__CTF_COMPETITION_ID__ so the scoreboard API
+     calls default to platform-scoped (scope='platform') challenges.
+  2. Overrides the page header with a leaderboard-specific banner.
+#}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Platform leaderboard banner ──────────────────────────────────────── */
+.platform-lb-banner {
+  background: linear-gradient(135deg, var(--ctf-header-bg1, #e5e7eb) 0%, var(--ctf-header-bg2, #d1d5db) 100%);
+  border-bottom: 1px solid var(--ctf-border, #d1d5db);
+  padding: 2.2rem 0 1.8rem;
+  position: relative;
+  overflow: hidden;
+}
+.platform-lb-banner::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb, 5,150,105), .07) 0%, transparent 60%);
+  pointer-events: none;
+}
+.platform-lb-banner h1 {
+  font-size: 1.8rem; font-weight: 800;
+  color: var(--ctf-text-primary, #111827);
+  letter-spacing: -.4px; margin-bottom: .35rem;
+}
+.platform-lb-banner h1 .accent { color: var(--ctf-accent, #059669); }
+.platform-lb-banner .sub {
+  font-size: .85rem; color: var(--ctf-text-muted, #6b7280); margin-top: .25rem;
+}
+/* Hide the base scoreboard page header (we replaced it) */
+.ctf-page-header { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Platform leaderboard banner -->
+<div class="platform-lb-banner">
+  <div class="container">
+    <h1><span class="accent">[</span> {% trans %}Platform Leaderboard{% endtrans %} <span class="accent">]</span></h1>
+    <p class="sub">{% trans %}Overall standings across all platform challenges{% endtrans %}</p>
+  </div>
+</div>
+
+{% if infos %}
+<div class="container mt-2">
+  {% for info in infos %}
+  <div class="alert alert-info" role="alert">{{ info }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+{{ super() }}
+{% endblock %}
