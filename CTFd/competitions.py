@@ -16,6 +16,7 @@ callers to pass explicit parameters.
 
 from flask import Blueprint, g, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _l
+from sqlalchemy import func as sa_func
 
 from CTFd.constants.config import ChallengeVisibilityTypes, Configs
 from CTFd.utils import config
@@ -112,7 +113,8 @@ def history():
     if not is_admin():
         query = query.filter_by(state="visible")
     past = query.order_by(
-        Competition.end.desc().nullslast(),
+        sa_func.isnull(Competition.end).asc(),  # NULLs last (MariaDB/MySQL compatible)
+        Competition.end.desc(),
         Competition.id.desc(),
     ).all()
     return render_template("competitions/history.html", competitions=past)
