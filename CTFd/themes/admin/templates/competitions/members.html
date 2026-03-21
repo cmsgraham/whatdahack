@@ -27,6 +27,7 @@
     <div class="card-header"><h5 class="mb-0">Add Participant</h5></div>
     <div class="card-body">
       <form method="POST" action="{{ url_for('admin.competitions_members_add', competition_id=comp.id) }}" class="form-inline">
+        <input type="hidden" name="nonce" value="{{ Session.nonce }}">
         <label class="mr-2" for="identifier">Username or Email</label>
         <input type="text" id="identifier" name="identifier" class="form-control mr-2" placeholder="username or email" required>
         <button type="submit" class="btn btn-success">Add</button>
@@ -103,6 +104,7 @@
                   {% if row.user %}
                   <form method="POST" action="{{ url_for('admin.competitions_members_remove', competition_id=comp.id) }}"
                         onsubmit="return confirm('Remove {{ row.user.name }} from this competition?')">
+                    <input type="hidden" name="nonce" value="{{ Session.nonce }}">
                     <input type="hidden" name="user_id" value="{{ row.user.id }}">
                     <button type="submit" class="btn btn-sm btn-danger">Remove</button>
                   </form>
