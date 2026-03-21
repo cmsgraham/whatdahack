@@ -420,6 +420,176 @@ def competitions_members_add(competition_id):
     return redirect(url_for("admin.competitions_members", competition_id=competition_id))
 
 
+# ---------------------------------------------------------------------------
+# Competition Teams admin
+# ---------------------------------------------------------------------------
+
+@admin.route("/admin/competitions/<int:competition_id>/teams")
+@admins_only
+def competitions_teams(competition_id):
+    """List all teams enrolled in a competition."""
+    from CTFd.models import CompetitionTeam, CompetitionTeamMember, Teams
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+
+    rows = (
+        db.session.query(CompetitionTeam, Teams)
+        .join(Teams, Teams.id == CompetitionTeam.team_id)
+        .filter(CompetitionTeam.competition_id == competition_id)
+        .order_by(Teams.name.asc())
+        .all()
+    )
+    teams = []
+    for ct, team in rows:
+        member_count = CompetitionTeamMember.query.filter_by(
+            competition_id=competition_id, team_id=team.id
+        ).count()
+        teams.append({"team": team, "ct": ct, "member_count": member_count})
+
+    return render_template(
+        "competitions/teams.html",
+        comp=comp,
+        teams=teams,
+    )
+
+
+@admin.route("/admin/competitions/<int:competition_id>/teams/<int:team_id>", methods=["GET", "POST"])
+@admins_only
+def competitions_team_detail(competition_id, team_id):
+    """View/edit a competition team and its members."""
+    from CTFd.models import CompetitionTeam, CompetitionTeamMember, CompetitionUser, Teams, Users
+    from CTFd.utils.crypto import hash_password
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    team = Teams.query.filter_by(id=team_id).first_or_404()
+    CompetitionTeam.query.filter_by(competition_id=competition_id, team_id=team_id).first_or_404()
+
+    if request.method == "POST":
+        action = request.form.get("action")
+
+        if action == "edit":
+            new_name = (request.form.get("name") or "").strip()
+            new_password = (request.form.get("password") or "").strip()
+            if not new_name:
+                flash("Team name cannot be empty.", "danger")
+            else:
+                # check name uniqueness within competition (excluding self)
+                conflict = (
+                    Teams.query
+                    .join(CompetitionTeam, Teams.id == CompetitionTeam.team_id)
+                    .filter(CompetitionTeam.competition_id == competition_id)
+                    .filter(Teams.name == new_name)
+                    .filter(Teams.id != team_id)
+                    .first()
+                )
+                if conflict:
+                    flash(f"A team named '{new_name}' already exists in this competition.", "danger")
+                else:
+                    team.name = new_name
+                    if new_password:
+                        team.password = hash_password(new_password)
+                    elif request.form.get("clear_password"):
+                        team.password = None
+                    db.session.commit()
+                    flash("Team updated.", "success")
+
+        elif action == "add_member":
+            identifier = (request.form.get("identifier") or "").strip()
+            user = Users.query.filter(
+                (Users.name == identifier) | (Users.email == identifier)
+            ).first()
+            if not user:
+                flash(f"No user found matching '{identifier}'.", "danger")
+            else:
+                # Ensure user is registered for the competition
+                reg = CompetitionUser.query.filter_by(
+                    competition_id=competition_id, user_id=user.id
+                ).first()
+                if not reg:
+                    reg = CompetitionUser(competition_id=competition_id, user_id=user.id, status="joined")
+                    db.session.add(reg)
+
+                # Check not already on another team in this competition
+                existing_membership = CompetitionTeamMember.query.filter_by(
+                    competition_id=competition_id, user_id=user.id
+                ).first()
+                if existing_membership and existing_membership.team_id != team_id:
+                    flash(f"{user.name} is already on a different team in this competition.", "warning")
+                elif existing_membership:
+                    flash(f"{user.name} is already on this team.", "warning")
+                else:
+                    db.session.add(CompetitionTeamMember(
+                        competition_id=competition_id, team_id=team_id, user_id=user.id
+                    ))
+                    reg.status = "joined"
+                    db.session.commit()
+                    flash(f"{user.name} added to team.", "success")
+
+        elif action == "remove_member":
+            user_id = request.form.get("user_id", type=int)
+            if user_id:
+                CompetitionTeamMember.query.filter_by(
+                    competition_id=competition_id, team_id=team_id, user_id=user_id
+                ).delete(synchronize_session=False)
+                # revert user's comp status to pending_team
+                reg = CompetitionUser.query.filter_by(
+                    competition_id=competition_id, user_id=user_id
+                ).first()
+                if reg:
+                    reg.status = "pending_team"
+                db.session.commit()
+                flash("Member removed from team.", "success")
+
+        return redirect(url_for("admin.competitions_team_detail", competition_id=competition_id, team_id=team_id))
+
+    members = (
+        db.session.query(CompetitionTeamMember, Users)
+        .join(Users, Users.id == CompetitionTeamMember.user_id)
+        .filter(CompetitionTeamMember.competition_id == competition_id)
+        .filter(CompetitionTeamMember.team_id == team_id)
+        .all()
+    )
+
+    return render_template(
+        "competitions/team_detail.html",
+        comp=comp,
+        team=team,
+        members=members,
+    )
+
+
+@admin.route("/admin/competitions/<int:competition_id>/teams/<int:team_id>/delete", methods=["POST"])
+@admins_only
+def competitions_team_delete(competition_id, team_id):
+    """Delete a competition team (removes enrollment + members, keeps global Teams row by default)."""
+    from CTFd.models import CompetitionTeam, CompetitionTeamMember, CompetitionUser, Teams
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    team = Teams.query.filter_by(id=team_id).first_or_404()
+
+    # Revert affected users to pending_team
+    member_ids = [
+        m.user_id for m in CompetitionTeamMember.query.filter_by(
+            competition_id=competition_id, team_id=team_id
+        ).all()
+    ]
+    CompetitionTeamMember.query.filter_by(
+        competition_id=competition_id, team_id=team_id
+    ).delete(synchronize_session=False)
+    for uid in member_ids:
+        reg = CompetitionUser.query.filter_by(competition_id=competition_id, user_id=uid).first()
+        if reg:
+            reg.status = "pending_team"
+
+    CompetitionTeam.query.filter_by(
+        competition_id=competition_id, team_id=team_id
+    ).delete(synchronize_session=False)
+    db.session.commit()
+
+    flash(f"Team '{team.name}' removed from competition.", "success")
+    return redirect(url_for("admin.competitions_teams", competition_id=competition_id))
+
+
 @admin.route("/admin/competitions/<int:competition_id>/members/remove", methods=["POST"])
 @admins_only
 def competitions_members_remove(competition_id):

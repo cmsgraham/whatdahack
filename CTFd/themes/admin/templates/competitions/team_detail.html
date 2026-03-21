@@ -1,0 +1,200 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+  <div class="container">
+    <h1>{{ comp.name }} — Team: {{ team.name }}</h1>
+    <p class="mb-0">
+      <a href="{{ url_for('admin.competitions_teams', competition_id=comp.id) }}">
+        &larr; Back to teams
+      </a>
+    </p>
+  </div>
+</div>
+
+<div class="container">
+
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="alert alert-{{ category }}">{{ message }}</div>
+  {% endfor %}
+
+  <div class="row">
+
+    <!-- Edit team settings -->
+    <div class="col-md-5">
+      <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Edit Team</h5></div>
+        <div class="card-body">
+          <form method="POST">
+            <input type="hidden" name="nonce" value="{{ Session.nonce }}">
+            <input type="hidden" name="action" value="edit">
+            <div class="form-group">
+              <label for="team-name">Team Name</label>
+              <input type="text" id="team-name" name="name" class="form-control"
+                     value="{{ team.name }}" required>
+            </div>
+            <div class="form-group">
+              <label for="team-password">New Password <small class="text-muted">(leave blank to keep current)</small></label>
+              <input type="password" id="team-password" name="password" class="form-control"
+                     autocomplete="new-password" placeholder="{% if team.password %}••••••••{% else %}No password set{% endif %}">
+            </div>
+            {% if team.password %}
+            <div class="form-check mb-3">
+              <input class="form-check-input" type="checkbox" id="clear-password" name="clear_password" value="1">
+              <label class="form-check-label text-danger" for="clear-password">
+                Remove password protection
+              </label>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="card border-danger">
+        <div class="card-header text-danger"><h5 class="mb-0">Danger Zone</h5></div>
+        <div class="card-body">
+          <p class="text-muted small mb-2">Remove this team from the competition. All members will be set back to pending-team status.</p>
+          <form method="POST"
+                action="{{ url_for('admin.competitions_team_delete', competition_id=comp.id, team_id=team.id) }}"
+                onsubmit="return confirm('Remove team {{ team.name | e }} from this competition?')">
+            <input type="hidden" name="nonce" value="{{ Session.nonce }}">
+            <button type="submit" class="btn btn-danger btn-sm">
+              <i class="fas fa-trash"></i> Remove Team from Competition
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Members -->
+    <div class="col-md-7">
+      <div class="card mb-4">
+        <div class="card-header"><h5 class="mb-0">Add Member</h5></div>
+        <div class="card-body">
+          <form method="POST" autocomplete="off">
+            <input type="hidden" name="nonce" value="{{ Session.nonce }}">
+            <input type="hidden" name="action" value="add_member">
+            <div class="input-group">
+              <div style="position:relative;flex:1;">
+                <input type="text" id="member-identifier" name="identifier"
+                       class="form-control" placeholder="start typing a username…"
+                       required autocomplete="off">
+                <ul id="member-suggestions" class="list-group"
+                    style="display:none;position:fixed;z-index:99999;max-height:220px;overflow-y:auto;
+                           box-shadow:0 4px 14px rgba(0,0,0,.2);border-radius:0 0 .25rem .25rem;min-width:280px;"></ul>
+              </div>
+              <div class="input-group-append">
+                <button type="submit" class="btn btn-success">Add</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+          <h5 class="mb-0">Members
+            <span class="badge badge-secondary ml-1">{{ members | length }}</span>
+          </h5>
+        </div>
+        <div class="card-body p-0">
+          {% if members %}
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>User</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for membership, user in members %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>
+                  <a href="{{ url_for('admin.users_detail', user_id=user.id) }}">{{ user.name }}</a>
+                  {% if team.captain_id == user.id %}
+                    <span class="badge badge-info ml-1">captain</span>
+                  {% endif %}
+                </td>
+                <td class="text-muted">{{ user.email }}</td>
+                <td class="text-muted" style="font-size:.85rem">
+                  {% if membership.joined_at %}{{ membership.joined_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                </td>
+                <td>
+                  <form method="POST"
+                        onsubmit="return confirm('Remove {{ user.name | e }} from this team?')">
+                    <input type="hidden" name="nonce" value="{{ Session.nonce }}">
+                    <input type="hidden" name="action" value="remove_member">
+                    <input type="hidden" name="user_id" value="{{ user.id }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="p-3 text-muted">No members yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var input = document.getElementById('member-identifier');
+  if (!input) return;
+  var list = document.createElement('ul');
+  list.className = 'list-group';
+  list.style.cssText = 'display:none;position:fixed;z-index:99999;max-height:240px;overflow-y:auto;box-shadow:0 4px 14px rgba(0,0,0,.2);border-radius:0 0 .25rem .25rem;min-width:280px;';
+  document.body.appendChild(list);
+  var timer = null;
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function reposition() { var r=input.getBoundingClientRect(); list.style.top=(r.bottom+window.scrollY)+'px'; list.style.left=(r.left+window.scrollX)+'px'; list.style.width=Math.max(r.width,280)+'px'; }
+  function hide() { list.style.display='none'; list.innerHTML=''; }
+  function show(users) {
+    list.innerHTML='';
+    if(!users.length){hide();return;}
+    users.slice(0,10).forEach(function(u){
+      var li=document.createElement('li');
+      li.className='list-group-item list-group-item-action py-1 px-3';
+      li.style.cursor='pointer';
+      li.innerHTML='<strong>'+esc(u.name)+'</strong>'+(u.email?' <small class="text-muted ml-1">'+esc(u.email)+'</small>':'');
+      li.addEventListener('mousedown',function(e){e.preventDefault();input.value=u.name;hide();});
+      list.appendChild(li);
+    });
+    reposition(); list.style.display='block';
+  }
+  input.addEventListener('input',function(){
+    clearTimeout(timer);
+    var q=input.value.trim();
+    if(q.length<1){hide();return;}
+    timer=setTimeout(function(){
+      fetch('/api/v1/users?q='+encodeURIComponent(q)+'&field=name&view=admin',{credentials:'same-origin',headers:{'Accept':'application/json'}})
+      .then(function(r){return r.json();}).then(function(d){if(d.success)show(d.data);}).catch(hide);
+    },200);
+  });
+  input.addEventListener('blur',function(){setTimeout(hide,200);});
+  window.addEventListener('scroll',function(){if(list.style.display!=='none')reposition();},true);
+  window.addEventListener('resize',function(){if(list.style.display!=='none')reposition();});
+  input.addEventListener('keydown',function(e){
+    var items=list.querySelectorAll('li'),active=list.querySelector('li.active');
+    if(!items.length)return;
+    if(e.key==='ArrowDown'){e.preventDefault();var n=active?active.nextElementSibling:items[0];if(active)active.classList.remove('active');if(n)n.classList.add('active');}
+    else if(e.key==='ArrowUp'){e.preventDefault();var p=active?active.previousElementSibling:items[items.length-1];if(active)active.classList.remove('active');if(p)p.classList.add('active');}
+    else if(e.key==='Enter'&&active){e.preventDefault();input.value=active.querySelector('strong').textContent;hide();}
+    else if(e.key==='Escape'){hide();}
+  });
+});
+</script>
+{% endblock %}
