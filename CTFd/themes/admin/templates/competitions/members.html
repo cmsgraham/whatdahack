@@ -26,10 +26,13 @@
   <div class="card mb-4">
     <div class="card-header"><h5 class="mb-0">Add Participant</h5></div>
     <div class="card-body">
-      <form method="POST" action="{{ url_for('admin.competitions_members_add', competition_id=comp.id) }}" class="form-inline">
+      <form method="POST" action="{{ url_for('admin.competitions_members_add', competition_id=comp.id) }}" class="form-inline" autocomplete="off">
         <input type="hidden" name="nonce" value="{{ Session.nonce }}">
         <label class="mr-2" for="identifier">Username or Email</label>
-        <input type="text" id="identifier" name="identifier" class="form-control mr-2" placeholder="username or email" required>
+        <div id="identifier-wrapper" style="position:relative;display:inline-block;" class="mr-2">
+          <input type="text" id="identifier" name="identifier" class="form-control" placeholder="start typing a username…" required autocomplete="off">
+          <ul id="identifier-suggestions" class="list-group" style="display:none;position:absolute;top:100%;left:0;z-index:9999;min-width:100%;max-height:220px;overflow-y:auto;border-radius:0 0 .25rem .25rem;box-shadow:0 4px 12px rgba(0,0,0,.15)"></ul>
+        </div>
         <button type="submit" class="btn btn-success">Add</button>
       </form>
     </div>
@@ -123,4 +126,92 @@
   {% endif %}
 
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var input = document.getElementById('identifier');
+  var list  = document.getElementById('identifier-suggestions');
+  var debounceTimer = null;
+
+  function esc(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function hideList() {
+    list.style.display = 'none';
+    list.innerHTML = '';
+  }
+
+  function showResults(users) {
+    list.innerHTML = '';
+    if (!users.length) { hideList(); return; }
+    users.slice(0, 8).forEach(function (u) {
+      var li = document.createElement('li');
+      li.className = 'list-group-item list-group-item-action py-1 px-3';
+      li.style.cursor = 'pointer';
+      li.innerHTML = '<strong>' + esc(u.name) + '</strong>'
+        + (u.email ? ' <small class="text-muted">&lt;' + esc(u.email) + '&gt;</small>' : '');
+      li.addEventListener('mousedown', function (e) {
+        e.preventDefault();
+        input.value = u.name;
+        hideList();
+      });
+      list.appendChild(li);
+    });
+    list.style.display = 'block';
+  }
+
+  input.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    var q = input.value.trim();
+    if (q.length < 2) { hideList(); return; }
+    debounceTimer = setTimeout(function () {
+      fetch('/api/v1/users?q=' + encodeURIComponent(q) + '&field=name&view=admin', {
+        credentials: 'same-origin',
+        headers: { 'Accept': 'application/json' }
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.success) { showResults(data.data); }
+      })
+      .catch(function () { hideList(); });
+    }, 220);
+  });
+
+  input.addEventListener('blur', function () {
+    setTimeout(hideList, 200);
+  });
+
+  input.addEventListener('keydown', function (e) {
+    var items = list.querySelectorAll('li');
+    if (!items.length) return;
+    var active = list.querySelector('li.active');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      var next = active ? active.nextElementSibling : items[0];
+      if (active) active.classList.remove('active');
+      if (next) next.classList.add('active');
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      var prev = active ? active.previousElementSibling : items[items.length - 1];
+      if (active) active.classList.remove('active');
+      if (prev) prev.classList.add('active');
+    } else if (e.key === 'Enter') {
+      if (active) {
+        e.preventDefault();
+        input.value = active.querySelector('strong').textContent;
+        hideList();
+      }
+    } else if (e.key === 'Escape') {
+      hideList();
+    }
+  });
+})();
+</script>
 {% endblock %}
