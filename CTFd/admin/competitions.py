@@ -447,7 +447,7 @@ def competitions_teams(competition_id):
         teams.append({"team": team, "ct": ct, "member_count": member_count})
 
     return render_template(
-        "competitions/teams.html",
+        "admin/competitions/teams.html",
         comp=comp,
         teams=teams,
     )
@@ -551,7 +551,7 @@ def competitions_team_detail(competition_id, team_id):
     )
 
     return render_template(
-        "competitions/team_detail.html",
+        "admin/competitions/team_detail.html",
         comp=comp,
         team=team,
         members=members,
