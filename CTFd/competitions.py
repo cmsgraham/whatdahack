@@ -93,10 +93,19 @@ def listing():
         )
     all_competitions = query.order_by(Competition.id.asc()).all()
     active = get_active_competition()
+
+    # Build per-competition registration status for the current user.
+    registered = {}  # {competition_id: 'not_joined'|'pending_team'|'joined'}
+    if authed() and not is_admin():
+        user = get_current_user()
+        for comp in all_competitions:
+            registered[comp.id] = get_registration_status(user.id, comp.id)
+
     return render_template(
         "competitions/listing.html",
         competitions=all_competitions,
         active_competition=active,
+        registered=registered,
     )
 
 
@@ -275,6 +284,7 @@ def join(slug):
             active_competition=get_active_competition(),
             errors=[err],
             reg_status="not_joined",
+            can_register=can_register(competition),
         )
 
     if reg.status == "pending_team":

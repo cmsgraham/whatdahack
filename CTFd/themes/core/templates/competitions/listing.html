@@ -226,12 +226,32 @@ body { background-color: var(--cl-bg-page) !important; }
               <i class="fas fa-trophy"></i>{% trans %}Final Standings{% endtrans %}
             </a>
             {% else %}
-            <a href="{{ url_for('competitions.challenges', slug=comp.slug) }}" class="cl-btn-primary">
-              <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
-            </a>
-            <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="cl-btn-secondary">
-              <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
-            </a>
+              {% set rs = registered.get(comp.id, 'not_joined') %}
+              {% if rs == 'not_joined' %}
+                {% if comp.lifecycle in ('scheduled', 'active') %}
+                <form method="POST" action="{{ url_for('competitions.join', slug=comp.slug) }}" style="display:inline">
+                  <input type="hidden" name="nonce" value="{{ Session.nonce }}">
+                  <button type="submit" class="cl-btn-primary">
+                    <i class="fas fa-flag"></i>{% trans %}Join Competition{% endtrans %}
+                  </button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('competitions.show', slug=comp.slug) }}" class="cl-btn-secondary">
+                  <i class="fas fa-info-circle"></i>{% trans %}Details{% endtrans %}
+                </a>
+                {% endif %}
+              {% elif rs == 'pending_team' %}
+                <a href="{{ url_for('competitions.team_select', slug=comp.slug) }}" class="cl-btn-primary">
+                  <i class="fas fa-users"></i>{% trans %}Select Team{% endtrans %}
+                </a>
+              {% else %}
+                <a href="{{ url_for('competitions.challenges', slug=comp.slug) }}" class="cl-btn-primary">
+                  <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
+                </a>
+              {% endif %}
+              <a href="{{ url_for('competitions.scoreboard', slug=comp.slug) }}" class="cl-btn-secondary">
+                <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
+              </a>
             {% endif %}
 
       </div>
