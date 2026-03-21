@@ -404,11 +404,11 @@ def create_competition_team(user_id, competition_id, team_name, team_password=No
         return None, f"A team named '{team_name}' already exists in this competition"
 
     try:
-        from werkzeug.security import generate_password_hash
+        from CTFd.utils.crypto import hash_password
 
         team = Teams(name=team_name, captain_id=user_id)
         if team_password:
-            team.password = generate_password_hash(team_password)
+            team.password = hash_password(team_password)
         db.session.add(team)
         db.session.flush()  # materialise team.id
 
@@ -475,11 +475,11 @@ def join_competition_team(user_id, competition_id, team_id, team_password=None):
         return None, "Team not found"
 
     if team.password:
-        from werkzeug.security import check_password_hash
+        from CTFd.utils.crypto import verify_password
 
         if not team_password:
             return None, "This team requires a password"
-        if not check_password_hash(team.password, team_password):
+        if not verify_password(team_password, team.password):
             return None, "Incorrect team password"
 
     if comp.team_size and comp.team_size > 0:
