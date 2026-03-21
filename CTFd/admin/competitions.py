@@ -308,7 +308,7 @@ def competitions_challenges_add(competition_id):
 
     if challenge_ids:
         Challenges.query.filter(Challenges.id.in_(challenge_ids)).update(
-            {"competition_id": comp.id}, synchronize_session=False
+            {"competition_id": comp.id, "scope": "competition"}, synchronize_session=False
         )
         db.session.commit()
         clear_challenges()
@@ -330,7 +330,7 @@ def competitions_challenges_remove(competition_id):
         Challenges.query.filter(
             Challenges.id.in_(challenge_ids),
             Challenges.competition_id == comp.id,
-        ).update({"competition_id": None}, synchronize_session=False)
+        ).update({"competition_id": None, "scope": "platform"}, synchronize_session=False)
         db.session.commit()
         clear_challenges()
         flash(f"{len(challenge_ids)} challenge(s) removed from '{comp.name}'.", "success")
@@ -383,3 +383,67 @@ def competitions_members(competition_id):
         comp=comp,
         rows=rows,
     )
+
+
+@admin.route("/admin/competitions/<int:competition_id>/members/add", methods=["POST"])
+@admins_only
+def competitions_members_add(competition_id):
+    """Admin: manually register a user for a competition."""
+    from CTFd.models import CompetitionUser, Users
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    identifier = request.form.get("identifier", "").strip()
+
+    user = Users.query.filter(
+        (Users.name == identifier) | (Users.email == identifier)
+    ).first()
+
+    if not user:
+        flash(f"No user found matching '{identifier}'.", "danger")
+        return redirect(url_for("admin.competitions_members", competition_id=competition_id))
+
+    existing = CompetitionUser.query.filter_by(
+        competition_id=competition_id, user_id=user.id
+    ).first()
+    if existing:
+        flash(f"{user.name} is already registered for this competition.", "warning")
+        return redirect(url_for("admin.competitions_members", competition_id=competition_id))
+
+    reg = CompetitionUser(
+        competition_id=competition_id,
+        user_id=user.id,
+        status="joined",
+    )
+    db.session.add(reg)
+    db.session.commit()
+    flash(f"{user.name} added to '{comp.name}'.", "success")
+    return redirect(url_for("admin.competitions_members", competition_id=competition_id))
+
+
+@admin.route("/admin/competitions/<int:competition_id>/members/remove", methods=["POST"])
+@admins_only
+def competitions_members_remove(competition_id):
+    """Admin: remove a user from a competition."""
+    from CTFd.models import CompetitionTeamMember, CompetitionUser
+
+    comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    user_id = request.form.get("user_id", type=int)
+
+    if not user_id:
+        flash("No user specified.", "danger")
+        return redirect(url_for("admin.competitions_members", competition_id=competition_id))
+
+    # Remove team membership first (FK), then registration
+    CompetitionTeamMember.query.filter_by(
+        competition_id=competition_id, user_id=user_id
+    ).delete(synchronize_session=False)
+    deleted = CompetitionUser.query.filter_by(
+        competition_id=competition_id, user_id=user_id
+    ).delete(synchronize_session=False)
+    db.session.commit()
+
+    if deleted:
+        flash("User removed from competition.", "success")
+    else:
+        flash("User was not registered for this competition.", "warning")
+    return redirect(url_for("admin.competitions_members", competition_id=competition_id))

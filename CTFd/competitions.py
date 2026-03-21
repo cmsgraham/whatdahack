@@ -103,8 +103,19 @@ def listing():
 @competitions.route("/competitions/<slug>")
 def show(slug):
     """Render the competition landing page."""
+    import time as _time
+
     competition = _inject_competition(slug)
     active = get_active_competition()
+
+    infos = get_infos()
+    errors = get_errors()
+
+    # Show "not started yet" if redirected from /challenges
+    from flask import session as _session
+    comp_name = _session.pop("_comp_not_started", None)
+    if comp_name:
+        errors.append(_l("%(name)s has not started yet.", name=comp_name))
 
     reg_status = "not_joined"
     if authed() and not is_admin():
@@ -117,6 +128,8 @@ def show(slug):
         active_competition=active,
         reg_status=reg_status,
         can_register=can_register(competition),
+        infos=infos,
+        errors=errors,
     )
 
 
@@ -145,6 +158,8 @@ def history():
 @require_competition_registered
 def challenges(slug):
     """Render the challenges page scoped to the given competition."""
+    import time as _time
+
     competition = _inject_competition(slug)
 
     infos = get_infos()
@@ -153,20 +168,23 @@ def challenges(slug):
     if Configs.challenge_visibility == ChallengeVisibilityTypes.ADMINS:
         infos.append(_l("Challenge Visibility is set to Admins Only"))
 
-    # Check competition timing
-    if not ctftime_for(competition):
-        if competition.start and competition.start.timestamp() > __import__("time").time():
-            errors.append(
-                _l(
-                    "%(name)s has not started yet",
-                    name=competition.name,
-                )
-            )
+    # Block non-admins from seeing challenges before the competition starts.
+    if not is_admin():
+        if competition.start and competition.start.timestamp() > _time.time():
+            # Not started yet — redirect to landing page with an info message.
+            from flask import session
+            session["_comp_not_started"] = competition.name
+            return redirect(url_for("competitions.show", slug=slug))
+        if ctf_ended_for(competition):
+            infos.append(_l("%(name)s has ended", name=competition.name))
+    else:
+        # Admins see a banner if competition hasn't started / has ended
+        if competition.start and competition.start.timestamp() > _time.time():
+            infos.append(_l("%(name)s has not started yet (admin preview)", name=competition.name))
         elif ctf_ended_for(competition):
             infos.append(_l("%(name)s has ended", name=competition.name))
 
     # Teams mode: require competition-scoped team membership before allowing access.
-    # For competition challenges we use the per-competition team, not the global team.
     if authed() and not is_admin():
         if competition.user_mode == "teams":
             from CTFd.utils.competitions import get_competition_team

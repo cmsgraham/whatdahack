@@ -22,6 +22,18 @@
     {% endfor %}
   {% endwith %}
 
+  <!-- Add user form -->
+  <div class="card mb-4">
+    <div class="card-header"><h5 class="mb-0">Add Participant</h5></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.competitions_members_add', competition_id=comp.id) }}" class="form-inline">
+        <label class="mr-2" for="identifier">Username or Email</label>
+        <input type="text" id="identifier" name="identifier" class="form-control mr-2" placeholder="username or email" required>
+        <button type="submit" class="btn btn-success">Add</button>
+      </form>
+    </div>
+  </div>
+
   {% if rows %}
   <div class="row">
     <div class="col-12">
@@ -47,6 +59,7 @@
                 <th>Status</th>
                 <th>Team</th>
                 <th>Joined</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -59,7 +72,7 @@
                       {{ row.user.name }}
                     </a>
                   {% else %}
-                    <em class="text-muted">deleted user (id={{ row.user.id if row.user else '?' }})</em>
+                    <em class="text-muted">deleted user</em>
                   {% endif %}
                 </td>
                 <td>{% if row.user %}{{ row.user.email }}{% endif %}</td>
@@ -85,6 +98,15 @@
                 </td>
                 <td class="text-muted" style="font-size:.85rem">
                   {% if row.joined_at %}{{ row.joined_at.strftime('%Y-%m-%d %H:%M') }}{% endif %}
+                </td>
+                <td>
+                  {% if row.user %}
+                  <form method="POST" action="{{ url_for('admin.competitions_members_remove', competition_id=comp.id) }}"
+                        onsubmit="return confirm('Remove {{ row.user.name }} from this competition?')">
+                    <input type="hidden" name="user_id" value="{{ row.user.id }}">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                  </form>
+                  {% endif %}
                 </td>
               </tr>
               {% endfor %}
