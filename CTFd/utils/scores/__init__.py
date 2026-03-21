@@ -4,7 +4,7 @@ from CTFd.cache import cache
 from CTFd.models import Awards, Brackets, Challenges, CompetitionSolves, Solves, Submissions, Teams, Users, db
 from CTFd.utils import get_config
 from CTFd.utils.dates import unix_time_to_utc
-from CTFd.utils.modes import get_model
+from CTFd.utils.modes import TEAMS_MODE, get_model
 
 
 @cache.memoize(timeout=60)
@@ -136,10 +136,15 @@ def get_competition_standings(count=None, bracket_id=None, admin=False, fields=N
     if fields is None:
         fields = []
     Model = get_model()
+    mode = get_config("user_mode")
+
+    account_col = (
+        CompetitionSolves.team_id if mode == TEAMS_MODE else CompetitionSolves.user_id
+    )
 
     scores = (
         db.session.query(
-            CompetitionSolves.user_id.label("account_id"),
+            account_col.label("account_id"),
             db.func.sum(Challenges.value).label("score"),
             db.func.max(CompetitionSolves.id).label("id"),
             db.func.max(CompetitionSolves.date).label("date"),
@@ -147,7 +152,7 @@ def get_competition_standings(count=None, bracket_id=None, admin=False, fields=N
         .join(Challenges, Challenges.id == CompetitionSolves.challenge_id)
         .filter(CompetitionSolves.competition_id == competition_id)
         .filter(Challenges.value != 0)
-        .group_by(CompetitionSolves.user_id)
+        .group_by(account_col)
     )
 
     awards = (

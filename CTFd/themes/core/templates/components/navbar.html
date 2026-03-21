@@ -312,8 +312,8 @@
 
         {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('scoreboard.listing') }}">
-              <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
+            <a class="nav-link {% if request.endpoint == 'competitions.leaderboard' %}active{% endif %}" href="{{ url_for('competitions.leaderboard') }}">
+              <i class="fas fa-trophy"></i>{% trans %}Leaderboard{% endtrans %}
             </a>
           </li>
         {% endif %}
