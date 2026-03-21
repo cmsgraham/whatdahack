@@ -2,7 +2,6 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_babel import lazy_gettext as _l
 
 from CTFd.constants.config import ChallengeVisibilityTypes, Configs
-from CTFd.utils.competitions import get_active_competition
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctf_started
 from CTFd.utils.decorators import (
@@ -23,11 +22,6 @@ challenges = Blueprint("challenges", __name__)
 @require_verified_emails
 @check_challenge_visibility
 def listing():
-    # If an active competition is configured, redirect to its challenges page
-    active = get_active_competition()
-    if active is not None:
-        return redirect(url_for("competitions.challenges", slug=active.slug))
-
     if (
         Configs.challenge_visibility == ChallengeVisibilityTypes.PUBLIC
         and authed() is False
