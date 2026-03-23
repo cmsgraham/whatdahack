@@ -1,20 +1,610 @@
 {% extends "base.html" %}
 {% from "macros/forms.html" import render_extra_fields %}
 
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* ── Design tokens ─────────────────────────────────────────────────────────── */
+:root, [data-bs-theme="light"] {
+  --st-bg:         #f3f4f6;
+  --st-surface:    #ffffff;
+  --st-elevated:   #f8f9fa;
+  --st-border:     #d1d5db;
+  --st-border-s:   #e5e7eb;
+  --st-text:       #111827;
+  --st-muted:      #6b7280;
+  --st-accent:     #059669;
+  --st-accent-rgb: 5,150,105;
+  --st-accent-glow:rgba(5,150,105,.12);
+  --st-badge-bg:   rgba(0,0,0,.06);
+  --st-badge-c:    #374151;
+  --st-hdr1:       #e5e7eb;
+  --st-hdr2:       #d1d5db;
+}
+[data-bs-theme="dark"] {
+  --st-bg:         #0d1117;
+  --st-surface:    #161b22;
+  --st-elevated:   #1c2128;
+  --st-border:     #30363d;
+  --st-border-s:   #21262d;
+  --st-text:       #e6edf3;
+  --st-muted:      #8b949e;
+  --st-accent:     #00ff88;
+  --st-accent-rgb: 0,255,136;
+  --st-accent-glow:rgba(0,255,136,.1);
+  --st-badge-bg:   #21262d;
+  --st-badge-c:    #8b949e;
+  --st-hdr1:       #0d1117;
+  --st-hdr2:       #161b22;
+}
+
+.jumbotron { display: none !important; }
+body { background: var(--st-bg) !important; }
+
+/* ── Page header ──────────────────────────────────────────────────────────── */
+.st-header {
+  background: linear-gradient(135deg, var(--st-hdr1) 0%, var(--st-hdr2) 100%);
+  border-bottom: 1px solid var(--st-border);
+  padding: 2.2rem 0 1.8rem;
+  position: relative; overflow: hidden;
+}
+.st-header::after {
+  content: '';
+  position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(var(--st-accent-rgb),.4), transparent);
+}
+.st-header h1 {
+  font-size: 1.65rem; font-weight: 800; letter-spacing: -0.3px;
+  color: var(--st-text); margin: 0;
+}
+.st-header h1 .accent { color: var(--st-accent); }
+.st-header p { color: var(--st-muted); font-size: .78rem; margin: .3rem 0 0; }
+
+/* ── Layout ───────────────────────────────────────────────────────────────── */
+.st-page { padding: 2rem 0 4rem; }
+.st-sidebar { position: sticky; top: 80px; }
+
+/* ── Sidebar card ─────────────────────────────────────────────────────────── */
+.st-profile-card {
+  background: var(--st-surface);
+  border: 1px solid var(--st-border);
+  border-radius: 12px;
+  padding: 1.5rem 1.2rem;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+.st-avatar-ring {
+  position: relative; width: 100px; height: 100px;
+  margin: 0 auto 1rem; cursor: pointer;
+}
+.st-avatar-ring img,
+.st-avatar-placeholder {
+  width: 100px; height: 100px; border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--st-accent);
+  display: block;
+}
+.st-avatar-placeholder {
+  background: var(--st-badge-bg);
+  border-color: var(--st-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.4rem; color: var(--st-muted);
+}
+.st-avatar-overlay {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .2s;
+}
+.st-avatar-ring:hover .st-avatar-overlay { opacity: 1; }
+.st-avatar-overlay i { color: #fff; font-size: 1.3rem; }
+.st-profile-name {
+  font-size: .95rem; font-weight: 700; color: var(--st-text);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.st-profile-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: .5rem; margin-top: 1rem;
+}
+.st-stat {
+  background: var(--st-elevated);
+  border: 1px solid var(--st-border-s);
+  border-radius: 8px; padding: .55rem .4rem;
+}
+.st-stat-val {
+  font-size: 1.1rem; font-weight: 700; color: var(--st-accent);
+  line-height: 1;
+}
+.st-stat-lbl {
+  font-size: .58rem; font-weight: 500; color: var(--st-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-top: .2rem;
+}
+.st-avatar-hint {
+  font-size: .68rem; color: var(--st-muted); margin-top: .6rem;
+}
+
+/* ── Vertical pill nav ────────────────────────────────────────────────────── */
+.st-nav { display: flex; flex-direction: column; gap: .3rem; }
+.st-nav-btn {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .6rem .9rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--st-muted);
+  font-size: .83rem; font-weight: 500;
+  cursor: pointer; transition: all .15s; text-align: left; width: 100%;
+}
+.st-nav-btn i { width: 1rem; text-align: center; opacity: .7; }
+.st-nav-btn:hover { background: var(--st-elevated); border-color: var(--st-border-s); color: var(--st-text); }
+.st-nav-btn.active { background: rgba(var(--st-accent-rgb),.1); border-color: rgba(var(--st-accent-rgb),.3); color: var(--st-accent); }
+.st-nav-btn.active i { opacity: 1; }
+
+/* ── Section cards ────────────────────────────────────────────────────────── */
+.st-card {
+  background: var(--st-surface);
+  border: 1px solid var(--st-border);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+}
+.st-card-head {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .85rem 1.2rem;
+  border-bottom: 1px solid var(--st-border-s);
+  background: var(--st-elevated);
+}
+.st-card-head-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: rgba(var(--st-accent-rgb),.12);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--st-accent); font-size: .75rem;
+}
+.st-card-head-title {
+  font-size: .78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--st-text);
+}
+.st-card-body { padding: 1.2rem; }
+.st-field-label {
+  font-size: .72rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .8px;
+  color: var(--st-muted); margin-bottom: .35rem;
+  display: block;
+}
+.st-field-row { margin-bottom: 1rem; }
+.st-field-row:last-child { margin-bottom: 0; }
+
+/* ── Submit bar ───────────────────────────────────────────────────────────── */
+.st-submit-bar {
+  display: flex; align-items: center; justify-content: flex-end;
+  gap: .8rem; padding: 1rem 1.2rem;
+  border-top: 1px solid var(--st-border-s);
+}
+.st-save-btn {
+  background: var(--st-accent);
+  color: #000; border: none; font-weight: 700;
+  padding: .55rem 1.6rem; border-radius: 8px;
+  font-size: .82rem; cursor: pointer; transition: opacity .15s;
+}
+.st-save-btn:hover { opacity: .85; }
+
+/* ── Alert overrides ──────────────────────────────────────────────────────── */
+.st-success {
+  background: rgba(var(--st-accent-rgb),.12);
+  border: 1px solid rgba(var(--st-accent-rgb),.35);
+  color: var(--st-accent);
+  border-radius: 8px; padding: .65rem 1rem;
+  font-size: .82rem; display: flex; align-items: center; gap: .5rem;
+  margin-bottom: .75rem;
+}
+.st-error {
+  background: rgba(220,53,69,.1);
+  border: 1px solid rgba(220,53,69,.3);
+  color: #dc3545;
+  border-radius: 8px; padding: .65rem 1rem;
+  font-size: .82rem; display: flex; align-items: center; gap: .5rem;
+  margin-bottom: .5rem;
+}
+
+/* ── Tokens tab ───────────────────────────────────────────────────────────── */
+.st-token-table {
+  width: 100%; border-collapse: collapse; font-size: .82rem;
+}
+.st-token-table th {
+  font-size: .65rem; text-transform: uppercase; letter-spacing: 1px;
+  color: var(--st-muted); padding: .5rem .75rem;
+  border-bottom: 2px solid var(--st-border);
+}
+.st-token-table td {
+  padding: .65rem .75rem;
+  border-bottom: 1px solid var(--st-border-s);
+  color: var(--st-text);
+  vertical-align: middle;
+}
+.st-token-del { color: var(--st-muted); cursor: pointer; transition: color .15s; }
+.st-token-del:hover { color: #dc3545; }
+
+/* Avatar large upload preview in tokens area */
+.st-avatar-upload-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  gap: .5rem; padding: 1.2rem; cursor: pointer;
+  border: 2px dashed var(--st-border);
+  border-radius: 10px; transition: border-color .2s;
+  margin-bottom: 1rem;
+}
+.st-avatar-upload-wrap:hover { border-color: var(--st-accent); }
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>
-        {% trans %}Settings{% endtrans %}
-      </h1>
-    </div>
-  </div>
-
+<!-- Header -->
+<div class="st-header">
   <div class="container">
-    <div class="row">
+    <h1><span class="accent">[</span> {% trans %}Settings{% endtrans %} <span class="accent">]</span></h1>
+    <p>// profile, security &amp; API tokens</p>
+  </div>
+</div>
 
-      <div class="col-md-3 offset-md-1 mb-3 mb-md-0">
-        <div class="nav flex-column nav-pills" role="tablist">
+<div class="st-page">
+  <div class="container">
+    <div class="row g-4">
+
+      <!-- Sidebar -->
+      <div class="col-md-3">
+        <div class="st-sidebar">
+
+          <!-- Profile summary card -->
+          <div class="st-profile-card">
+            <!-- Avatar preview (clicking opens file input) -->
+            <div class="st-avatar-ring" id="avatar-upload-trigger"
+                 title="Click to change avatar" role="button" tabindex="0"
+                 onclick="document.getElementById('avatar-file-input').click()">
+              {% if User.avatar %}
+                <img id="avatar-preview" src="{{ User.avatar }}" alt="avatar">
+              {% else %}
+                <div class="st-avatar-placeholder" id="avatar-preview-ph">
+                  <i class="fas fa-user"></i>
+                </div>
+                <img id="avatar-preview" src="" alt="avatar" style="display:none;">
+              {% endif %}
+              <div class="st-avatar-overlay">
+                <i class="fas fa-camera"></i>
+              </div>
+            </div>
+            <input type="file" id="avatar-file-input" accept="image/*" style="display:none;">
+            <p class="st-avatar-hint">Click avatar to change<br>PNG / JPG — resized to 128 px</p>
+
+            <div class="st-profile-name">{{ name }}</div>
+
+            <div class="st-profile-stats">
+              <div class="st-stat">
+                <div class="st-stat-val">{{ User.score or 0 }}</div>
+                <div class="st-stat-lbl">Points</div>
+              </div>
+              <div class="st-stat">
+                <div class="st-stat-val">{{ User.place or "—" }}</div>
+                <div class="st-stat-lbl">Rank</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nav pills -->
+          <nav class="st-nav">
+            <button class="st-nav-btn active" data-bs-toggle="pill"
+                    data-bs-target="#st-profile" type="button">
+              <i class="fas fa-id-card"></i> {% trans %}Profile{% endtrans %}
+            </button>
+            <button class="st-nav-btn" data-bs-toggle="pill"
+                    data-bs-target="#st-security" type="button">
+              <i class="fas fa-lock"></i> {% trans %}Security{% endtrans %}
+            </button>
+            <button class="st-nav-btn" data-bs-toggle="pill"
+                    data-bs-target="#st-tokens" type="button">
+              <i class="fas fa-key"></i> {% trans %}API Tokens{% endtrans %}
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      <!-- Main content -->
+      <div class="col-md-9">
+        {% include "components/errors.html" %}
+
+        <div class="tab-content">
+
+          <!-- ═══ PROFILE & SECURITY (shared form) ═══ -->
+          {% with form = Forms.self.SettingsForm(language=language, country=country) %}
+          <form method="post" accept-charset="utf-8" autocomplete="off" role="form"
+                x-data="SettingsForm" @submit.prevent="updateProfile()" id="settings-main-form">
+
+            <!-- Hidden avatar field — filled by JS canvas resize -->
+            <input type="hidden" name="avatar" id="avatar-b64-input"
+                   value="{{ User.avatar or '' }}">
+
+            <!-- ─ PROFILE TAB ─ -->
+            <div class="tab-pane fade show active" id="st-profile">
+
+              <!-- Identity card -->
+              <div class="st-card">
+                <div class="st-card-head">
+                  <div class="st-card-head-icon"><i class="fas fa-user"></i></div>
+                  <span class="st-card-head-title">{% trans %}Identity{% endtrans %}</span>
+                </div>
+                <div class="st-card-body">
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.name.id }}">{{ form.name.label.text }}</label>
+                    {{ form.name(class="form-control", value=name, id=form.name.id) }}
+                  </div>
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.email.id }}">{{ form.email.label.text }}</label>
+                    {{ form.email(class="form-control", value=email, id=form.email.id) }}
+                  </div>
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.language.id }}">{{ form.language.label.text }}</label>
+                    {{ form.language(class="form-select", id=form.language.id) }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Links card -->
+              <div class="st-card">
+                <div class="st-card-head">
+                  <div class="st-card-head-icon"><i class="fas fa-link"></i></div>
+                  <span class="st-card-head-title">{% trans %}Links &amp; Affiliation{% endtrans %}</span>
+                </div>
+                <div class="st-card-body">
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.affiliation.id }}">{{ form.affiliation.label.text }}</label>
+                    {{ form.affiliation(class="form-control", value=affiliation or "", id=form.affiliation.id) }}
+                  </div>
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.website.id }}">{{ form.website.label.text }}</label>
+                    {{ form.website(class="form-control", value=website or "", id=form.website.id) }}
+                  </div>
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.country.id }}">{{ form.country.label.text }}</label>
+                    {{ form.country(class="form-select", id=form.country.id) }}
+                  </div>
+                </div>
+              </div>
+
+              {% if form.extra %}
+              <!-- Extra fields card -->
+              <div class="st-card">
+                <div class="st-card-head">
+                  <div class="st-card-head-icon"><i class="fas fa-sliders-h"></i></div>
+                  <span class="st-card-head-title">{% trans %}Additional Fields{% endtrans %}</span>
+                </div>
+                <div class="st-card-body">
+                  {{ render_extra_fields(form.extra) }}
+                </div>
+              </div>
+              {% endif %}
+
+              <!-- Feedback + Save -->
+              <div x-show="success" x-cloak>
+                <div class="st-success"><i class="fas fa-check-circle"></i> {% trans %}Your profile has been updated{% endtrans %}</div>
+              </div>
+              <template x-for="(msg, idx) in errors" :key="idx">
+                <div class="st-error"><i class="fas fa-exclamation-circle"></i> <span x-text="msg"></span></div>
+              </template>
+              <div class="d-flex justify-content-end mt-1 mb-3">
+                {{ form.submit(class="st-save-btn") }}
+              </div>
+            </div>
+
+            <!-- ─ SECURITY TAB ─ -->
+            <div class="tab-pane fade" id="st-security">
+              <div class="st-card">
+                <div class="st-card-head">
+                  <div class="st-card-head-icon"><i class="fas fa-lock"></i></div>
+                  <span class="st-card-head-title">{% trans %}Change Password{% endtrans %}</span>
+                </div>
+                <div class="st-card-body">
+                  <p style="font-size:.8rem;color:var(--st-muted);margin-bottom:1rem;">
+                    {% trans %}Leave blank to keep your current password.{% endtrans %}
+                  </p>
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.confirm.id }}">{{ form.confirm.label.text }}</label>
+                    {{ form.confirm(class="form-control", id=form.confirm.id) }}
+                  </div>
+                  <div class="st-field-row">
+                    <label class="st-field-label" for="{{ form.password.id }}">{{ form.password.label.text }}</label>
+                    {{ form.password(class="form-control", id=form.password.id) }}
+                  </div>
+                </div>
+              </div>
+
+              <div x-show="success" x-cloak>
+                <div class="st-success"><i class="fas fa-check-circle"></i> {% trans %}Your profile has been updated{% endtrans %}</div>
+              </div>
+              <template x-for="(msg, idx) in errors" :key="idx">
+                <div class="st-error"><i class="fas fa-exclamation-circle"></i> <span x-text="msg"></span></div>
+              </template>
+              <div class="d-flex justify-content-end mt-1 mb-3">
+                {{ form.submit(class="st-save-btn") }}
+              </div>
+            </div>
+
+          </form>
+          {% endwith %}
+
+          <!-- ═══ TOKENS TAB ═══ -->
+          <div class="tab-pane fade" id="st-tokens">
+
+            {% with form = Forms.self.TokensForm() %}
+            <form method="POST" x-data="TokensForm" @submit.prevent="generateToken()" class="mb-0">
+              <div class="modal fade" tabindex="-1" x-ref="tokenModal">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">{% trans %}API Key Generated{% endtrans %}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                      <p>{% trans %}Copy your API Key — it won't be shown again!{% endtrans %}</p>
+                      <div class="input-group mb-3">
+                        <input type="text" class="form-control" x-ref="token" x-model="token" readonly>
+                        <button class="btn btn-outline-secondary px-3" type="button" @click="copyToken()">
+                          <i class="fas fa-clipboard"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="st-card mb-3">
+                <div class="st-card-head">
+                  <div class="st-card-head-icon"><i class="fas fa-plus"></i></div>
+                  <span class="st-card-head-title">{% trans %}Generate Token{% endtrans %}</span>
+                </div>
+                <div class="st-card-body">
+                  <div class="st-field-row">
+                    <label class="st-field-label">{{ form.expiration.label.text }}</label>
+                    {{ form.expiration(class="form-control") }}
+                  </div>
+                  <div class="st-field-row">
+                    <label class="st-field-label">{{ form.description.label.text }}</label>
+                    {{ form.description(class="form-control", rows="2") }}
+                  </div>
+                </div>
+                <div class="st-submit-bar">
+                  {{ form.submit(class="st-save-btn") }}
+                </div>
+              </div>
+            </form>
+            {% endwith %}
+
+            {% if tokens %}
+            <div class="st-card" x-data="Tokens">
+              <div class="st-card-head">
+                <div class="st-card-head-icon"><i class="fas fa-list"></i></div>
+                <span class="st-card-head-title">{% trans %}Active Tokens{% endtrans %}</span>
+              </div>
+
+              <!-- Delete confirm modal -->
+              <div class="modal fade" x-ref="confirmModal" tabindex="-1" role="dialog" aria-modal="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title">{% trans %}Delete Token{% endtrans %}</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body"><p>{% trans %}Are you sure you want to delete this token?{% endtrans %}</p></div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
+                      <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="deleteSelectedToken()">{% trans %}Delete{% endtrans %}</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="overflow-x:auto;">
+                <table class="st-token-table">
+                  <thead>
+                    <tr>
+                      <th>{% trans %}Created{% endtrans %}</th>
+                      <th>{% trans %}Expiration{% endtrans %}</th>
+                      <th>{% trans %}Description{% endtrans %}</th>
+                      <th style="width:40px;">&nbsp;</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for token in tokens %}
+                    <tr x-ref="token-{{ token.id }}">
+                      <td><span data-time="{{ token.created | isoformat }}"></span></td>
+                      <td><span data-time="{{ token.expiration | isoformat }}"></span></td>
+                      <td>{{ token.description | default('—', true) }}</td>
+                      <td class="text-center">
+                        <span class="st-token-del" role="button" @click="deleteTokenModal({{ token.id }})">
+                          <i class="fas fa-trash-alt"></i>
+                        </span>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            {% else %}
+            <div class="st-card">
+              <div class="st-card-body" style="text-align:center;color:var(--st-muted);padding:2rem;">
+                <i class="fas fa-key" style="font-size:2rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
+                <p style="font-size:.8rem;margin:0;">{% trans %}No tokens yet. Generate one above.{% endtrans %}</p>
+              </div>
+            </div>
+            {% endif %}
+
+          </div><!-- /tokens tab -->
+
+        </div><!-- /tab-content -->
+      </div><!-- /col -->
+    </div><!-- /row -->
+  </div><!-- /container -->
+</div>
+
+<!-- Avatar JS: handles side-nav pill state + file → canvas → base64 -->
+<script>
+(function () {
+  // ── Side-nav pill state ──────────────────────────────────────────────────
+  document.querySelectorAll('.st-nav-btn').forEach(function (btn) {
+    btn.addEventListener('show.bs.tab', function () {
+      document.querySelectorAll('.st-nav-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.st-nav-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+  });
+
+  // ── Avatar upload ────────────────────────────────────────────────────────
+  var fileInput  = document.getElementById('avatar-file-input');
+  var b64Input   = document.getElementById('avatar-b64-input');
+  var previewImg = document.getElementById('avatar-preview');
+  var previewPh  = document.getElementById('avatar-preview-ph');
+
+  if (!fileInput) return;
+
+  fileInput.addEventListener('change', function () {
+    var file = fileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var img = new Image();
+      img.onload = function () {
+        // Resize to 128×128 on canvas
+        var canvas = document.createElement('canvas');
+        canvas.width = 128; canvas.height = 128;
+        var ctx = canvas.getContext('2d');
+        // Cover-crop
+        var size = Math.min(img.width, img.height);
+        var sx = (img.width  - size) / 2;
+        var sy = (img.height - size) / 2;
+        ctx.drawImage(img, sx, sy, size, size, 0, 0, 128, 128);
+        var dataURL = canvas.toDataURL('image/jpeg', 0.80);
+        b64Input.value = dataURL;
+        previewImg.src = dataURL;
+        previewImg.style.display = 'block';
+        if (previewPh) previewPh.style.display = 'none';
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}());
+</script>
+{% endblock %}
+
+{% block scripts %}
+  {{ Assets.js("assets/js/settings.js") }}
+{% endblock %}
           <button
               class="nav-link active" id="settings-profile-tab" data-bs-toggle="pill"
               data-bs-target="#profile" role="tab"

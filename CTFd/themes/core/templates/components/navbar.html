@@ -239,6 +239,24 @@
 .ctf-nav .ctf-lang-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
 .ctf-nav .ctf-lang-menu .dropdown-item.ctf-lang-active { color: var(--nav-active-text) !important; background: rgba(var(--nav-accent-rgb), .1) !important; font-weight: 600; }
 
+/* ── Score pill ─────────────────────────────────────────────────────────── */
+.ctf-score-pill {
+  display: inline-flex; align-items: center; gap: .28rem;
+  font-size: .68rem; font-weight: 700;
+  color: var(--nav-accent);
+  background: rgba(var(--nav-accent-rgb), .1);
+  border: 1px solid rgba(var(--nav-accent-rgb), .25);
+  border-radius: 20px; padding: .18rem .55rem;
+  letter-spacing: .5px; white-space: nowrap;
+  margin-right: .1rem;
+}
+.ctf-nav-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(var(--nav-accent-rgb), .45);
+  display: inline-block; vertical-align: middle;
+}
+
 /* ── Resources dropdown ──────────────────────────────────────────────────── */
 .ctf-nav .ctf-dropdown-menu {
   background: var(--nav-dropdown-bg) !important;
@@ -423,10 +441,24 @@
           <li class="nav-item">
             <a class="ctf-icon-btn" href="{{ url_for('users.private') }}"
                data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Profile{% endtrans %}">
-              <i class="fas fa-user-circle"></i>
+              {% if User.avatar %}
+                <img src="{{ User.avatar }}" class="ctf-nav-avatar me-1" alt="">
+              {% else %}
+                <i class="fas fa-user-circle"></i>
+              {% endif %}
               <span class="d-inline d-md-none d-lg-inline">{% trans %}Profile{% endtrans %}</span>
             </a>
           </li>
+
+          {%- set _score = User.score -%}
+          {% if _score is not none %}
+          <li class="nav-item d-none d-md-flex align-items-center" style="padding:0 .25rem;">
+            <span class="ctf-score-pill">
+              <i class="fas fa-star" style="font-size:.55rem;"></i>
+              {{ _score }} pts
+            </span>
+          </li>
+          {% endif %}
 
           <li class="nav-item">
             <a class="ctf-icon-btn" href="{{ url_for('views.settings') }}"

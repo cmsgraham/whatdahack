@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy.sql.expression import union_all
 
 from CTFd.cache import cache
@@ -8,7 +10,7 @@ from CTFd.utils.modes import TEAMS_MODE, get_model
 
 
 @cache.memoize(timeout=60)
-def get_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
+def get_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None, since_ts=None):
     """
     Platform leaderboard — queries the Solves table filtered to scope='platform'.
 
@@ -55,6 +57,11 @@ def get_standings(count=None, bracket_id=None, admin=False, fields=None, competi
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
+
+    if since_ts:
+        since_dt = datetime.datetime.utcfromtimestamp(since_ts)
+        scores = scores.filter(Solves.date >= since_dt)
+        awards = awards.filter(Awards.date >= since_dt)
 
     results = union_all(scores, awards).alias("results")
 
@@ -336,7 +343,7 @@ def get_team_standings(count=None, bracket_id=None, admin=False, fields=None, co
 
 
 @cache.memoize(timeout=60)
-def get_user_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None):
+def get_user_standings(count=None, bracket_id=None, admin=False, fields=None, competition_id=None, since_ts=None):
     if fields is None:
         fields = []
     scores = (
@@ -369,6 +376,11 @@ def get_user_standings(count=None, bracket_id=None, admin=False, fields=None, co
     if not admin and freeze:
         scores = scores.filter(Solves.date < unix_time_to_utc(freeze))
         awards = awards.filter(Awards.date < unix_time_to_utc(freeze))
+
+    if since_ts:
+        since_dt = datetime.datetime.utcfromtimestamp(since_ts)
+        scores = scores.filter(Solves.date >= since_dt)
+        awards = awards.filter(Awards.date >= since_dt)
 
     results = union_all(scores, awards).alias("results")
 

@@ -1,9 +1,243 @@
 {% extends "base.html" %}
 
+{% block stylesheets %}
+{{ super() }}
+<style>
+/* Re-uses up-* design tokens from private.html equivalent */
+:root, [data-bs-theme="light"] {
+  --up-bg:#f3f4f6;--up-surface:#ffffff;--up-elevated:#f8f9fa;
+  --up-border:#d1d5db;--up-border-s:#e5e7eb;--up-text:#111827;
+  --up-muted:#6b7280;--up-accent:#059669;--up-acc-rgb:5,150,105;
+  --up-hdr1:#e5e7eb;--up-hdr2:#d1d5db;
+}
+[data-bs-theme="dark"] {
+  --up-bg:#0d1117;--up-surface:#161b22;--up-elevated:#1c2128;
+  --up-border:#30363d;--up-border-s:#21262d;--up-text:#e6edf3;
+  --up-muted:#8b949e;--up-accent:#00ff88;--up-acc-rgb:0,255,136;
+  --up-hdr1:#0d1117;--up-hdr2:#161b22;
+}
+.jumbotron { display: none !important; }
+body { background: var(--up-bg) !important; }
+.up-hero {
+  background: linear-gradient(135deg, var(--up-hdr1) 0%, var(--up-hdr2) 100%);
+  border-bottom: 1px solid var(--up-border);
+  padding: 2.5rem 0 2.2rem; position: relative; overflow: hidden;
+}
+.up-hero::after {
+  content:''; position:absolute; bottom:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--up-acc-rgb),.4),transparent);
+}
+.up-hero-inner { display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap; }
+.up-avatar-wrap img,.up-avatar-ph {
+  width:90px;height:90px;border-radius:50%;object-fit:cover;
+  border:3px solid var(--up-accent);display:block;
+}
+.up-avatar-ph {
+  background:rgba(var(--up-acc-rgb),.08);border-color:var(--up-border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:2.5rem;color:var(--up-muted);
+}
+.up-hero-name{font-size:1.65rem;font-weight:800;color:var(--up-text);margin:0 0 .35rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.up-hero-badges{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.5rem;}
+.up-hero-badge{font-size:.7rem;font-weight:600;padding:.2rem .65rem;border-radius:20px;background:rgba(var(--up-acc-rgb),.12);color:var(--up-accent);border:1px solid rgba(var(--up-acc-rgb),.3);}
+.up-hero-badge--neutral{background:rgba(0,0,0,.07);color:var(--up-muted);border-color:var(--up-border);}
+[data-bs-theme="dark"] .up-hero-badge--neutral{background:rgba(255,255,255,.07);}
+.up-hero-stats{display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:.6rem;}
+.up-hero-stat-val{font-size:1.3rem;font-weight:700;color:var(--up-accent);line-height:1;}
+.up-hero-stat-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:1px;color:var(--up-muted);}
+.up-hero-link{color:var(--up-muted);font-size:.78rem;transition:color .15s;text-decoration:none;}
+.up-hero-link:hover{color:var(--up-accent);}
+.up-content{padding:2rem 0 4rem;}
+.up-section-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--up-muted);margin-bottom:.75rem;}
+.up-card{background:var(--up-surface);border:1px solid var(--up-border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem;}
+.up-card-head{padding:.7rem 1.1rem;border-bottom:1px solid var(--up-border-s);background:var(--up-elevated);font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--up-muted);}
+.up-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+.up-table th{font-size:.62rem;text-transform:uppercase;letter-spacing:1px;color:var(--up-muted);padding:.5rem .85rem;border-bottom:2px solid var(--up-border);background:var(--up-elevated);}
+.up-table td{padding:.65rem .85rem;border-bottom:1px solid var(--up-border-s);color:var(--up-text);vertical-align:middle;}
+.up-table tbody tr:last-child td{border-bottom:none;}
+.up-table a{color:var(--up-accent);text-decoration:none;}
+.up-table a:hover{text-decoration:underline;}
+</style>
+{% endblock %}
+
 {% block content %}
-  <div class="jumbotron">
-    <div class="container">
-      <h1>{{ user.name }}</h1>
+<div class="up-hero">
+  <div class="container">
+    <div class="up-hero-inner">
+      <div class="up-avatar-wrap">
+        {% if user.avatar %}
+          <img src="{{ user.avatar }}" alt="{{ user.name }}">
+        {% else %}
+          <div class="up-avatar-ph"><i class="fas fa-user"></i></div>
+        {% endif %}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <h1 class="up-hero-name">{{ user.name }}</h1>
+        <div class="up-hero-badges">
+          {% if user.oauth_id %}
+            <a href="https://majorleaguecyber.org/u/{{ user.name }}" class="up-hero-badge">
+              <i class="fas fa-certificate" style="margin-right:.3rem;"></i>Official
+            </a>
+          {% endif %}
+          {% if user.bracket_id %}<span class="up-hero-badge up-hero-badge--neutral">{{ user.bracket.name }}</span>{% endif %}
+          {% if user.affiliation %}<span class="up-hero-badge up-hero-badge--neutral">{{ user.affiliation }}</span>{% endif %}
+          {% if user.country %}
+            <span class="up-hero-badge up-hero-badge--neutral">
+              <i class="flag-{{ user.country.lower() }}" style="margin-right:.3rem;"></i>{{ lookup_country_code(user.country) }}
+            </span>
+          {% endif %}
+          {% if user.team_id %}
+            <a href="{{ url_for('teams.public', team_id=user.team_id) }}" class="up-hero-badge">
+              <i class="fas fa-users" style="margin-right:.3rem;"></i>{{ user.team.name }}
+            </a>
+          {% endif %}
+        </div>
+        <div class="up-hero-stats">
+          {% if account.place %}
+          <div>
+            <div class="up-hero-stat-val">{{ account.score }}</div>
+            <div class="up-hero-stat-lbl">Points</div>
+          </div>
+          <div>
+            <div class="up-hero-stat-val">{{ account.place }}</div>
+            <div class="up-hero-stat-lbl">Rank</div>
+          </div>
+          {% endif %}
+          {% if user.website %}
+            <div style="display:flex;align-items:center;">
+              <a href="{{ user.website }}" target="_blank" rel="noopener" class="up-hero-link">
+                <i class="fas fa-external-link-alt" style="margin-right:.3rem;"></i>Website
+              </a>
+            </div>
+          {% endif %}
+        </div>
+        {% for field in user.fields %}
+          <p style="font-size:.78rem;color:var(--up-muted);margin:.3rem 0 0;">{{ field.name }}: {{ field.value }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="up-content">
+  <div class="container">
+    {% include "components/errors.html" %}
+
+    {% set solves = user.solves %}
+    {% set awards = user.awards %}
+
+    {% if solves or awards %}
+
+      {% if awards %}
+      <div class="up-section-title">{% trans %}Awards{% endtrans %}</div>
+      <div class="row g-3 mb-4">
+        {% for award in awards %}
+        <div class="col-6 col-md-3">
+          <div class="up-card" style="text-align:center;padding:1rem;">
+            <i class="award-icon award-{{ award.icon }} fa-2x" style="display:block;margin-bottom:.5rem;"></i>
+            <strong style="font-size:.82rem;">{{ award.name }}</strong>
+            {% if award.category %}<div style="font-size:.72rem;color:var(--up-muted);">{{ award.category }}</div>{% endif %}
+            {% if award.description %}<div style="font-size:.72rem;color:var(--up-muted);">{{ award.description }}</div>{% endif %}
+            <div style="font-size:.85rem;font-weight:700;color:var(--up-accent);margin-top:.3rem;">{{ award.value }}</div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="up-section-title">{% trans %}Solves{% endtrans %}</div>
+      <div class="up-card mb-4">
+        <div style="overflow-x:auto;">
+          <table class="up-table">
+            <thead>
+              <tr>
+                <th>{% trans %}Challenge{% endtrans %}</th>
+                <th class="d-none d-md-table-cell">{% trans %}Category{% endtrans %}</th>
+                <th>{% trans %}Value{% endtrans %}</th>
+                <th>{% trans %}Time{% endtrans %}</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for solve in solves %}
+              <tr>
+                <td><a href="{{ url_for('challenges.listing') }}#{{ solve.challenge.name }}-{{ solve.challenge.id }}">{{ solve.challenge.name }}</a></td>
+                <td class="d-none d-md-table-cell" style="color:var(--up-muted);">{{ solve.challenge.category }}</td>
+                <td style="font-weight:600;color:var(--up-accent);">{{ solve.challenge.value }}</td>
+                <td class="solve-time"><span data-time="{{ solve.date | isoformat }}"></span></td>
+              </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4" x-data="UserGraphs">
+        <div class="col-md-6 d-none d-md-block">
+          <div class="up-card">
+            <div class="up-card-head">Solve / Fail ratio</div>
+            <div style="padding:.9rem 1rem;">
+              <div class="progress mb-2" style="height:8px;">
+                <div class="progress-bar" :style="{width:`${getSolvePercentage()}%`,backgroundColor:'#00d140'}"></div>
+                <div class="progress-bar" :style="{width:`${getFailPercentage()}%`,backgroundColor:'#cf2600'}"></div>
+              </div>
+              <div style="display:flex;gap:1rem;font-size:.72rem;">
+                <span style="color:#00d140;">■ <span x-text="`Solves (${getSolvePercentage()}%)`"></span></span>
+                <span style="color:#cf2600;">■ <span x-text="`Fails (${getFailPercentage()}%)`"></span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 d-none d-md-block">
+          <div class="up-card">
+            <div class="up-card-head">Category breakdown</div>
+            <div style="padding:.9rem 1rem;">
+              <div class="progress mb-2" style="height:8px;">
+                <template x-for="cat in getCategoryBreakdown()">
+                  <div class="progress-bar" :style="{width:`${cat.percent}%`,backgroundColor:cat.color}"></div>
+                </template>
+              </div>
+              <div style="display:flex;flex-wrap:wrap;gap:.6rem;font-size:.72rem;">
+                <template x-for="cat in getCategoryBreakdown()">
+                  <span :style="{color:cat.color}">■ <span x-text="`${cat.name} (${cat.percent}%)`"></span></span>
+                </template>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-12 d-none d-md-block">
+          <div class="up-card">
+            <div class="up-card-head">Score over time</div>
+            <div id="score-graph" x-ref="scoregraph" style="padding:.5rem;min-height:200px;display:flex;align-items:center;">
+              <div class="text-center w-100">
+                <i class="fas fa-circle-notch fa-spin fa-2x" style="color:var(--up-accent);opacity:.6;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% else %}
+      <div style="text-align:center;padding:4rem 0;color:var(--up-muted);opacity:.6;">
+        <i class="fas fa-flag" style="font-size:2.5rem;display:block;margin-bottom:.75rem;"></i>
+        <p style="font-size:.85rem;">{% trans %}No solves yet{% endtrans %}</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+  <script>
+      window.USER = {{ {
+      'type': 'user',
+      'id': user.id,
+      'name': user.name,
+      'account_id': user.id,
+    } | tojson }};
+  </script>
+  {{ Assets.js("assets/js/users/public.js") }}
+{% endblock %}
+
 
       {% if user.team_id %}
         <h2>

@@ -19,6 +19,7 @@ UserAttrsFields = [
     "team_id",
     "created",
     "change_password",
+    "avatar",
 ]
 UserAttrs = namedtuple(
     "UserAttrs", UserAttrsFields, defaults=(None,) * len(UserAttrsFields)

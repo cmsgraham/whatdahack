@@ -1,4 +1,5 @@
 from collections import defaultdict
+import datetime
 
 from flask import request
 from flask_restx import Namespace, Resource
@@ -19,10 +20,9 @@ scoreboard_namespace = Namespace(
     "scoreboard", description="Endpoint to retrieve scores"
 )
 
-# Cache key factory that includes competition_id in the cache key so that
-# different competitions get separate cached responses.
+# Cache key factory that includes competition_id and month in the cache key.
 _scoreboard_cache_key = make_cache_key_with_query_string(
-    allowed_params=["competition_id"]
+    allowed_params=["competition_id", "month"]
 )
 
 
@@ -41,10 +41,16 @@ class ScoreboardList(Resource):
             except (ValueError, TypeError):
                 pass
 
+        # Resolve optional month filter: ?month=1 = current calendar month
+        since_ts = None
+        if request.args.get("month"):
+            now = datetime.datetime.utcnow()
+            since_ts = int(datetime.datetime(now.year, now.month, 1).timestamp())
+
         if competition_id is not None:
             standings = get_competition_standings(competition_id=competition_id)
         else:
-            standings = get_standings()
+            standings = get_standings(since_ts=since_ts)
         response = []
         mode = get_config("user_mode")
         account_type = get_mode_as_word()
@@ -81,9 +87,21 @@ class ScoreboardList(Resource):
                         "bracket_name": u.bracket_name,
                     }
 
-            user_standings = get_user_standings()
+            user_standings = get_user_standings(since_ts=since_ts)
             for u in user_standings:
                 membership[u.team_id][u.user_id]["score"] = int(u.score)
+
+        # Batch-load avatars for users mode (single query, cache-friendly)
+        avatar_map = {}
+        if mode != TEAMS_MODE:
+            account_ids = [x.account_id for x in standings]
+            if account_ids:
+                avatar_rows = (
+                    db.session.query(Users.id, Users.avatar)
+                    .filter(Users.id.in_(account_ids))
+                    .all()
+                )
+                avatar_map = {row.id: row.avatar for row in avatar_rows}
 
         for i, x in enumerate(standings):
             entry = {
@@ -96,6 +114,7 @@ class ScoreboardList(Resource):
                 "score": int(x.score),
                 "bracket_id": x.bracket_id,
                 "bracket_name": x.bracket_name,
+                "avatar": avatar_map.get(x.account_id),
             }
 
             if mode == TEAMS_MODE and competition_id is None:

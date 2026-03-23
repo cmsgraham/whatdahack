@@ -130,7 +130,7 @@ body { background-color: var(--ctf-bg-page) !important; }
 /* Column header row */
 .sb-thead {
   display: grid;
-  grid-template-columns: 72px 1fr 130px;
+  grid-template-columns: 72px 36px 1fr 130px;
   padding: .52rem 1.2rem;
   background: var(--ctf-bg-elevated);
   border: 1px solid var(--ctf-border);
@@ -149,7 +149,7 @@ body { background-color: var(--ctf-bg-page) !important; }
 /* Standing row */
 .sb-row {
   display: grid;
-  grid-template-columns: 72px 1fr 130px;
+  grid-template-columns: 72px 36px 1fr 130px;
   align-items: center;
   padding: .78rem 1.2rem;
   border: 1px solid var(--ctf-border-subtle);
@@ -240,10 +240,55 @@ body { background-color: var(--ctf-bg-page) !important; }
 .sb-empty i { font-size: 2rem; display: block; margin-bottom: .75rem; }
 .sb-empty p { font-size: .8rem; letter-spacing: 1px; margin: 0; }
 
-/* Responsive */
+/* ── Period filter tabs ──────────────────────────────────────────────────── */
+.sb-period-nav {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  margin-bottom: .75rem;
+}
+.sb-period-label {
+  font-size: .6rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 2px; color: var(--ctf-text-muted); margin-right: .2rem;
+}
+.sb-period-btn {
+  background: var(--ctf-bg-elevated);
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-text-muted);
+  padding: .28rem .75rem;
+  border-radius: 20px;
+  font-size: .72rem; font-weight: 500;
+  cursor: pointer; transition: all .15s; line-height: 1;
+}
+.sb-period-btn:hover { border-color: var(--ctf-accent); color: var(--ctf-accent); }
+.sb-period-btn.active {
+  background: rgba(var(--ctf-accent-rgb), .12);
+  border-color: var(--ctf-accent);
+  color: var(--ctf-accent); font-weight: 700;
+}
+
+/* ── Avatar in row ───────────────────────────────────────────────────────── */
+.sb-row-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  object-fit: cover; flex-shrink: 0;
+  border: 1.5px solid var(--ctf-border);
+}
+.sb-row-avatar-ph {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--ctf-badge-bg); border: 1.5px solid var(--ctf-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; color: var(--ctf-text-muted); flex-shrink: 0;
+}
+
+/* Loading spinner row */
+.sb-loading {
+  text-align: center; padding: 2.5rem;
+  color: var(--ctf-accent); opacity: .7;
+}
+
 @media (max-width: 575.98px) {
-  .sb-thead { grid-template-columns: 52px 1fr 90px; padding: .5rem .85rem; }
-  .sb-row  { grid-template-columns: 52px 1fr 90px; padding: .75rem .85rem; }
+  .sb-thead { grid-template-columns: 52px 28px 1fr 80px; padding: .5rem .85rem; }
+  .sb-row  { grid-template-columns: 52px 28px 1fr 80px; padding: .75rem .85rem; }
   .sb-score-label { display: none; }
 }
 </style>
@@ -276,36 +321,62 @@ body { background-color: var(--ctf-bg-page) !important; }
   </div>
 
   <!-- Scoreboard -->
-  <div id="scoreboard" x-data="ScoreboardList">
+  <div id="scoreboard" x-data="ScoreboardList_Period">
 
-    <!-- Bracket filter pills -->
-    <template x-if="brackets.length && standings.length">
-      <div class="sb-bracket-nav">
+    <!-- Period + Bracket filters -->
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;">
+      <!-- Period buttons -->
+      <div class="sb-period-nav" style="margin-bottom:0;">
+        <span class="sb-period-label">Period</span>
         <button
-          :class="{'sb-bracket-btn': true, 'active': !activeBracket}"
-          @click="activeBracket=null"
-        >{% trans %}All{% endtrans %}</button>
-        <template x-for="bracket in brackets">
-          <button
-            :class="{'sb-bracket-btn': true, 'active': activeBracket == bracket.id}"
-            x-text="bracket.name"
-            @click="activeBracket=bracket.id"
-          ></button>
-        </template>
+          :class="{'sb-period-btn':true,'active':period==='overall'}"
+          @click="setPeriod('overall')" type="button"
+        >
+          <i class="fas fa-globe" style="margin-right:.3rem;font-size:.65rem;"></i>{% trans %}Overall{% endtrans %}
+        </button>
+        <button
+          :class="{'sb-period-btn':true,'active':period==='month'}"
+          @click="setPeriod('month')" type="button"
+        >
+          <i class="fas fa-calendar-alt" style="margin-right:.3rem;font-size:.65rem;"></i>{% trans %}This Month{% endtrans %}
+        </button>
       </div>
-    </template>
+
+      <!-- Bracket filter pills (only shown if brackets exist) -->
+      <template x-if="brackets.length && standings.length">
+        <div class="sb-bracket-nav" style="margin-bottom:0;">
+          <button
+            :class="{'sb-bracket-btn':true,'active':!activeBracket}"
+            @click="activeBracket=null"
+          >{% trans %}All{% endtrans %}</button>
+          <template x-for="bracket in brackets">
+            <button
+              :class="{'sb-bracket-btn':true,'active':activeBracket==bracket.id}"
+              x-text="bracket.name"
+              @click="activeBracket=bracket.id"
+            ></button>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- Loading indicator -->
+    <div class="sb-loading" x-show="loading">
+      <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+    </div>
 
     <!-- Leaderboard -->
-    <div class="sb-leaderboard" x-show="standings.length">
+    <div class="sb-leaderboard" x-show="!loading && displayStandings().length">
       <!-- Header -->
       <div class="sb-thead">
         <span class="text-center">{% trans %}Place{% endtrans %}</span>
+        <span></span><!-- avatar col -->
         <span>{{ get_mode_as_word(capitalize=True) }}</span>
         <span>{% trans %}Score{% endtrans %}</span>
       </div>
 
       <!-- Rows -->
-      <template x-for="(standing, index) in standings.filter(i => activeBracket ? i.bracket_id==activeBracket : true)">
+      <template x-for="(standing, index) in displayStandings()">
         <div
           class="sb-row"
           :class="{
@@ -329,6 +400,14 @@ body { background-color: var(--ctf-bg-page) !important; }
 
           <!-- Name + bracket -->
           <div class="sb-name-cell">
+            <!-- Mini avatar if available -->
+            <template x-if="standing.avatar">
+              <img :src="standing.avatar" class="sb-row-avatar" alt="">
+            </template>
+            <template x-if="!standing.avatar">
+              <div class="sb-row-avatar-ph"><i class="fas fa-user" style="font-size:.6rem;"></i></div>
+            </template>
+
             <a :href="standing.account_url" class="sb-name" x-text="standing.name"></a>
             <template x-if="standing.bracket_name">
               <span class="sb-bracket-badge" x-text="standing.bracket_name"></span>
@@ -345,9 +424,9 @@ body { background-color: var(--ctf-bg-page) !important; }
     </div>
 
     <!-- Empty state -->
-    <div class="sb-empty" x-show="!standings.length">
+    <div class="sb-empty" x-show="!loading && !displayStandings().length">
       <i class="fas fa-trophy"></i>
-      <p>{% trans %}Scoreboard is empty{% endtrans %}</p>
+      <p x-text="period === 'month' ? '{% trans %}No scores this month yet{% endtrans %}' : '{% trans %}Scoreboard is empty{% endtrans %}'"></p>
     </div>
 
   </div>
@@ -355,5 +434,82 @@ body { background-color: var(--ctf-bg-page) !important; }
 {% endblock %}
 
 {% block scripts %}
+<!-- Register extended ScoreboardList_Period BEFORE scoreboard.js calls Alpine.start() -->
+<script>
+document.addEventListener('alpine:init', function () {
+  window.Alpine && window.Alpine.data('ScoreboardList_Period', function () {
+    return {
+      standings: [],
+      brackets: [],
+      activeBracket: null,
+      period: 'overall',
+      loading: false,
+
+      displayStandings: function () {
+        var self = this;
+        return self.standings.filter(function (s) {
+          return self.activeBracket ? s.bracket_id == self.activeBracket : true;
+        });
+      },
+
+      fetchStandings: async function () {
+        var self = this;
+        self.loading = true;
+        var params = [];
+        if (self.activeBracket) params.push('bracket_id=' + self.activeBracket);
+        if (window.__CTF_COMPETITION_ID__) params.push('competition_id=' + window.__CTF_COMPETITION_ID__);
+        if (self.period === 'month') params.push('month=1');
+        var url = '/api/v1/scoreboard' + (params.length ? '?' + params.join('&') : '');
+        try {
+          var resp = await fetch(url, {
+            headers: { 'CSRF-Token': (window.init && window.init.csrfNonce) || '' }
+          });
+          var json = await resp.json();
+          self.standings = (json && json.data) || [];
+        } catch (e) {
+          self.standings = [];
+        }
+        self.loading = false;
+      },
+
+      fetchBrackets: async function () {
+        var self = this;
+        var mode = (window.init && window.init.userMode) || 'users';
+        try {
+          var resp = await fetch('/api/v1/brackets?type=' + mode);
+          var json = await resp.json();
+          self.brackets = (json && json.data) || [];
+        } catch (e) {
+          self.brackets = [];
+        }
+      },
+
+      update: async function () {
+        var self = this;
+        await Promise.all([self.fetchBrackets(), self.fetchStandings()]);
+      },
+
+      setPeriod: function (p) {
+        var self = this;
+        self.period = p;
+        self.activeBracket = null;
+        self.$dispatch('bracket-change', null);
+        self.fetchStandings();
+      },
+
+      init: async function () {
+        var self = this;
+        self.$watch('activeBracket', function (val) {
+          self.$dispatch('bracket-change', val);
+          self.fetchStandings();
+        });
+        await self.update();
+        var interval = window.scoreboardUpdateInterval || 300000;
+        setInterval(function () { self.update(); }, interval);
+      }
+    };
+  });
+});
+</script>
   {{ Assets.js("assets/js/scoreboard.js") }}
 {% endblock %}
