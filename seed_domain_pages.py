@@ -1301,7 +1301,7 @@ with app.app_context():
             existing.content = data["content"]
             existing.format  = "html"
             existing.draft   = False
-            existing.hidden  = False
+            existing.hidden  = True   # hide from auto nav bar; accessible via URL
             print(f"  Updated : /{data['route']}")
         else:
             page = Pages(
@@ -1310,7 +1310,7 @@ with app.app_context():
                 content      = data["content"],
                 format       = "html",
                 draft        = False,
-                hidden       = False,
+                hidden       = True,   # hide from auto nav bar; accessible via URL
                 auth_required= False,
             )
             db.session.add(page)
