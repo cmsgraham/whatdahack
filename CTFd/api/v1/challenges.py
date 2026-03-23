@@ -164,6 +164,9 @@ class ChallengeList(Resource):
                 user_obj = get_current_user()
                 if not is_registered(user_obj.id, competition_id):
                     abort(403)
+            # Block access if the competition hasn't started yet.
+            if not ctftime_or_competition():
+                abort(403)
 
         # Build filtering queries
         q = query_args.pop("q", None)
@@ -357,6 +360,9 @@ class Challenge(Resource):
         if _competition_id is not None and not is_admin():
             if chal.competition_id is not None and chal.competition_id != _competition_id:
                 abort(404)
+            # Block if competition hasn't started yet.
+            if not ctftime_or_competition():
+                abort(403)
 
         try:
             chal_class = get_chal_class(chal.type)
@@ -710,6 +716,9 @@ class ChallengeAttempt(Resource):
         if competition_id is not None and not is_admin():
             from CTFd.utils.competitions import is_registered
             if not is_registered(user.id, competition_id):
+                abort(403)
+            # Block access if the competition hasn't started yet.
+            if not ctf_active:
                 abort(403)
 
         challenge = Challenges.query.filter_by(id=challenge_id).first_or_404()
