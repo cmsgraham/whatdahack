@@ -159,7 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
   list.style.cssText = 'display:none;position:fixed;z-index:99999;max-height:240px;overflow-y:auto;box-shadow:0 4px 14px rgba(0,0,0,.2);border-radius:0 0 .25rem .25rem;min-width:280px;';
   document.body.appendChild(list);
   var timer = null;
-  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   function reposition() { var r=input.getBoundingClientRect(); list.style.top=(r.bottom+window.scrollY)+'px'; list.style.left=(r.left+window.scrollX)+'px'; list.style.width=Math.max(r.width,280)+'px'; }
   function hide() { list.style.display='none'; list.innerHTML=''; }
   function show(users) {
@@ -169,7 +168,15 @@ document.addEventListener('DOMContentLoaded', function () {
       var li=document.createElement('li');
       li.className='list-group-item list-group-item-action py-1 px-3';
       li.style.cursor='pointer';
-      li.innerHTML='<strong>'+esc(u.name)+'</strong>'+(u.email?' <small class="text-muted ml-1">'+esc(u.email)+'</small>':'');
+      var strong = document.createElement('strong');
+      strong.textContent = u.name;
+      li.appendChild(strong);
+      if (u.email) {
+        var small = document.createElement('small');
+        small.className = 'text-muted ml-1';
+        small.textContent = ' ' + u.email;
+        li.appendChild(small);
+      }
       li.addEventListener('mousedown',function(e){e.preventDefault();input.value=u.name;hide();});
       list.appendChild(li);
     });

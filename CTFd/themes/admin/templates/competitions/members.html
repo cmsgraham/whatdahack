@@ -141,10 +141,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   var debounceTimer = null;
 
-  function esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
-
   function reposition() {
     var r = input.getBoundingClientRect();
     list.style.top  = (r.bottom + window.scrollY) + 'px';
@@ -164,8 +160,15 @@ document.addEventListener('DOMContentLoaded', function () {
       var li = document.createElement('li');
       li.className = 'list-group-item list-group-item-action py-1 px-3';
       li.style.cursor = 'pointer';
-      li.innerHTML = '<strong>' + esc(u.name) + '</strong>'
-        + (u.email ? ' <small class="text-muted ml-1">' + esc(u.email) + '</small>' : '');
+      var strong = document.createElement('strong');
+      strong.textContent = u.name;
+      li.appendChild(strong);
+      if (u.email) {
+        var small = document.createElement('small');
+        small.className = 'text-muted ml-1';
+        small.textContent = ' ' + u.email;
+        li.appendChild(small);
+      }
       li.addEventListener('mousedown', function (e) {
         e.preventDefault();
         input.value = u.name;
