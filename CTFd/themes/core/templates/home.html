@@ -357,11 +357,38 @@ body { background: var(--h-bg) !important; }
   gap: .6rem;
   text-decoration: none;
   cursor: default;
+  color: inherit;
 }
-.h-cat-card:hover {
+.h-cat-card--link {
+  cursor: pointer;
+}
+.h-cat-card--link:hover {
   transform: translateY(-4px);
   box-shadow: var(--h-card-hover);
-  border-color: rgba(var(--h-accent-rgb), .35);
+  border-color: rgba(var(--h-accent-rgb), .45);
+  text-decoration: none;
+  color: inherit;
+}
+.h-cat-card--link:hover .h-cat-res-link {
+  color: var(--h-accent);
+  gap: .5rem;
+}
+.h-cat-card--link:hover .h-cat-res-link .fas {
+  transform: translateX(3px);
+}
+.h-cat-res-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--h-muted);
+  margin-top: auto;
+  transition: color .18s, gap .18s;
+}
+.h-cat-res-link .fas {
+  font-size: .65rem;
+  transition: transform .18s;
 }
 .h-cat-icon {
   width: 44px; height: 44px;
@@ -729,52 +756,94 @@ body { background: var(--h-bg) !important; }
     </div>
     <div class="row g-3 mt-2">
       <div class="col-md-6 col-lg-4">
-        <div class="h-cat-card">
+        <a href="/resources/web" class="h-cat-card h-cat-card--link">
           <div class="h-cat-icon h-cat-icon--blue"><i class="fas fa-globe"></i></div>
           <h3 class="h-cat-title">Web Security</h3>
           <p class="h-cat-desc">XSS, SQL injection, authentication bypass, SSRF, and modern OWASP vulnerabilities in realistic web targets.</p>
           <span class="h-cat-chip">OWASP Top 10</span>
-        </div>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <div class="h-cat-card">
-          <div class="h-cat-icon h-cat-icon--teal"><i class="fas fa-cloud"></i></div>
-          <h3 class="h-cat-title">Cloud Security</h3>
-          <p class="h-cat-desc">IAM misconfigurations, S3 exposure, container escapes, and cloud-native infrastructure attack vectors.</p>
-          <span class="h-cat-chip">AWS · Azure · GCP</span>
-        </div>
+        <a href="/resources/crypto" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--violet"><i class="fas fa-lock"></i></div>
+          <h3 class="h-cat-title">Cryptography</h3>
+          <p class="h-cat-desc">Break and build ciphers, attack RSA and elliptic curves, and defeat flawed protocol implementations.</p>
+          <span class="h-cat-chip">RSA · AES · ECC</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <div class="h-cat-card">
+        <a href="/resources/reverse-engineering" class="h-cat-card h-cat-card--link">
           <div class="h-cat-icon h-cat-icon--violet"><i class="fas fa-microchip"></i></div>
           <h3 class="h-cat-title">Reverse Engineering</h3>
           <p class="h-cat-desc">Binary analysis, obfuscation, malware logic, and low-level challenge solving using disassembly and dynamic analysis.</p>
           <span class="h-cat-chip">Binary · RE</span>
-        </div>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <div class="h-cat-card">
+        <a href="/resources/forensics" class="h-cat-card h-cat-card--link">
           <div class="h-cat-icon h-cat-icon--amber"><i class="fas fa-search"></i></div>
           <h3 class="h-cat-title">Digital Forensics</h3>
           <p class="h-cat-desc">Log analysis, memory forensics, network capture investigation, and artifact recovery challenges.</p>
           <span class="h-cat-chip">DFIR</span>
-        </div>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <div class="h-cat-card">
-          <div class="h-cat-icon h-cat-icon--green"><i class="fas fa-code"></i></div>
-          <h3 class="h-cat-title">Scripting &amp; Automation</h3>
-          <p class="h-cat-desc">Python, Bash, and API-driven challenges that reward automation, tooling, and programmatic problem-solving.</p>
-          <span class="h-cat-chip">Python · Bash · APIs</span>
-        </div>
+        <a href="/resources/pwn" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--red"><i class="fas fa-terminal"></i></div>
+          <h3 class="h-cat-title">Binary Exploitation</h3>
+          <p class="h-cat-desc">Buffer overflows, ROP chains, format strings, and heap exploitation to gain control of program execution.</p>
+          <span class="h-cat-chip">Pwn · Shellcode</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
       </div>
       <div class="col-md-6 col-lg-4">
-        <div class="h-cat-card">
-          <div class="h-cat-icon h-cat-icon--red"><i class="fas fa-book-open"></i></div>
-          <h3 class="h-cat-title">Security Fundamentals</h3>
-          <p class="h-cat-desc">Cryptography, networking concepts, access control, and baseline knowledge challenges for all skill levels.</p>
-          <span class="h-cat-chip">Foundational</span>
-        </div>
+        <a href="/resources/misc" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--green"><i class="fas fa-puzzle-piece"></i></div>
+          <h3 class="h-cat-title">Miscellaneous</h3>
+          <p class="h-cat-desc">Steganography, encoding puzzles, jail escapes, scripting tasks, and creative challenges that reward lateral thinking.</p>
+          <span class="h-cat-chip">Steg · Scripting</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <a href="/resources/osint" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--amber"><i class="fas fa-eye"></i></div>
+          <h3 class="h-cat-title">OSINT</h3>
+          <p class="h-cat-desc">Find hidden information using only public data — social media, image metadata, domain records, and satellite imagery.</p>
+          <span class="h-cat-chip">Recon · Intel</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <a href="/resources/cloud" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--teal"><i class="fas fa-cloud"></i></div>
+          <h3 class="h-cat-title">Cloud / DevOps</h3>
+          <p class="h-cat-desc">IAM misconfigurations, S3 exposure, container escapes, and cloud-native infrastructure attack vectors.</p>
+          <span class="h-cat-chip">AWS · Azure · GCP</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <a href="/resources/mobile" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--blue"><i class="fas fa-mobile-alt"></i></div>
+          <h3 class="h-cat-title">Mobile Security</h3>
+          <p class="h-cat-desc">Android APK reversing, iOS analysis, runtime hooking with Frida, and certificate pinning bypass.</p>
+          <span class="h-cat-chip">Android · iOS</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <a href="/resources/hardware" class="h-cat-card h-cat-card--link">
+          <div class="h-cat-icon h-cat-icon--green"><i class="fas fa-microchip"></i></div>
+          <h3 class="h-cat-title">Hardware / IoT</h3>
+          <p class="h-cat-desc">Firmware extraction, UART/JTAG interfaces, embedded device exploitation, and protocol analysis.</p>
+          <span class="h-cat-chip">Firmware · IoT</span>
+          <span class="h-cat-res-link">Resources &amp; training <i class="fas fa-arrow-right"></i></span>
+        </a>
       </div>
     </div>
   </div>
