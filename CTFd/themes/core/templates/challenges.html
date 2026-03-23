@@ -772,7 +772,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
             getCategories()
               .filter(cat => filterCat === 'all' || filterCat === cat)
               .reduce((n, cat) => n + getChallenges(cat)
-                .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                 .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                 .length, 0)
           "></strong> results
@@ -798,7 +798,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
             x-show="
               (filterCat === 'all' || filterCat === category) &&
               getChallenges(category)
-                .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                 .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                 .length > 0
             "
@@ -810,7 +810,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
               <h3 x-text="category"></h3>
               <span class="csh-count" x-text="
                 getChallenges(category)
-                  .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                  .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                   .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                   .length + ' challenges'
               "></span>
@@ -821,7 +821,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
             <div class="row g-3 challenges-row">
               <template x-for="c in
                 getChallenges(category)
-                  .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
+                  .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                   .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                   .slice()
                   .sort((a, b) =>
@@ -862,19 +862,17 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
                     <div class="challenge-card__body">
                       <h6 class="challenge-card__name" x-text="c.name"></h6>
 
-                      <!-- Tags (max 3) -->
+                      <!-- Difficulty badge + extra tags -->
                       <div class="challenge-card__tags">
-                        <template x-for="tag in c.tags.slice(0, 3)" :key="tag.value">
+                        <template x-if="c.difficulty">
                           <span
                             class="chall-tag"
-                            :class="{
-                              'easy':   tag.value.toLowerCase() === 'easy',
-                              'medium': tag.value.toLowerCase() === 'medium',
-                              'hard':   tag.value.toLowerCase() === 'hard',
-                              'insane': tag.value.toLowerCase() === 'insane',
-                            }"
-                            x-text="tag.value"
+                            :class="(c.difficulty || '').toLowerCase()"
+                            x-text="c.difficulty.charAt(0).toUpperCase() + c.difficulty.slice(1)"
                           ></span>
+                        </template>
+                        <template x-for="tag in c.tags.slice(0, c.difficulty ? 2 : 3)" :key="tag.value">
+                          <span class="chall-tag" x-text="tag.value"></span>
                         </template>
                       </div>
                     </div>

@@ -54,6 +54,24 @@
 	</div>
 	{% endblock %}
 
+	{% block difficulty %}
+	<div class="form-group">
+		<label>
+			Difficulty:<br>
+			<small class="form-text text-muted">
+				The intended difficulty rating of this challenge.
+			</small>
+		</label>
+		<select class="form-control custom-select" name="difficulty">
+			<option value="">— Unset —</option>
+			<option value="easy">Easy</option>
+			<option value="medium">Medium</option>
+			<option value="hard">Hard</option>
+			<option value="insane">Insane</option>
+		</select>
+	</div>
+	{% endblock %}
+
 	{% block state %}
 	<input type="hidden" name="state" value="hidden">
 	{% endblock %}
