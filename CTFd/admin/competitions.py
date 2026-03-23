@@ -458,7 +458,6 @@ def competitions_teams(competition_id):
 def competitions_team_detail(competition_id, team_id):
     """View/edit a competition team and its members."""
     from CTFd.models import CompetitionTeam, CompetitionTeamMember, CompetitionUser, Teams, Users
-    from CTFd.utils.crypto import hash_password
 
     comp = Competition.query.filter_by(id=competition_id).first_or_404()
     team = Teams.query.filter_by(id=team_id).first_or_404()
@@ -487,9 +486,13 @@ def competitions_team_detail(competition_id, team_id):
                 else:
                     team.name = new_name
                     if new_password:
-                        team.password = hash_password(new_password)
+                        # assign plaintext — Teams.validate_password() hashes it
+                        team.password = new_password
                     elif request.form.get("clear_password"):
-                        team.password = None
+                        # bypass @validates to truly set NULL
+                        db.session.query(Teams).filter_by(id=team_id).update(
+                            {"password": None}, synchronize_session="fetch"
+                        )
                     db.session.commit()
                     flash("Team updated.", "success")
 
