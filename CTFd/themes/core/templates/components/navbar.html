@@ -308,11 +308,13 @@
       <!-- Left links -->
       <ul class="navbar-nav me-auto ctf-nav-links">
         {% for page in Plugins.user_menu_pages %}
+          {% if not page.route.startswith('/resources') %}
           <li class="nav-item">
             <a class="nav-link" href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
               {{ page.title }}
             </a>
           </li>
+          {% endif %}
         {% endfor %}
 
         {% if Configs.account_visibility != 'admins' %}
