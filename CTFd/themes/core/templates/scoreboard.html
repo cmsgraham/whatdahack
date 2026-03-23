@@ -3,438 +3,499 @@
 {% block stylesheets %}
 {{ super() }}
 <style>
-/* ── Design tokens — light ───────────────────────────────────────────────── */
-:root,
-[data-bs-theme="light"] {
-  --ctf-bg-page:        #f3f4f6;
-  --ctf-bg-surface:     #ffffff;
-  --ctf-bg-elevated:    #f8f9fa;
-  --ctf-bg-input:       #ffffff;
-  --ctf-text-primary:   #111827;
-  --ctf-text-muted:     #6b7280;
-  --ctf-border:         #d1d5db;
-  --ctf-border-subtle:  #e5e7eb;
-  --ctf-accent:         #059669;
-  --ctf-accent-rgb:     5, 150, 105;
-  --ctf-accent-glow:    rgba(5,150,105,.15);
-  --ctf-header-bg1:     #e5e7eb;
-  --ctf-header-bg2:     #d1d5db;
-  --ctf-badge-bg:       rgba(0,0,0,.06);
-  --ctf-badge-color:    #374151;
-  --ctf-divider:        #e5e7eb;
+/* ═══════════════════════════════════════════════════════════════
+   LEADERBOARD — Premium redesign
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Tokens ─────────────────────────────────────────────────── */
+:root, [data-bs-theme="light"] {
+  --lb-page:       #f0f2f7;
+  --lb-surface:    #ffffff;
+  --lb-surface-2:  #f8fafc;
+  --lb-border:     rgba(0,0,0,.09);
+  --lb-border-s:   rgba(0,0,0,.05);
+  --lb-text:       #0f172a;
+  --lb-muted:      #64748b;
+  --lb-accent:     #059669;
+  --lb-acc-rgb:    5,150,105;
+  --lb-shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --lb-shadow-md:  0 4px 20px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+  --lb-gold:       #f59e0b;
+  --lb-silver:     #94a3b8;
+  --lb-bronze:     #c97c3a;
+  --lb-hdr-from:   #1e293b;
+  --lb-hdr-to:     #0f172a;
 }
-/* ── Design tokens — dark ────────────────────────────────────────────────── */
 [data-bs-theme="dark"] {
-  --ctf-bg-page:        #0d1117;
-  --ctf-bg-surface:     #161b22;
-  --ctf-bg-elevated:    #161b22;
-  --ctf-bg-input:       #0d1117;
-  --ctf-text-primary:   #e6edf3;
-  --ctf-text-muted:     #8b949e;
-  --ctf-border:         #30363d;
-  --ctf-border-subtle:  #21262d;
-  --ctf-accent:         #00ff88;
-  --ctf-accent-rgb:     0, 255, 136;
-  --ctf-accent-glow:    rgba(0,255,136,.12);
-  --ctf-header-bg1:     #0d1117;
-  --ctf-header-bg2:     #161b22;
-  --ctf-badge-bg:       #21262d;
-  --ctf-badge-color:    #8b949e;
-  --ctf-divider:        #21262d;
+  --lb-page:       #090c13;
+  --lb-surface:    #111827;
+  --lb-surface-2:  #161d2e;
+  --lb-border:     rgba(255,255,255,.07);
+  --lb-border-s:   rgba(255,255,255,.04);
+  --lb-text:       #f1f5f9;
+  --lb-muted:      #64748b;
+  --lb-accent:     #10b981;
+  --lb-acc-rgb:    16,185,129;
+  --lb-shadow-sm:  0 1px 3px rgba(0,0,0,.4);
+  --lb-shadow-md:  0 4px 20px rgba(0,0,0,.5);
+  --lb-gold:       #fbbf24;
+  --lb-silver:     #94a3b8;
+  --lb-bronze:     #d97c3a;
+  --lb-hdr-from:   #070a10;
+  --lb-hdr-to:     #040609;
 }
 
 .jumbotron { display: none !important; }
-body { background-color: var(--ctf-bg-page) !important; }
+body { background: var(--lb-page) !important; }
 
-/* ── Page header ─────────────────────────────────────────────────────────── */
-.ctf-page-header {
-  padding: 2.5rem 0 2rem;
-  background: linear-gradient(135deg, var(--ctf-header-bg1) 0%, var(--ctf-header-bg2) 100%);
-  border-bottom: 1px solid var(--ctf-border);
+/* ── HERO ─────────────────────────────────────────────────────────── */
+.lb-hero {
+  background: linear-gradient(160deg, var(--lb-hdr-from) 0%, var(--lb-hdr-to) 100%);
+  padding: 3.5rem 0 2.8rem;
   position: relative;
   overflow: hidden;
 }
-.ctf-page-header::before {
+.lb-hero::before {
   content: '';
   position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb), .06) 0%, transparent 60%);
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 60%,  rgba(var(--lb-acc-rgb),.09) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 90% at 85% 10%,  rgba(var(--lb-acc-rgb),.04) 0%, transparent 50%);
   pointer-events: none;
 }
-.ctf-page-header::after {
+.lb-hero::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--ctf-accent) 50%, transparent 100%);
-  opacity: .3;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--lb-acc-rgb),.55) 50%, transparent 100%);
 }
-.ctf-page-header h1 {
-  font-size: 1.75rem;
-  letter-spacing: 8px;
-  text-transform: uppercase;
-  color: var(--ctf-text-primary);
-  margin: 0;
-  font-weight: 700;
+.lb-hero-inner {
+  position: relative; z-index: 1;
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap; gap: 1rem;
 }
-.ctf-page-header h1 .accent { color: var(--ctf-accent); }
-.ctf-page-header p {
-  color: var(--ctf-text-muted);
-  font-size: .75rem;
-  letter-spacing: 2px;
-  margin: .4rem 0 0;
+.lb-hero-eyebrow {
+  font-size: .65rem; font-weight: 700;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--lb-accent); margin-bottom: .5rem;
 }
-
-/* ── Score graph card ────────────────────────────────────────────────────── */
-.sb-graph-card {
-  background: var(--ctf-bg-surface);
-  border: 1px solid var(--ctf-border);
-  border-radius: 10px;
-  padding: 1.25rem;
-  margin: 1.5rem 0;
-  min-height: 80px;
+.lb-hero-title {
+  font-size: 2.6rem; font-weight: 900;
+  letter-spacing: -1.5px; color: #f8fafc;
+  line-height: 1; margin: 0;
 }
-.sb-graph-spinner { color: var(--ctf-accent); opacity: .8; }
-
-/* ── Bracket filter pills ────────────────────────────────────────────────── */
-.sb-bracket-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .45rem;
-  margin-bottom: 1.25rem;
+.lb-hero-subtitle {
+  font-size: .72rem; color: rgba(248,250,252,.35);
+  letter-spacing: 2px; text-transform: uppercase; margin: .65rem 0 0;
 }
-.sb-bracket-btn {
-  background: var(--ctf-bg-elevated);
-  border: 1px solid var(--ctf-border);
-  color: var(--ctf-text-muted);
-  padding: .32rem .85rem;
-  border-radius: 20px;
-  font-size: .75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all .15s;
-  line-height: 1;
+.lb-hero-badge {
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(var(--lb-acc-rgb),.12);
+  border: 1px solid rgba(var(--lb-acc-rgb),.25);
+  border-radius: 20px; padding: .4rem .9rem;
+  font-size: .7rem; color: var(--lb-accent);
+  font-weight: 600; letter-spacing: .5px;
 }
-.sb-bracket-btn:hover {
-  border-color: var(--ctf-accent);
-  color: var(--ctf-accent);
+.lb-hero-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--lb-accent);
+  box-shadow: 0 0 0 3px rgba(var(--lb-acc-rgb),.25);
+  animation: lb-pulse 2s ease-in-out infinite;
 }
-.sb-bracket-btn.active {
-  background: rgba(var(--ctf-accent-rgb), .1);
-  border-color: var(--ctf-accent);
-  color: var(--ctf-accent);
-  font-weight: 600;
+@keyframes lb-pulse {
+  0%,100% { box-shadow: 0 0 0 3px rgba(var(--lb-acc-rgb),.25); }
+  50%      { box-shadow: 0 0 0 6px rgba(var(--lb-acc-rgb),.0);  }
 }
 
-/* ── Leaderboard container ───────────────────────────────────────────────── */
-.sb-leaderboard { margin-bottom: 2.5rem; }
+/* ── BODY ─────────────────────────────────────────────────────────── */
+.lb-body { padding: 2rem 0 5rem; }
 
-/* Column header row */
-.sb-thead {
-  display: grid;
-  grid-template-columns: 72px 36px 1fr 130px;
-  padding: .52rem 1.2rem;
-  background: var(--ctf-bg-elevated);
-  border: 1px solid var(--ctf-border);
-  border-bottom: 2px solid var(--ctf-border);
-  border-radius: 10px 10px 0 0;
-  gap: .5rem;
+/* ── CONTROLS ROW ──────────────────────────────────────────────────── */
+.lb-controls {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap; gap: .75rem;
+  margin-bottom: 1.5rem;
 }
-.sb-thead span {
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--ctf-text-muted);
-}
-
-/* Standing row */
-.sb-row {
-  display: grid;
-  grid-template-columns: 72px 36px 1fr 130px;
-  align-items: center;
-  padding: .78rem 1.2rem;
-  border: 1px solid var(--ctf-border-subtle);
-  border-top: none;
-  background: var(--ctf-bg-surface);
-  transition: background .15s;
-  gap: .5rem;
-}
-.sb-row:last-child { border-radius: 0 0 10px 10px; }
-.sb-row:hover { background: var(--ctf-bg-elevated); }
-
-/* Top-3 row accents */
-.sb-row--gold   { border-left: 3px solid #f59e0b; background: rgba(245,158,11,.05) !important; }
-.sb-row--silver { border-left: 3px solid #94a3b8; background: rgba(148,163,184,.04) !important; }
-.sb-row--bronze { border-left: 3px solid #cd7c32; background: rgba(205,127,50,.04) !important; }
-[data-bs-theme="dark"] .sb-row--gold   { background: rgba(245,158,11,.07) !important; }
-[data-bs-theme="dark"] .sb-row--silver { background: rgba(148,163,184,.05) !important; }
-[data-bs-theme="dark"] .sb-row--bronze { background: rgba(205,127,50,.06) !important; }
-.sb-row--gold:hover,
-.sb-row--silver:hover,
-.sb-row--bronze:hover { filter: brightness(1.04); }
-
-/* Rank cell */
-.sb-rank { display: flex; align-items: center; justify-content: center; }
-.sb-rank-num {
+.lb-segment {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px; height: 30px;
-  border-radius: 50%;
-  font-size: .82rem;
-  font-weight: 700;
-  background: var(--ctf-badge-bg);
-  color: var(--ctf-text-muted);
-  border: 1px solid var(--ctf-border);
-  line-height: 1;
+  background: var(--lb-surface);
+  border: 1px solid var(--lb-border);
+  border-radius: 11px; padding: 4px; gap: 2px;
+  box-shadow: var(--lb-shadow-sm);
 }
-.sb-rank-num--gold   { width: 36px; height: 36px; font-size: 1rem;  background: rgba(245,158,11,.15); color: #f59e0b; border-color: rgba(245,158,11,.45); }
-.sb-rank-num--silver { width: 33px; height: 33px; font-size: .9rem; background: rgba(148,163,184,.15); color: #94a3b8; border-color: rgba(148,163,184,.45); }
-.sb-rank-num--bronze { width: 31px; height: 31px;                   background: rgba(205,127,50,.15); color: #cd7c32; border-color: rgba(205,127,50,.45); }
+.lb-seg-btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .44rem 1.1rem; border: none; background: transparent;
+  border-radius: 8px; font-size: .78rem; font-weight: 500;
+  color: var(--lb-muted); cursor: pointer; transition: all .18s ease; white-space: nowrap;
+}
+.lb-seg-btn i { font-size: .68rem; }
+.lb-seg-btn:hover { color: var(--lb-text); background: var(--lb-surface-2); }
+.lb-seg-btn.active {
+  background: rgba(var(--lb-acc-rgb),.12); color: var(--lb-accent);
+  font-weight: 700; box-shadow: inset 0 1px 3px rgba(var(--lb-acc-rgb),.1);
+}
+.lb-brackets { display: flex; flex-wrap: wrap; gap: .35rem; }
+.lb-bracket-pill {
+  display: inline-flex; align-items: center;
+  padding: .32rem .8rem; border: 1px solid var(--lb-border); border-radius: 20px;
+  background: var(--lb-surface); color: var(--lb-muted);
+  font-size: .72rem; font-weight: 500; cursor: pointer; transition: all .15s;
+}
+.lb-bracket-pill:hover { border-color: var(--lb-accent); color: var(--lb-accent); }
+.lb-bracket-pill.active {
+  background: rgba(var(--lb-acc-rgb),.1);
+  border-color: rgba(var(--lb-acc-rgb),.45); color: var(--lb-accent); font-weight: 700;
+}
+
+/* ── MAIN CARD ────────────────────────────────────────────────────── */
+.lb-card {
+  background: var(--lb-surface); border: 1px solid var(--lb-border);
+  border-radius: 16px; box-shadow: var(--lb-shadow-md);
+  overflow: hidden; margin-bottom: 1.5rem;
+}
+.lb-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1rem 1.5rem; background: var(--lb-surface-2);
+  border-bottom: 1px solid var(--lb-border-s);
+}
+.lb-card-head-label {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2.5px; color: var(--lb-muted);
+}
+.lb-card-head-count {
+  font-size: .68rem; color: var(--lb-muted); background: var(--lb-page);
+  border: 1px solid var(--lb-border); border-radius: 20px; padding: .15rem .7rem;
+}
+.lb-thead {
+  display: grid; grid-template-columns: 64px 48px 1fr 130px;
+  padding: .5rem 1.5rem; gap: .5rem; border-bottom: 1px solid var(--lb-border-s);
+}
+.lb-th {
+  font-size: .58rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase; color: var(--lb-muted);
+}
+.lb-th-score { text-align: right; }
+
+/* ── ROW ───────────────────────────────────────────────────────────── */
+.lb-row {
+  display: grid; grid-template-columns: 64px 48px 1fr 130px;
+  align-items: center; padding: 1rem 1.5rem; gap: .5rem;
+  border-bottom: 1px solid var(--lb-border-s);
+  transition: background .15s ease; position: relative;
+}
+.lb-row:last-child { border-bottom: none; }
+.lb-row:hover { background: var(--lb-surface-2); }
+.lb-row--gold   { border-left: 3px solid var(--lb-gold);   background: rgba(245,158,11,.04); }
+.lb-row--silver { border-left: 3px solid var(--lb-silver); background: rgba(148,163,184,.03); }
+.lb-row--bronze { border-left: 3px solid var(--lb-bronze); background: rgba(201,124,58,.03); }
+[data-bs-theme="dark"] .lb-row--gold   { background: rgba(245,158,11,.06); }
+[data-bs-theme="dark"] .lb-row--silver { background: rgba(148,163,184,.05); }
+[data-bs-theme="dark"] .lb-row--bronze { background: rgba(201,124,58,.05); }
+.lb-row--gold:hover, .lb-row--silver:hover, .lb-row--bronze:hover { filter: brightness(1.03); }
+
+/* Rank badge */
+.lb-rank { display: flex; align-items: center; justify-content: center; }
+.lb-rank-badge {
+  width: 34px; height: 34px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .82rem; font-weight: 700; background: var(--lb-page);
+  color: var(--lb-muted); border: 1px solid var(--lb-border); line-height: 1; flex-shrink: 0;
+}
+.lb-rank-badge .lb-medal { font-size: 1.1rem; line-height: 1; }
+.lb-rank-badge--gold {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, rgba(245,158,11,.22) 0%, rgba(245,158,11,.07) 100%);
+  color: var(--lb-gold); border-color: rgba(245,158,11,.4);
+  box-shadow: 0 2px 10px rgba(245,158,11,.2);
+}
+.lb-rank-badge--silver {
+  width: 35px; height: 35px;
+  background: linear-gradient(135deg, rgba(148,163,184,.2) 0%, rgba(148,163,184,.06) 100%);
+  color: var(--lb-silver); border-color: rgba(148,163,184,.4);
+  box-shadow: 0 2px 8px rgba(148,163,184,.15);
+}
+.lb-rank-badge--bronze {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, rgba(201,124,58,.2) 0%, rgba(201,124,58,.06) 100%);
+  color: var(--lb-bronze); border-color: rgba(201,124,58,.4);
+  box-shadow: 0 2px 8px rgba(201,124,58,.15);
+}
+
+/* Avatar */
+.lb-avatar {
+  width: 38px; height: 38px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
+  border: 2px solid rgba(var(--lb-acc-rgb),.18);
+}
+.lb-avatar-ph {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--lb-surface-2); border: 1px solid var(--lb-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .7rem; color: var(--lb-muted); flex-shrink: 0;
+}
+.lb-row--gold   .lb-avatar, .lb-row--gold   .lb-avatar-ph { border-color: var(--lb-gold);   }
+.lb-row--silver .lb-avatar, .lb-row--silver .lb-avatar-ph { border-color: var(--lb-silver); }
+.lb-row--bronze .lb-avatar, .lb-row--bronze .lb-avatar-ph { border-color: var(--lb-bronze); }
 
 /* Name cell */
-.sb-name-cell { display: flex; align-items: center; gap: .55rem; min-width: 0; }
-.sb-name {
-  font-size: .88rem;
-  font-weight: 600;
-  color: var(--ctf-text-primary);
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: color .15s;
+.lb-name-cell { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.lb-name {
+  font-size: .9rem; font-weight: 600; color: var(--lb-text);
+  text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: color .15s; line-height: 1.25;
 }
-.sb-name:hover { color: var(--ctf-accent); text-decoration: none; }
-.sb-bracket-badge {
-  font-size: .6rem;
-  padding: .1rem .4rem;
-  border-radius: 4px;
-  background: var(--ctf-badge-bg);
-  color: var(--ctf-badge-color);
-  border: 1px solid var(--ctf-border);
-  white-space: nowrap;
-  flex-shrink: 0;
+.lb-name:hover { color: var(--lb-accent); text-decoration: none; }
+.lb-bracket-tag {
+  display: inline-block; font-size: .58rem; font-weight: 600;
+  letter-spacing: .5px; text-transform: uppercase; color: var(--lb-muted);
+  background: var(--lb-page); border: 1px solid var(--lb-border);
+  border-radius: 4px; padding: .06rem .38rem; margin-top: .22rem; width: fit-content;
 }
 
 /* Score cell */
-.sb-score-cell { display: flex; align-items: baseline; gap: .28rem; }
-.sb-score-val {
-  font-size: .9rem;
-  font-weight: 700;
-  color: var(--ctf-accent);
+.lb-score-cell { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
+.lb-score-val {
+  font-size: .98rem; font-weight: 800; color: var(--lb-accent);
+  line-height: 1; font-variant-numeric: tabular-nums;
 }
-.sb-score-label {
-  font-size: .6rem;
-  font-weight: 400;
-  color: var(--ctf-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.lb-score-label {
+  font-size: .56rem; color: var(--lb-muted);
+  text-transform: uppercase; letter-spacing: 1.5px; margin-top: .15rem;
 }
+.lb-row--gold .lb-score-val {
+  font-size: 1.05rem; color: var(--lb-gold);
+  text-shadow: 0 0 12px rgba(245,158,11,.3);
+}
+
+/* Loading */
+.lb-loading {
+  display: flex; align-items: center; justify-content: center;
+  padding: 5rem 2rem; gap: .75rem; color: var(--lb-muted); font-size: .82rem;
+}
+.lb-loading i { color: var(--lb-accent); }
 
 /* Empty state */
-.sb-empty {
-  text-align: center;
-  padding: 3rem;
-  color: var(--ctf-text-muted);
-  opacity: .65;
+.lb-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 5rem 2rem; text-align: center;
 }
-.sb-empty i { font-size: 2rem; display: block; margin-bottom: .75rem; }
-.sb-empty p { font-size: .8rem; letter-spacing: 1px; margin: 0; }
-
-/* ── Period filter tabs ──────────────────────────────────────────────────── */
-.sb-period-nav {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  margin-bottom: .75rem;
-}
-.sb-period-label {
-  font-size: .6rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 2px; color: var(--ctf-text-muted); margin-right: .2rem;
-}
-.sb-period-btn {
-  background: var(--ctf-bg-elevated);
-  border: 1px solid var(--ctf-border);
-  color: var(--ctf-text-muted);
-  padding: .28rem .75rem;
-  border-radius: 20px;
-  font-size: .72rem; font-weight: 500;
-  cursor: pointer; transition: all .15s; line-height: 1;
-}
-.sb-period-btn:hover { border-color: var(--ctf-accent); color: var(--ctf-accent); }
-.sb-period-btn.active {
-  background: rgba(var(--ctf-accent-rgb), .12);
-  border-color: var(--ctf-accent);
-  color: var(--ctf-accent); font-weight: 700;
-}
-
-/* ── Avatar in row ───────────────────────────────────────────────────────── */
-.sb-row-avatar {
-  width: 28px; height: 28px; border-radius: 50%;
-  object-fit: cover; flex-shrink: 0;
-  border: 1.5px solid var(--ctf-border);
-}
-.sb-row-avatar-ph {
-  width: 28px; height: 28px; border-radius: 50%;
-  background: var(--ctf-badge-bg); border: 1.5px solid var(--ctf-border);
+.lb-empty-icon {
+  width: 68px; height: 68px; border-radius: 18px;
+  background: rgba(var(--lb-acc-rgb),.08); border: 1px solid rgba(var(--lb-acc-rgb),.15);
   display: flex; align-items: center; justify-content: center;
-  font-size: .7rem; color: var(--ctf-text-muted); flex-shrink: 0;
+  font-size: 1.75rem; color: var(--lb-accent); margin-bottom: 1.35rem;
 }
+.lb-empty-title { font-size: 1rem; font-weight: 700; color: var(--lb-text); margin: 0 0 .4rem; }
+.lb-empty-sub { font-size: .78rem; color: var(--lb-muted); margin: 0; max-width: 280px; }
 
-/* Loading spinner row */
-.sb-loading {
-  text-align: center; padding: 2.5rem;
-  color: var(--ctf-accent); opacity: .7;
+/* Chart card */
+.lb-chart-card {
+  background: var(--lb-surface); border: 1px solid var(--lb-border);
+  border-radius: 16px; box-shadow: var(--lb-shadow-sm);
+  overflow: hidden; margin-bottom: 2.5rem;
 }
+.lb-chart-head {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .9rem 1.5rem; background: var(--lb-surface-2);
+  border-bottom: 1px solid var(--lb-border-s);
+}
+.lb-chart-icon {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: rgba(var(--lb-acc-rgb),.1);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--lb-accent); font-size: .7rem;
+}
+.lb-chart-title {
+  font-size: .65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2.5px; color: var(--lb-muted);
+}
+.lb-chart-body { padding: .5rem 0; min-height: 40px; }
+/* Hide clunky slider + labels from ScoreboardDetail */
+.lb-chart-body input[type="range"],
+.lb-chart-body .form-range,
+.lb-chart-body label[for],
+.lb-chart-body select { display: none !important; }
 
+/* Responsive */
 @media (max-width: 575.98px) {
-  .sb-thead { grid-template-columns: 52px 28px 1fr 80px; padding: .5rem .85rem; }
-  .sb-row  { grid-template-columns: 52px 28px 1fr 80px; padding: .75rem .85rem; }
-  .sb-score-label { display: none; }
+  .lb-thead { grid-template-columns: 46px 36px 1fr 76px; padding: .45rem .9rem; }
+  .lb-row   { grid-template-columns: 46px 36px 1fr 76px; padding: .85rem .9rem; }
+  .lb-hero-title { font-size: 1.9rem; letter-spacing: -1px; }
+  .lb-score-label { display: none; }
+  .lb-bracket-tag { display: none; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Page header -->
-<div class="ctf-page-header">
+
+<!-- HERO -->
+<div class="lb-hero">
   <div class="container">
-    <h1><span class="accent">[</span> {% trans %}Scoreboard{% endtrans %} <span class="accent">]</span></h1>
-    <p>// rankings &amp; standings</p>
+    <div class="lb-hero-inner">
+      <div>
+        <p class="lb-hero-eyebrow">Platform Rankings</p>
+        <h1 class="lb-hero-title">Leader<span style="color:var(--lb-accent)">board</span></h1>
+        <p class="lb-hero-subtitle">// competitive standings &amp; scores</p>
+      </div>
+      <div class="lb-hero-badge">
+        <span class="lb-hero-dot"></span>
+        Live Scores
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="container">
-  {% include "components/errors.html" %}
+<!-- BODY -->
+<div class="lb-body">
+  <div class="container">
+    {% include "components/errors.html" %}
 
-  <!-- Score graph -->
-  <div
-    id="score-graph"
-    class="sb-graph-card align-items-center"
-    :class="{'d-flex': show, 'd-none': !show}"
-    x-data="ScoreboardDetail"
-    x-ref="scoregraph"
-    @bracket-change.window="activeBracket=$event.detail; update();"
-  >
-    <div class="col-md-12 text-center">
-      <i class="fas fa-circle-notch fa-spin fa-3x fa-fw sb-graph-spinner"></i>
-    </div>
-  </div>
+    <div id="scoreboard" x-data="ScoreboardList_Period">
 
-  <!-- Scoreboard -->
-  <div id="scoreboard" x-data="ScoreboardList_Period">
-
-    <!-- Period + Bracket filters -->
-    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:1rem;">
-      <!-- Period buttons -->
-      <div class="sb-period-nav" style="margin-bottom:0;">
-        <span class="sb-period-label">Period</span>
-        <button
-          :class="{'sb-period-btn':true,'active':period==='overall'}"
-          @click="setPeriod('overall')" type="button"
-        >
-          <i class="fas fa-globe" style="margin-right:.3rem;font-size:.65rem;"></i>{% trans %}Overall{% endtrans %}
-        </button>
-        <button
-          :class="{'sb-period-btn':true,'active':period==='month'}"
-          @click="setPeriod('month')" type="button"
-        >
-          <i class="fas fa-calendar-alt" style="margin-right:.3rem;font-size:.65rem;"></i>{% trans %}This Month{% endtrans %}
-        </button>
-      </div>
-
-      <!-- Bracket filter pills (only shown if brackets exist) -->
-      <template x-if="brackets.length && standings.length">
-        <div class="sb-bracket-nav" style="margin-bottom:0;">
-          <button
-            :class="{'sb-bracket-btn':true,'active':!activeBracket}"
-            @click="activeBracket=null"
-          >{% trans %}All{% endtrans %}</button>
-          <template x-for="bracket in brackets">
-            <button
-              :class="{'sb-bracket-btn':true,'active':activeBracket==bracket.id}"
-              x-text="bracket.name"
-              @click="activeBracket=bracket.id"
-            ></button>
-          </template>
+      <!-- Controls: period segmented toggle + bracket pills -->
+      <div class="lb-controls">
+        <div class="lb-segment">
+          <button type="button"
+            :class="['lb-seg-btn', period === 'overall' ? 'active' : '']"
+            @click="setPeriod('overall')">
+            <i class="fas fa-globe"></i> {% trans %}Overall{% endtrans %}
+          </button>
+          <button type="button"
+            :class="['lb-seg-btn', period === 'month' ? 'active' : '']"
+            @click="setPeriod('month')">
+            <i class="fas fa-calendar-alt"></i> {% trans %}This Month{% endtrans %}
+          </button>
         </div>
-      </template>
-    </div>
 
-    <!-- Loading indicator -->
-    <div class="sb-loading" x-show="loading">
-      <i class="fas fa-circle-notch fa-spin fa-2x"></i>
-    </div>
-
-    <!-- Leaderboard -->
-    <div class="sb-leaderboard" x-show="!loading && displayStandings().length">
-      <!-- Header -->
-      <div class="sb-thead">
-        <span class="text-center">{% trans %}Place{% endtrans %}</span>
-        <span></span><!-- avatar col -->
-        <span>{{ get_mode_as_word(capitalize=True) }}</span>
-        <span>{% trans %}Score{% endtrans %}</span>
+        <template x-if="brackets.length && standings.length">
+          <div class="lb-brackets">
+            <button type="button"
+              :class="['lb-bracket-pill', !activeBracket ? 'active' : '']"
+              @click="activeBracket = null">
+              {% trans %}All{% endtrans %}
+            </button>
+            <template x-for="bracket in brackets" :key="bracket.id">
+              <button type="button"
+                :class="['lb-bracket-pill', activeBracket == bracket.id ? 'active' : '']"
+                x-text="bracket.name"
+                @click="activeBracket = bracket.id">
+              </button>
+            </template>
+          </div>
+        </template>
       </div>
 
-      <!-- Rows -->
-      <template x-for="(standing, index) in displayStandings()">
-        <div
-          class="sb-row"
-          :class="{
-            'sb-row--gold':   index === 0,
-            'sb-row--silver': index === 1,
-            'sb-row--bronze': index === 2,
-          }"
-        >
-          <!-- Rank -->
-          <div class="sb-rank">
-            <span
-              class="sb-rank-num"
-              :class="{
-                'sb-rank-num--gold':   index === 0,
-                'sb-rank-num--silver': index === 1,
-                'sb-rank-num--bronze': index === 2,
-              }"
-              x-text="index + 1"
-            ></span>
-          </div>
+      <!-- Loading -->
+      <div class="lb-loading" x-show="loading">
+        <i class="fas fa-circle-notch fa-spin fa-lg"></i>
+        <span>Loading standings&#8230;</span>
+      </div>
 
-          <!-- Name + bracket -->
-          <div class="sb-name-cell">
-            <!-- Mini avatar if available -->
+      <!-- Leaderboard card -->
+      <div class="lb-card" x-show="!loading">
+
+        <div class="lb-card-head">
+          <span class="lb-card-head-label">{{ get_mode_as_word(capitalize=True) }} Rankings</span>
+          <span class="lb-card-head-count"
+            x-text="displayStandings().length + ' ' + (displayStandings().length === 1 ? 'competitor' : 'competitors')">
+          </span>
+        </div>
+
+        <!-- Column headers — only when rows exist -->
+        <template x-if="displayStandings().length">
+          <div class="lb-thead">
+            <span class="lb-th" style="text-align:center;">{% trans %}Rank{% endtrans %}</span>
+            <span class="lb-th"></span>
+            <span class="lb-th">{% trans %}Competitor{% endtrans %}</span>
+            <span class="lb-th lb-th-score">{% trans %}Score{% endtrans %}</span>
+          </div>
+        </template>
+
+        <!-- Rows -->
+        <template x-for="(standing, index) in displayStandings()" :key="standing.account_id">
+          <div class="lb-row"
+            :class="{
+              'lb-row--gold':   index === 0,
+              'lb-row--silver': index === 1,
+              'lb-row--bronze': index === 2,
+            }">
+
+            <!-- Rank badge -->
+            <div class="lb-rank">
+              <span class="lb-rank-badge"
+                :class="{
+                  'lb-rank-badge--gold':   index === 0,
+                  'lb-rank-badge--silver': index === 1,
+                  'lb-rank-badge--bronze': index === 2,
+                }">
+                <template x-if="index === 0"><span class="lb-medal">&#129351;</span></template>
+                <template x-if="index === 1"><span class="lb-medal">&#129352;</span></template>
+                <template x-if="index === 2"><span class="lb-medal">&#129353;</span></template>
+                <template x-if="index > 2"><span x-text="index + 1"></span></template>
+              </span>
+            </div>
+
+            <!-- Avatar -->
             <template x-if="standing.avatar">
-              <img :src="standing.avatar" class="sb-row-avatar" alt="">
+              <img :src="standing.avatar" class="lb-avatar" alt="">
             </template>
             <template x-if="!standing.avatar">
-              <div class="sb-row-avatar-ph"><i class="fas fa-user" style="font-size:.6rem;"></i></div>
+              <div class="lb-avatar-ph"><i class="fas fa-user" style="font-size:.65rem;"></i></div>
             </template>
 
-            <a :href="standing.account_url" class="sb-name" x-text="standing.name"></a>
-            <template x-if="standing.bracket_name">
-              <span class="sb-bracket-badge" x-text="standing.bracket_name"></span>
-            </template>
+            <!-- Name + bracket -->
+            <div class="lb-name-cell">
+              <a :href="standing.account_url" class="lb-name" x-text="standing.name"></a>
+              <template x-if="standing.bracket_name">
+                <span class="lb-bracket-tag" x-text="standing.bracket_name"></span>
+              </template>
+            </div>
+
+            <!-- Score -->
+            <div class="lb-score-cell">
+              <span class="lb-score-val" x-text="standing.score.toLocaleString()"></span>
+              <span class="lb-score-label">pts</span>
+            </div>
+
           </div>
+        </template>
 
-          <!-- Score -->
-          <div class="sb-score-cell">
-            <span class="sb-score-val" x-text="standing.score"></span>
-            <span class="sb-score-label">pts</span>
+        <!-- Empty state (inside card) -->
+        <div class="lb-empty" x-show="!displayStandings().length">
+          <div class="lb-empty-icon"><i class="fas fa-trophy"></i></div>
+          <p class="lb-empty-title"
+            x-text="period === 'month' ? '{% trans %}No scores yet this month{% endtrans %}' : '{% trans %}No competitors yet{% endtrans %}'">
+          </p>
+          <p class="lb-empty-sub">{% trans %}Be the first to solve a challenge and claim the top spot.{% endtrans %}</p>
+        </div>
+
+      </div><!-- /lb-card -->
+
+      <!-- Score progression chart (hidden until ScoreboardDetail has data) -->
+      <div class="lb-chart-card"
+           x-data="ScoreboardDetail"
+           :class="{'d-none': !show}"
+           @bracket-change.window="activeBracket=$event.detail; update();">
+        <div class="lb-chart-head">
+          <div class="lb-chart-icon"><i class="fas fa-chart-line"></i></div>
+          <span class="lb-chart-title">Score Progression</span>
+        </div>
+        <div class="lb-chart-body" id="score-graph" x-ref="scoregraph">
+          <div style="text-align:center;padding:2rem;color:var(--lb-muted);">
+            <i class="fas fa-circle-notch fa-spin" style="color:var(--lb-accent);opacity:.7;"></i>
           </div>
         </div>
-      </template>
-    </div>
+      </div>
 
-    <!-- Empty state -->
-    <div class="sb-empty" x-show="!loading && !displayStandings().length">
-      <i class="fas fa-trophy"></i>
-      <p x-text="period === 'month' ? '{% trans %}No scores this month yet{% endtrans %}' : '{% trans %}Scoreboard is empty{% endtrans %}'"></p>
-    </div>
-
+    </div><!-- /#scoreboard -->
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
-<!-- Register extended ScoreboardList_Period BEFORE scoreboard.js calls Alpine.start() -->
 <script>
 document.addEventListener('alpine:init', function () {
   window.Alpine && window.Alpine.data('ScoreboardList_Period', function () {
