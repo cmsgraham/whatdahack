@@ -114,17 +114,19 @@
 							<option value="hidden" {% if comp.state == 'hidden' %}selected{% endif %}>Hidden</option>
 							<option value="visible" {% if comp.state == 'visible' %}selected{% endif %}>Visible</option>
 						</select>
+						<small class="form-text text-muted">Whether users can see this competition in the public listing.</small>
 					</div>
 					<div class="form-group col-md-3">
-						<label for="lifecycle">Lifecycle</label>
-						<select class="form-control" id="lifecycle" name="lifecycle">
-							<option value="draft" {% if (comp.lifecycle or 'draft') == 'draft' %}selected{% endif %}>Draft</option>
-							<option value="scheduled" {% if comp.lifecycle == 'scheduled' %}selected{% endif %}>Scheduled</option>
-							<option value="active" {% if comp.lifecycle == 'active' %}selected{% endif %}>Active</option>
-							<option value="ended" {% if comp.lifecycle == 'ended' %}selected{% endif %}>Ended</option>
-							<option value="archived" {% if comp.lifecycle == 'archived' %}selected{% endif %}>Archived</option>
-						</select>
-						<small class="form-text text-muted">Use the action buttons below for safe transitions.</small>
+						<label>Lifecycle</label>
+						<div class="form-control-plaintext">
+							{% set lc = comp.lifecycle or 'draft' %}
+							{% if lc == 'active' %}<span class="badge badge-success">active</span>
+							{% elif lc == 'scheduled' %}<span class="badge badge-info">scheduled</span>
+							{% elif lc == 'ended' %}<span class="badge badge-warning">ended</span>
+							{% elif lc == 'archived' %}<span class="badge badge-dark">archived</span>
+							{% else %}<span class="badge badge-secondary">draft</span>{% endif %}
+						</div>
+						<small class="form-text text-muted">Use &ldquo;Lifecycle Actions&rdquo; below to transition.</small>
 					</div>
 					<div class="form-group col-md-3">
 						<label for="user_mode">User Mode</label>
@@ -152,10 +154,23 @@
 		<div class="col-md-8 offset-md-2">
 			<h3>Lifecycle Actions</h3>
 			<hr>
-			<p class="text-muted small">
-				Use these one-click transitions to safely move the competition through its lifecycle.
-				All operations preserve historical data.
-			</p>
+			<div class="card bg-light mb-3 border-0">
+				<div class="card-body py-2 px-3" style="font-size:.85rem">
+					<strong>State reference</strong>
+					<table class="table table-sm table-borderless mb-0 mt-1">
+						<tbody>
+							<tr><td class="py-0 pr-2" style="width:90px"><span class="badge badge-secondary">draft</span></td><td class="py-0 text-muted">Being configured. Not visible to participants. Registration closed.</td></tr>
+							<tr><td class="py-0 pr-2"><span class="badge badge-info">scheduled</span></td><td class="py-0 text-muted">Published and accepting registrations. Not yet running.</td></tr>
+							<tr><td class="py-0 pr-2"><span class="badge badge-success">active</span></td><td class="py-0 text-muted"><strong>Only one competition can be active at a time.</strong> Challenges are live, clock is running.</td></tr>
+							<tr><td class="py-0 pr-2"><span class="badge badge-warning">ended</span></td><td class="py-0 text-muted">Competition over. Scores locked. Scoreboard still visible.</td></tr>
+							<tr><td class="py-0 pr-2"><span class="badge badge-dark">archived</span></td><td class="py-0 text-muted">Hidden from all public listings. Historical data preserved.</td></tr>
+						</tbody>
+					</table>
+					<hr class="my-2">
+					<span class="text-muted"><strong>Visibility</strong> (hidden/visible) independently controls whether this competition appears in the public listing, regardless of lifecycle stage.</span>
+				</div>
+			</div>
+			<p class="text-muted small mb-2">Use the buttons below for safe one-click transitions. All operations preserve historical data.</p>
 
 			<div class="d-flex flex-wrap" style="gap:.5rem">
 				{% set lc = comp.lifecycle or 'draft' %}

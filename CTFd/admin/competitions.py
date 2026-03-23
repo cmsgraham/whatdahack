@@ -123,7 +123,9 @@ def competitions_detail(competition_id):
         comp.name = request.form.get("name", comp.name).strip()
         comp.description = request.form.get("description", "").strip()
         comp.state = request.form.get("state", comp.state)
-        comp.lifecycle = request.form.get("lifecycle", comp.lifecycle or "draft")
+        # lifecycle is NOT accepted from the settings form — use the dedicated
+        # activate / deactivate / end / archive routes to ensure invariants
+        # (only one competition can be 'active' at a time).
         comp.user_mode = request.form.get("user_mode", comp.user_mode)
         comp.team_size = request.form.get("team_size", comp.team_size, type=int)
         comp.start = _parse_dt(request.form.get("start"))

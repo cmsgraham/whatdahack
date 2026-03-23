@@ -29,18 +29,27 @@
 	<div class="row">
 		<div class="col-md-12">
 			{% if competitions %}
+			<p class="text-muted small mb-2">
+				<strong>Lifecycle</strong> is the competition's phase:
+				<span class="badge badge-secondary">draft</span> → not public &nbsp;
+				<span class="badge badge-info">scheduled</span> → accepting registrations &nbsp;
+				<span class="badge badge-success">active</span> → running now (only one allowed) &nbsp;
+				<span class="badge badge-warning">ended</span> → scores locked &nbsp;
+				<span class="badge badge-dark">archived</span> → hidden from public.
+				&nbsp;<strong>Visibility</strong> controls whether the competition appears in the public listing independently of lifecycle.
+			</p>
 			<table class="table table-striped border">
 				<thead>
 					<tr>
 						<th class="text-center">#</th>
 						<th>Slug</th>
 						<th>Name</th>
-						<th class="text-center">Lifecycle</th>
-						<th class="text-center">Visibility</th>
+						<th class="text-center" title="Operational phase — use action buttons to transition">Lifecycle</th>
+						<th class="text-center" title="Whether this competition appears in the public listing">Visibility</th>
 						<th class="text-center">Mode</th>
 						<th class="text-center">Start</th>
 						<th class="text-center">End</th>
-						<th class="text-center">Active</th>
+						<th class="text-center" title="The single globally-active competition that drives live scoring">Global Active</th>
 						<th></th>
 					</tr>
 				</thead>
