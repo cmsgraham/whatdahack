@@ -3,7 +3,13 @@
 {% block content %}
 <div class="jumbotron">
 	<div class="container">
-		<h1>Competitions
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb mb-1 py-1 px-0 bg-transparent">
+				<li class="breadcrumb-item"><a href="{{ url_for('admin.statistics') }}">Dashboard</a></li>
+				<li class="breadcrumb-item active" aria-current="page">Competitions</li>
+			</ol>
+		</nav>
+		<h1 class="mb-0">Competitions
 			<a class="no-decoration" href="{{ url_for('admin.competitions_new') }}">
 				<span role="button" data-toggle="tooltip" title="New Competition">
 					<i class="btn-fa fas fa-plus-circle"></i>

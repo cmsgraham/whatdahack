@@ -4,11 +4,15 @@
 <div class="jumbotron">
   <div class="container">
     <h1>{{ comp.name }} — Team: {{ team.name }}</h1>
-    <p class="mb-0">
-      <a href="{{ url_for('admin.competitions_teams', competition_id=comp.id) }}">
-        &larr; Back to teams
-      </a>
-    </p>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0 py-1 px-0 bg-transparent">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.statistics') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.competitions_listing') }}">Competitions</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}">{{ comp.name }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.competitions_teams', competition_id=comp.id) }}">Teams</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ team.name }}</li>
+      </ol>
+    </nav>
   </div>
 </div>
 

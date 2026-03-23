@@ -40,40 +40,57 @@
 <body>
 	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
 		<div class="container">
-			<a href="{{ url_for('views.static_html', route='/') }}" class="navbar-brand">CTFd</a>
+			<a href="{{ url_for('admin.statistics') }}" class="navbar-brand">
+				<i class="fas fa-shield-alt mr-1"></i>Admin
+			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#base-navbars"
 					aria-controls="base-navbars" aria-expanded="false" aria-label="Toggle navigation">
 				<span class="navbar-toggler-icon"></span>
 			</button>
 			<div class="collapse navbar-collapse" id="base-navbars">
 				<ul class="navbar-nav mr-auto">
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.statistics') }}">Statistics</a></li>
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.notifications') }}">Notifications</a>
+					{% set _ep = request.endpoint %}
+					<li class="nav-item{% if _ep == 'admin.statistics' %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.statistics') }}">Dashboard</a>
 					</li>
-					<li class="nav-item dropdown">
-						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">Pages</a>
+					<li class="nav-item{% if _ep and 'competition' in _ep %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.competitions_listing') }}">Competitions</a>
+					</li>
+					<li class="nav-item{% if _ep and ('challenges' in _ep) %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a>
+					</li>
+					<li class="nav-item{% if _ep and 'users' in _ep %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.users_listing') }}">Users</a>
+					</li>
+					{% if get_config('user_mode') == 'teams' %}
+					<li class="nav-item{% if _ep and _ep == 'admin.teams_listing' %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.teams_listing') }}">Teams</a>
+					</li>
+					{% endif %}
+					<li class="nav-item{% if _ep == 'admin.scoreboard_listing' %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.scoreboard_listing') }}">Scoreboard</a>
+					</li>
+					<li class="nav-item dropdown{% if _ep and 'submission' in _ep %} active{% endif %}">
+						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+						   aria-haspopup="true" aria-expanded="false">Submissions</a>
 						<div class="dropdown-menu">
-							<a class="dropdown-item" href="{{ url_for('admin.pages_listing') }}">All Pages</a>
+							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing') }}">All</a>
+							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='correct') }}">Correct</a>
+							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='incorrect') }}">Incorrect</a>
+						</div>
+					</li>
+					<li class="nav-item dropdown{% if _ep and ('page' in _ep or 'notification' in _ep) %} active{% endif %}">
+						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
+						   aria-haspopup="true" aria-expanded="false">Content</a>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="{{ url_for('admin.notifications') }}">Notifications</a>
+							<a class="dropdown-item" href="{{ url_for('admin.pages_listing') }}">Pages</a>
 							<a class="dropdown-item" href="{{ url_for('admin.pages_new') }}">New Page</a>
 						</div>
 					</li>
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.users_listing') }}">Users</a></li>
-					{% if get_config('user_mode') == 'teams' %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.teams_listing') }}">Teams</a></li>
-					{% endif %}
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.scoreboard_listing') }}">Scoreboard</a></li>
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.challenges_listing') }}">Challenges</a></li>
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.competitions_listing') }}">Competitions</a></li>
-					<li class="nav-item dropdown">
-						<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button"
-						   aria-haspopup="true" aria-expanded="true">Submissions</a>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing') }}">All Submissions</a>
-							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='correct') }}">Correct Submissions</a>
-							<a class="dropdown-item" href="{{ url_for('admin.submissions_listing', submission_type='incorrect') }}">Incorrect Submissions</a>
-						</div>
+					<li class="nav-item{% if _ep == 'admin.config' %} active{% endif %}">
+						<a class="nav-link" href="{{ url_for('admin.config') }}">Settings</a>
 					</li>
-					<li class="nav-item"><a class="nav-link" href="{{ url_for('admin.config') }}">Config</a></li>
 
 					{% set plugin_menu = get_admin_plugin_menu_bar() %}
 					{% set plugins = get_menubar_plugins() %}
@@ -81,7 +98,6 @@
 						<li class="nav-item">
 							<a class="nav-link d-none d-md-block d-lg-block">|</a>
 						</li>
-
 						{% for menu in plugin_menu %}
 							{% if request.script_root %}
 								{% set route = '/' + request.script_root + '/' + menu.route %}
@@ -94,14 +110,13 @@
 								</a>
 							</li>
 						{% endfor %}
-
 						{% if plugins %}
 						<li class="nav-item dropdown">
-							<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Plugins <span class="caret"></span></a>
+							<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Plugins</a>
 							<ul class="dropdown-menu">
-									{% for plugin in plugins %}
-											<a class="dropdown-item" href="{{ request.script_root }}{{ plugin.route }}">{{ plugin.name }}</a>
-									{% endfor %}
+								{% for plugin in plugins %}
+									<a class="dropdown-item" href="{{ request.script_root }}{{ plugin.route }}">{{ plugin.name }}</a>
+								{% endfor %}
 							</ul>
 						</li>
 						{% endif %}
@@ -109,8 +124,18 @@
 				</ul>
 				<ul class="nav navbar-nav navbar-right">
 					<li class="nav-item">
-						<a class="nav-link" href="https://docs.ctfd.io/" target="_blank">
+						<a class="nav-link" href="{{ url_for('views.static_html', route='/') }}" title="View site">
+							<i class="fas fa-external-link-alt"></i>
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="https://docs.ctfd.io/" target="_blank" title="Documentation">
 							<i class="far fa-question-circle"></i>
+						</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link text-warning" href="{{ url_for('auth.logout') }}" title="Logout {{ User.name }}">
+							<i class="fas fa-sign-out-alt"></i><span class="d-md-none ml-1">Logout</span>
 						</a>
 					</li>
 				</ul>

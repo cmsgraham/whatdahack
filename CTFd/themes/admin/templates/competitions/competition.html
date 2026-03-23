@@ -2,6 +2,15 @@
 
 {% block content %}
 <div class="jumbotron">
+	<div class="container">
+		<nav aria-label="breadcrumb">
+			<ol class="breadcrumb mb-1 py-1 px-0 bg-transparent">
+				<li class="breadcrumb-item"><a href="{{ url_for('admin.statistics') }}">Dashboard</a></li>
+				<li class="breadcrumb-item"><a href="{{ url_for('admin.competitions_listing') }}">Competitions</a></li>
+				<li class="breadcrumb-item active" aria-current="page">{{ comp.name }}</li>
+			</ol>
+		</nav>
+	</div>
 	<div class="container d-flex justify-content-between align-items-center">
 			<h1>{{ comp.name }}
 					{% set lc = comp.lifecycle or 'draft' %}

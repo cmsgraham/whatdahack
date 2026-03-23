@@ -6,11 +6,14 @@
     <h1>{{ comp.name }} — Members
       <span class="badge badge-secondary ml-2">{{ rows | length }}</span>
     </h1>
-    <p class="mb-0">
-      <a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}">
-        &larr; Back to competition
-      </a>
-    </p>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0 py-1 px-0 bg-transparent">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.statistics') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.competitions_listing') }}">Competitions</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.competitions_detail', competition_id=comp.id) }}">{{ comp.name }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Members</li>
+      </ol>
+    </nav>
   </div>
 </div>
 
