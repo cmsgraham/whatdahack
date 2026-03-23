@@ -58,7 +58,7 @@ body { background-color: var(--cl-bg-page) !important; }
 
 .cl-card {
   background: var(--cl-bg-surface);
-  border: 1px solid var(--cl-border);
+  border: 1px solid rgba(var(--cl-accent-rgb), .35);
   border-radius: 12px;
   padding: 1.5rem 1.6rem;
   display: flex; flex-direction: column; gap: .35rem;
@@ -67,12 +67,8 @@ body { background-color: var(--cl-bg-page) !important; }
 }
 .cl-card:hover {
   box-shadow: 0 8px 28px rgba(0,0,0,.1);
-  border-color: rgba(var(--cl-accent-rgb), .4);
+  border-color: rgba(var(--cl-accent-rgb), .65);
   transform: translateY(-2px);
-}
-.cl-card--active {
-  border-color: rgba(var(--cl-accent-rgb), .55);
-  box-shadow: 0 0 0 1px rgba(var(--cl-accent-rgb), .25);
 }
 .cl-card--active::after {
   content: '';
