@@ -171,7 +171,7 @@ body { background-color: var(--ctf-bg-page) !important; }
 }
 .ctf-user-list-head {
   display: grid;
-  grid-template-columns: 1fr 60px 1fr 140px;
+  grid-template-columns: 1fr 110px 140px;
   padding: .55rem 1.25rem;
   background: var(--ctf-bg-elevated);
   border-bottom: 1px solid var(--ctf-border);
@@ -186,7 +186,7 @@ body { background-color: var(--ctf-bg-page) !important; }
 }
 .ctf-user-row {
   display: grid;
-  grid-template-columns: 1fr 60px 1fr 140px;
+  grid-template-columns: 1fr 110px 140px;
   align-items: center;
   padding: .72rem 1.25rem;
   border-bottom: 1px solid var(--ctf-border-subtle);
@@ -252,19 +252,25 @@ body { background-color: var(--ctf-bg-page) !important; }
 }
 .ctf-badge--official:hover { opacity: .8; }
 
-/* Website cell */
-.ctf-user-website { text-align: center; }
-.ctf-user-website a { color: var(--ctf-text-muted); font-size: .82rem; transition: color .15s; }
-.ctf-user-website a:hover { color: var(--ctf-accent); }
-
-/* Affiliation / Country */
-.ctf-user-affiliation {
-  font-size: .8rem;
-  color: var(--ctf-text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Points cell */
+.ctf-user-points {
+  text-align: right;
+  padding-right: .5rem;
   white-space: nowrap;
 }
+.ctf-user-points-val {
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--ctf-accent);
+}
+.ctf-user-points-label {
+  font-size: .62rem;
+  color: var(--ctf-text-muted);
+  display: block;
+  letter-spacing: .5px;
+}
+
+/* Country */
 .ctf-user-country {
   display: flex;
   align-items: center;
@@ -317,12 +323,9 @@ body { background-color: var(--ctf-bg-page) !important; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
-  .ctf-user-list-head { grid-template-columns: 1fr 40px; }
-  .ctf-user-list-head .ctf-col-web { display: none; }
-  .ctf-user-list-head .ctf-col-aff { display: none; }
+  .ctf-user-list-head { grid-template-columns: 1fr 80px; }
   .ctf-user-list-head .ctf-col-country { display: none; }
-  .ctf-user-row { grid-template-columns: 1fr 40px; }
-  .ctf-user-affiliation,
+  .ctf-user-row { grid-template-columns: 1fr 80px; }
   .ctf-user-country { display: none !important; }
   .ctf-filter-bar { flex-direction: column; }
 }
@@ -375,8 +378,7 @@ body { background-color: var(--ctf-bg-page) !important; }
     <!-- Header -->
     <div class="ctf-user-list-head">
       <span>{% trans %}User{% endtrans %}</span>
-      <span class="ctf-col-web text-center">{% trans %}Website{% endtrans %}</span>
-      <span class="ctf-col-aff">{% trans %}Affiliation{% endtrans %}</span>
+      <span class="ctf-col-pts text-right" style="text-align:right;padding-right:.5rem;">{% trans %}Points{% endtrans %}</span>
       <span class="ctf-col-country">{% trans %}Country{% endtrans %}</span>
     </div>
 
@@ -410,24 +412,14 @@ body { background-color: var(--ctf-bg-page) !important; }
           </div>
         </div>
 
-        <!-- Website -->
-        <div class="ctf-user-website">
-          {% if user.website and (user.website.startswith('http://') or user.website.startswith('https://')) %}
-            <a href="{{ user.website }}" target="_blank" rel="noopener"
-               data-bs-toggle="tooltip" data-bs-placement="top" title="{{ user.website }}">
-              <i class="fas fa-external-link-alt"></i>
-            </a>
-          {% endif %}
-        </div>
-
-        <!-- Affiliation -->
-        <div class="ctf-user-affiliation">
-          {% if user.affiliation %}
-            <span
-              {% if user.affiliation | length > 50 %}
-                data-bs-toggle="tooltip" data-bs-placement="top" title="{{ user.affiliation }}"
-              {% endif %}
-            >{{ user.affiliation | truncate(50) }}</span>
+        <!-- Points -->
+        <div class="ctf-user-points">
+          {% if scores_visible() %}
+            {% set _pts = user.get_score() %}
+            <span class="ctf-user-points-val">{{ _pts if _pts is not none else 0 }}</span>
+            <span class="ctf-user-points-label">pts</span>
+          {% else %}
+            <span class="ctf-user-points-val" style="opacity:.3;">—</span>
           {% endif %}
         </div>
 
