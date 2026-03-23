@@ -102,6 +102,48 @@ SHARED_STYLE = """
   border:1px solid rgba(var(--dp-accent-rgb),.22);
   font-weight:500;
 }
+/* ── Overview block ─────────────────────────────────────────────────────── */
+.dp-overview{
+  background:var(--dp-surface);
+  border:1px solid var(--dp-border);
+  border-radius:12px;
+  padding:1.6rem 1.8rem;
+  margin-bottom:2.75rem;
+}
+.dp-overview-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.6rem;
+}
+@media(max-width:640px){.dp-overview-grid{grid-template-columns:1fr;}}
+.dp-overview-label{
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dp-accent);margin-bottom:.55rem;
+}
+.dp-overview-text{
+  font-size:.88rem;color:var(--dp-text);line-height:1.72;
+}
+.dp-overview-text p{margin-bottom:.65rem;}
+.dp-overview-text p:last-child{margin-bottom:0;}
+.dp-examples-wrap{margin-top:1.35rem;}
+.dp-examples-label{
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dp-accent2);margin-bottom:.65rem;
+}
+.dp-examples{display:flex;flex-wrap:wrap;gap:.45rem;}
+.dp-example-pill{
+  font-size:.75rem;padding:.28rem .75rem;
+  border-radius:999px;
+  background:rgba(var(--dp-accent2-rgb),.1);
+  border:1px solid rgba(var(--dp-accent2-rgb),.25);
+  color:var(--dp-text);
+  font-weight:500;
+}
+.dp-example-pill code{
+  background:none;padding:0;color:inherit;
+  font-family:ui-monospace,monospace;
+  font-size:.72rem;
+}
 /* ── Tip box ─────────────────────────────────────────────────────────────── */
 .dp-tip{
   background:var(--dp-surface);
@@ -184,7 +226,33 @@ def _tips_section(tips):
     </div>"""
 
 
-def _page(icon, title, lead, official, training, tips, tools=None):
+def _example_pill(text):
+    return f'<span class="dp-example-pill">{text}</span>'
+
+
+def _overview_section(what, how_it_works, examples):
+    """what: str (HTML), how_it_works: str (HTML), examples: list[str]"""
+    pills = "".join(_example_pill(e) for e in examples)
+    return f"""
+    <div class="dp-overview">
+      <div class="dp-overview-grid">
+        <div>
+          <div class="dp-overview-label">What is it?</div>
+          <div class="dp-overview-text">{what}</div>
+        </div>
+        <div>
+          <div class="dp-overview-label">How it works in a CTF</div>
+          <div class="dp-overview-text">{how_it_works}</div>
+        </div>
+      </div>
+      <div class="dp-examples-wrap">
+        <div class="dp-examples-label">Example challenge types</div>
+        <div class="dp-examples">{pills}</div>
+      </div>
+    </div>"""
+
+
+def _page(icon, title, lead, official, training, tips, tools=None, overview=None):
     off_html = "".join(_card(*r) for r in official)
     train_html = "".join(_card(*r) for r in training)
 
@@ -192,6 +260,10 @@ def _page(icon, title, lead, official, training, tips, tools=None):
     if tools:
         tool_html = "".join(_card(*r) for r in tools)
         tool_section = _section("fas fa-tools", "Essential Tools", tool_html)
+
+    overview_block = ""
+    if overview:
+        overview_block = _overview_section(*overview)
 
     return SHARED_STYLE + f"""
 <div class="dp-wrap">
@@ -203,6 +275,7 @@ def _page(icon, title, lead, official, training, tips, tools=None):
     <p class="dp-hero-lead">{lead}</p>
   </div>
 
+  {overview_block}
   {_section("fas fa-link", "Official Resources &amp; Standards", off_html)}
   {_section("fas fa-graduation-cap", "Free Training &amp; Practice", train_html)}
   {tool_section}
@@ -268,6 +341,17 @@ WEB = _page(
     icon="🌐",
     title="Web Security",
     lead="Web challenges test your ability to find and exploit vulnerabilities in websites and APIs. Topics range from classic injection attacks to modern OAuth/JWT flaws, SSRF, GraphQL abuse, and prototype pollution.",
+    overview=(
+        """<p>Web security is the practice of finding and fixing vulnerabilities in websites, web applications, and APIs. Attackers exploit these flaws to steal data, hijack accounts, execute commands on servers, or pivot deeper into an organisation's infrastructure.</p>
+<p>It is one of the most impactful security disciplines because nearly every business has a public-facing web presence. A single misconfigured endpoint can expose millions of user records.</p>""",
+        """<p>In a CTF, you are given a URL (or a source-code dump) and must find a vulnerability to read a hidden flag. Challenges are self-contained web apps that deliberately contain one or more bugs — your job is to discover and exploit them before other teams.</p>
+<p>Common workflows: intercept HTTP traffic with Burp Suite → inspect parameters and cookies → fuzz inputs → research the bug class → craft a proof-of-concept → extract the flag from the server response or database.</p>""",
+        ["SQL Injection (dump the DB)", "XSS → cookie theft", "SSRF → cloud metadata",
+         "IDOR (access another user's data)", "JWT algorithm confusion",
+         "SSTI (server-side template injection)", "Path traversal / LFI",
+         "OAuth state bypass", "GraphQL introspection abuse", "CORS misconfiguration",
+         "XXE (external entity injection)", "Command injection via form field"]
+    ),
     official=[
         ("OWASP Foundation", "https://owasp.org",
          "The Open Web Application Security Project — the gold standard for web app security guidance.", ["Foundation", "Standards"]),
@@ -327,6 +411,18 @@ CRYPTO = _page(
     icon="🔐",
     title="Cryptography",
     lead="Crypto challenges require you to break ciphers, identify weaknesses in custom implementations, and exploit mathematical flaws in everything from Caesar shifts to RSA, elliptic curves, and stream ciphers.",
+    overview=(
+        """<p>Cryptography is the science of securing information through mathematical transformations. It underpins everything from HTTPS and password storage to digital signatures and end-to-end messaging.</p>
+<p>In security, the goal is often the opposite — <em>breaking</em> cryptographic schemes that are poorly designed or incorrectly implemented. Even mathematically sound algorithms can be vulnerable when developers misuse them.</p>""",
+        """<p>In a CTF, you receive ciphertext, a public key, an encryption oracle, or a custom encryption script and must recover the plaintext flag. Challenges test your ability to spot mathematical weaknesses, abuse implementation mistakes, or apply known academic attacks.</p>
+<p>Common workflow: identify the algorithm → check for known vulnerabilities (e.g. small RSA exponent, reused IV) → apply the appropriate mathematical attack using Python/SageMath → decrypt the flag.</p>""",
+        ["RSA small-exponent attack (e=3)", "Repeating-key XOR",
+         "CBC bit-flipping", "Padding oracle (PKCS#7)",
+         "Hash length extension", "ECDSA nonce reuse (k-reuse)",
+         "Wiener's RSA attack (small d)", "AES-ECB mode (detect repeated blocks)",
+         "Vigenère / frequency analysis", "Diffie-Hellman small subgroup",
+         "Common-modulus RSA attack", "Substitute classical cipher (Caesar, ROT13)"]
+    ),
     official=[
         ("NIST Cryptographic Standards (CSRC)", "https://csrc.nist.gov",
          "Official NIST guidance on block ciphers, hash functions, digital signatures, and key derivation.", ["Standards", "NIST"]),
@@ -380,6 +476,18 @@ REVERSE = _page(
     icon="🔬",
     title="Reverse Engineering",
     lead="RE challenges ask you to understand programs without access to source code. You'll read assembly, decompile binaries, trace execution, defeat anti-debugging, and ultimately extract flags hidden in logic.",
+    overview=(
+        """<p>Reverse engineering (RE) is the process of analysing a compiled program — without its source code — to understand what it does. Security engineers use RE to analyse malware, audit closed-source software, and find vulnerabilities in firmware.</p>
+<p>It requires knowledge of CPU architectures (x86, ARM), calling conventions, compilation artifacts, and common obfuscation techniques. The goal is to reconstruct intent from raw bytes and machine instructions.</p>""",
+        """<p>In a CTF, you receive a compiled binary (ELF, PE, APK, or firmware image) and must figure out the correct input that causes it to print the flag, or locate a hard-coded secret inside it. No source code is provided.</p>
+<p>Common workflow: run <code>file</code> + <code>strings</code> + <code>checksec</code> → open in Ghidra/IDA → identify the validation function → trace the logic → derive the required input or patch the binary.</p>""",
+        ["Find the hardcoded flag in strings", "Keygen / serial crackme",
+         "Obfuscated logic (XOR decode loop)", "Anti-debug bypass (ptrace check)",
+         "Packed binary (UPX unpack)", "Custom bytecode VM interpreter",
+         "License key validation reversal", "Go / Rust binary decompilation",
+         "ARM firmware flag extraction", "Dynamic analysis with GDB",
+         "Self-modifying code", "C++ vtable tracing"]
+    ),
     official=[
         ("Ghidra", "https://ghidra-sre.org",
          "Free, open-source reverse engineering suite from the NSA. Disassembles and decompiles most architectures.", ["Free", "NSA", "Open Source"]),
@@ -435,6 +543,18 @@ FORENSICS = _page(
     icon="🔍",
     title="Forensics",
     lead="Forensics challenges involve recovering evidence from disk images, memory dumps, packet captures, and log files. Skills include file carving, steganography, timeline analysis, and artifact interpretation.",
+    overview=(
+        """<p>Digital forensics is the process of acquiring, preserving, and analysing digital evidence. Investigators examine hard drives, memory snapshots, network captures, and logs to reconstruct what happened, when, and by whom.</p>
+<p>It is crucial for incident response, legal proceedings, and malware analysis. The discipline blends operating-system internals knowledge with investigative methodology and a strict chain-of-custody mindset.</p>""",
+        """<p>In a CTF, you receive a file (PCAP, disk image, memory dump, photograph, archive) and must uncover a hidden flag or answer questions about an attack. The flag may be deleted, buried in metadata, encoded in an image, or hidden inside encrypted network traffic.</p>
+<p>Common workflow: identify the artefact type → use the appropriate tool (Wireshark, Volatility, Autopsy, ExifTool) → search for patterns or anomalies → extract and decode the flag.</p>""",
+        ["Recover deleted file from disk image", "Extract flag from PCAP (follow TCP stream)",
+         "Steganography (LSB in PNG)", "Memory dump — find running process secrets",
+         "Metadata extraction (GPS in photo)", "NTFS alternate data streams",
+         "Browser history / SQLite artefacts", "File carving (no filesystem)",
+         "Log analysis (find attacker IP)", "Email header analysis",
+         "Encoded payload in DNS queries", "Corrupted ZIP / PNG header repair"]
+    ),
     official=[
         ("Autopsy / The Sleuth Kit", "https://www.sleuthkit.org/autopsy/",
          "Free, open-source digital forensics platform for analysing disk images and file systems.", ["Free", "Disk Forensics", "Open Source"]),
@@ -486,6 +606,18 @@ PWN = _page(
     icon="💥",
     title="Binary Exploitation (Pwn)",
     lead="Pwn challenges require you to exploit memory corruption vulnerabilities — buffer overflows, format strings, heap mismanagement, and more — to hijack program execution, spawn a shell, or read protected memory.",
+    overview=(
+        """<p>Binary exploitation ("pwn") is the art of taking control of a running process by abusing memory-safety bugs. When a program fails to validate input size or type, an attacker can overwrite memory structures — redirecting execution to arbitrary code or leaking sensitive data.</p>
+<p>It requires a deep understanding of process memory layout (stack, heap, BSS), CPU calling conventions, OS protections (ASLR, NX, stack canaries, PIE, RELRO), and low-level C/assembly behaviour.</p>""",
+        """<p>In a CTF, you are given a compiled binary and (usually) a remote service running it. Your goal is to provide crafted input that hijacks execution and reads a flag from a privileged file or environment variable on the server.</p>
+<p>Common workflow: check protections with <code>checksec</code> → find the vulnerability (overflow, format string, use-after-free) → calculate offsets → build the exploit payload with pwntools → leak a libc address if needed → get a shell and <code>cat flag.txt</code>.</p>""",
+        ["Stack buffer overflow (ret2win)", "ROP chain (bypass NX)",
+         "Format string leak + overwrite", "ret2libc / ret2plt",
+         "Heap overflow (fastbin dup)", "Use-after-free (UAF)",
+         "Stack canary brute-force (forking server)", "SROP (sigreturn-oriented programming)",
+         "GOT overwrite", "Off-by-one overflow",
+         "Tcache poisoning (glibc 2.29+)", "Shellcode injection (NX disabled)"]
+    ),
     official=[
         ("pwntools", "https://pwntools.com",
          "The essential Python library for writing CTF exploits — process control, ROP, packing, shellcode, and remote connections.", ["Tool", "Open Source"]),
@@ -539,6 +671,18 @@ MISC = _page(
     icon="🎲",
     title="Miscellaneous",
     lead="Misc challenges don't fit neatly into other categories. Expect steganography, encoding/decoding puzzles, scripting tasks, jail escapes, trivia, and creative problems that reward lateral thinking.",
+    overview=(
+        """<p>Miscellaneous is the catch-all category for challenges that don't cleanly belong elsewhere. It rewards breadth: a solver may need knowledge from programming, maths, linguistics, pop culture, networking, or any other field depending on the challenge author's imagination.</p>
+<p>Misc challenges are often the most creative and unconventional problems in a CTF. Their unpredictability makes strong general technical skills and lateral thinking essential.</p>""",
+        """<p>In a CTF, a misc challenge might give you an encoded blob, a strange image, a broken file, a Python jail, a game, or even a social engineering puzzle. The goal varies, but always ends with extracting a flag.</p>
+<p>Common workflow: identify what format or encoding is in use → apply CyberChef / dcode.fr → if it's a script jail, enumerate allowed builtins → if it's steg, try steghide / zsteg / binwalk → iterate until the flag appears.</p>""",
+        ["CyberChef multi-step recipe", "Python/Bash jail escape",
+         "Steganography (LSB, DCT, F5)", "QR code repair",
+         "Base-N / ROT / XOR encoding chain", "Morse / Braille / semaphore decode",
+         "Scripting to automate 1000 steps", "DTMF / audio decoding",
+         "Git history recovery (git log)", "Zip / archive bomb analysis",
+         "Regex golf / code golf", "Game hacking (netcat protocol)"]
+    ),
     official=[
         ("CTFtime", "https://ctftime.org",
          "The authoritative calendar of CTF events worldwide, with team rankings and historical writeups.", ["Resource", "Community"]),
@@ -588,6 +732,18 @@ OSINT = _page(
     icon="👁️",
     title="OSINT",
     lead="Open-Source Intelligence challenges require you to find information about targets using only publicly available data: social media, image metadata, domain records, satellite imagery, and public databases.",
+    overview=(
+        """<p>OSINT (Open-Source Intelligence) is the collection and analysis of information from publicly available sources — websites, social media, public records, satellite imagery, domain registrations, job postings, and more.</p>
+<p>It is used by law enforcement, journalists, penetration testers, and threat intelligence analysts to build profiles of individuals, organisations, and infrastructure without any direct interaction with the target.</p>""",
+        """<p>In a CTF, OSINT challenges give you a starting point (a username, a photo, a company name, a tweet) and ask you to discover a specific fact — a real-world location, an email address, a date, or a connection between entities. No hacking tools are needed; only research skills and patience.</p>
+<p>Common workflow: identify all data points in the brief → reverse image search → check social media profiles → inspect WHOIS / Shodan / Certificate Transparency logs → cross-reference findings → geolocate if needed.</p>""",
+        ["Geolocate a photo (street signs, landmarks)", "Find a person's employer from LinkedIn",
+         "Identify a building from satellite view", "Username pivot across platforms",
+         "WHOIS / DNS history lookup", "Find deleted tweet (Wayback Machine)",
+         "Decode GPS EXIF from image", "Shodan search for exposed service",
+         "Certificate Transparency subdomain enum", "Identify ship/aircraft from AIS/ADS-B",
+         "Reverse email → real name", "Find source code from a screenshot"]
+    ),
     official=[
         ("OSINT Framework", "https://osintframework.com",
          "Visual tree of categorised OSINT tools and data sources maintained by the community.", ["Reference", "Tool Directory"]),
@@ -641,6 +797,18 @@ CLOUD = _page(
     icon="☁️",
     title="Cloud / DevOps",
     lead="Cloud challenges cover misconfigurations and vulnerabilities in AWS, Azure, GCP, Docker, and Kubernetes — from exposed S3 buckets and leaked credentials to container escapes and IAM privilege escalation.",
+    overview=(
+        """<p>Cloud / DevOps security focuses on vulnerabilities specific to modern infrastructure: cloud platforms (AWS, Azure, GCP), container orchestration (Kubernetes, Docker), Infrastructure-as-Code (Terraform, CloudFormation), and CI/CD pipelines.</p>
+<p>Unlike traditional security, the attack surface here is largely configuration-driven. A single IAM policy with excessive permissions or a publicly accessible S3 bucket can expose an entire organisation's data without any code vulnerability involved.</p>""",
+        """<p>In a CTF, cloud challenges give you credentials, a running cloud environment, a Docker image, or a Kubernetes config and ask you to escalate privileges, read a protected secret, or escape a container to reach the flag.</p>
+<p>Common workflow: enumerate accessible resources (S3, EC2, IAM policies) → query the metadata service (169.254.169.254) → find misconfigured permissions → escalate → read the flag from a secrets manager or root volume.</p>""",
+        ["S3 bucket public read (list + download)", "EC2 instance metadata credential theft",
+         "IAM privilege escalation (PassRole)", "Lambda function code leak",
+         "Docker socket escape to host", "Kubernetes RBAC misconfiguration",
+         "Exposed .env in public repository", "SSM Parameter Store secret read",
+         "ECS task role abuse", "Terraform state file leak (S3)",
+         "GitHub Actions secret exfiltration", "Container image layer secret extraction"]
+    ),
     official=[
         ("AWS Security Documentation", "https://aws.amazon.com/security/",
          "Official AWS security best practices, IAM policy docs, and the Well-Architected Security Pillar.", ["Official", "AWS"]),
@@ -694,6 +862,18 @@ MOBILE = _page(
     icon="📱",
     title="Mobile Security",
     lead="Mobile challenges involve reverse engineering and exploiting Android APKs and iOS IPAs — from decompiling Java bytecode and patching apps to hooking runtime methods with Frida and bypassing certificate pinning.",
+    overview=(
+        """<p>Mobile security is the field of finding and exploiting vulnerabilities in Android and iOS applications. Unlike desktop software, mobile apps run in sandboxed environments but are regularly undermined by insecure data storage, weak authentication, certificate pinning mistakes, and exported activity/intent misuse.</p>
+<p>The OWASP Mobile Top 10 defines the most common mobile weaknesses, and both Android (Java/Kotlin/NDK) and iOS (Swift/Objective-C) have distinct attack surfaces that security researchers must understand.</p>""",
+        """<p>In a CTF, you receive an APK or IPA file and must extract a flag hidden inside the app's logic, resources, or network communication. Some challenges require only static analysis; others need you to run the app on an emulator, hook functions with Frida, or patch the binary to bypass checks.</p>
+<p>Common workflow: unpack with APKTool/jadx → inspect <code>AndroidManifest.xml</code> → search strings/resources → decompile Java → hook with Frida if dynamic analysis is needed → intercept HTTPS traffic with Burp + SSL unpin.</p>""",
+        ["Hardcoded API key in APK resources", "Reverse Java validation logic",
+         "Bypass root/emulator detection (Frida)", "SSL pinning bypass",
+         "Exported Activity access (ADB intent)", "Shared preferences plain-text secret",
+         "Native library (JNI) reverse engineering", "Firebase misconfiguration (public DB)",
+         "Deep-link parameter injection", "iOS Keychain extraction",
+         "Frida hook to dump decrypted payload", "APK repack and re-sign"]
+    ),
     official=[
         ("OWASP Mobile Application Security", "https://mas.owasp.org",
          "The OWASP MAS project — MASVS (testing standard) and MASTG (testing guide) with hundreds of test cases.", ["Official", "Standard", "OWASP"]),
@@ -745,6 +925,18 @@ HARDWARE = _page(
     icon="🔧",
     title="Hardware / IoT",
     lead="Hardware and IoT challenges involve extracting, analysing, and exploiting firmware from embedded devices — reading debug interfaces like UART and JTAG, reversing proprietary protocols, and manipulating signals with logic analysers.",
+    overview=(
+        """<p>Hardware and IoT security deals with the security of physical devices — routers, smart home gadgets, industrial controllers, medical devices, and custom embedded systems. Attackers target these devices through debug ports left enabled, unencrypted firmware update mechanisms, insecure bootloaders, and hard-coded credentials.</p>
+<p>It blends electronics knowledge (serial protocols, PCB reading, soldering) with software RE (firmware extraction, MIPS/ARM binary analysis) and network security (exposing management APIs).</p>""",
+        """<p>In a CTF, hardware challenges usually provide a firmware image (.bin file), a logic analyser capture (.sal, .csv), or a description of a physical setup. Your goal is to extract a flag by analysing the firmware filesystem, reversing a binary, decoding a captured serial conversation, or exploiting a hardcoded credential.</p>
+<p>Common workflow: run <code>binwalk -e firmware.bin</code> → explore the extracted filesystem → search for credentials and keys → reverse interesting binaries with Ghidra → or decode protocol capture with Sigrok.</p>""",
+        ["Binwalk extract filesystem from .bin", "Hard-coded root password in /etc/shadow",
+         "UART console gives root shell", "Decrypt firmware update (AES key in binary)",
+         "Logic analyser capture decode (UART/I²C/SPI)", "JTAG debug port code execution",
+         "Web interface command injection (router)", "Private key in firmware filesystem",
+         "Insecure bootloader bypass", "MQTT broker unauthenticated subscribe",
+         "OTA update replay attack", "Exposed JTAG test pads on PCB"]
+    ),
     official=[
         ("OWASP IoT Project", "https://owasp.org/www-project-internet-of-things/",
          "OWASP's attack surface areas, testing guide, and security considerations for IoT devices.", ["Official", "OWASP"]),
