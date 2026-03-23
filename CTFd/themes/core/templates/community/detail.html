@@ -1,0 +1,527 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+[x-cloak] { display: none !important; }
+
+:root, [data-bs-theme="light"] {
+  --ctf-bg-page:       #f3f4f6;
+  --ctf-bg-surface:    #ffffff;
+  --ctf-bg-elevated:   #f8f9fa;
+  --ctf-bg-input:      #ffffff;
+  --ctf-text-primary:  #111827;
+  --ctf-text-muted:    #6b7280;
+  --ctf-border:        #d1d5db;
+  --ctf-accent:        #6366f1;
+  --ctf-accent-rgb:    99,102,241;
+  --ctf-radius:        .55rem;
+  --ctf-radius-lg:     .85rem;
+  --ctf-green:         #22c55e;
+  --ctf-red:           #ef4444;
+}
+[data-bs-theme="dark"] {
+  --ctf-bg-page:       #0d1117;
+  --ctf-bg-surface:    #161b22;
+  --ctf-bg-elevated:   #1c2333;
+  --ctf-bg-input:      #0d1117;
+  --ctf-text-primary:  #e6edf3;
+  --ctf-text-muted:    #8b949e;
+  --ctf-border:        #30363d;
+  --ctf-accent:        #818cf8;
+  --ctf-accent-rgb:    129,140,248;
+  --ctf-green:         #4ade80;
+  --ctf-red:           #f87171;
+}
+
+body { background: var(--ctf-bg-page); }
+
+/* ── Layout ──────────────────────────────────────────── */
+.cd-wrap { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 3rem; }
+.cd-back {
+  color: var(--ctf-text-muted); text-decoration: none; font-size: .85rem;
+  display: inline-flex; align-items: center; gap: .3rem;
+  margin-bottom: 1.2rem; transition: color .15s;
+}
+.cd-back:hover { color: var(--ctf-accent); }
+
+/* ── Loading ─────────────────────────────────────────── */
+.cd-loading { text-align: center; padding: 4rem; color: var(--ctf-text-muted); }
+@keyframes cd-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.cd-loading i { animation: cd-pulse 1.2s infinite; font-size: 2rem; }
+
+/* ── Header ──────────────────────────────────────────── */
+.cd-header-panel {
+  background: var(--ctf-bg-surface); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius-lg); padding: 1.5rem; margin-bottom: 1.2rem;
+}
+.cd-badges { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; margin-bottom: .6rem; }
+.cd-badge {
+  font-size: .65rem; font-weight: 700; padding: .18rem .55rem;
+  border-radius: 99px; text-transform: uppercase; letter-spacing: .5px;
+}
+.cd-badge-cat { background: rgba(var(--ctf-accent-rgb),.1); color: var(--ctf-accent); }
+.cd-badge-easy { background: rgba(34,197,94,.12); color: #16a34a; }
+.cd-badge-medium { background: rgba(245,158,11,.12); color: #d97706; }
+.cd-badge-hard { background: rgba(239,68,68,.12); color: #dc2626; }
+.cd-badge-insane { background: rgba(168,85,247,.12); color: #9333ea; }
+.cd-badge-pts {
+  font-size: .75rem; font-weight: 700; color: var(--ctf-accent);
+  margin-left: auto;
+}
+.cd-title { font-size: 1.6rem; font-weight: 800; color: var(--ctf-text-primary); line-height: 1.2; }
+.cd-meta {
+  font-size: .82rem; color: var(--ctf-text-muted); margin-top: .4rem;
+  display: flex; align-items: center; gap: .4rem;
+}
+.cd-solved-banner {
+  margin-top: .8rem; padding: .6rem 1rem; border-radius: var(--ctf-radius);
+  background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2);
+  color: #16a34a; font-size: .85rem; font-weight: 600;
+  display: flex; align-items: center; gap: .4rem;
+}
+
+/* ── Description ─────────────────────────────────────── */
+.cd-desc-panel {
+  background: var(--ctf-bg-surface); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius-lg); padding: 1.5rem; margin-bottom: 1.2rem;
+}
+.cd-desc-content {
+  font-size: .88rem; line-height: 1.7; color: var(--ctf-text-primary);
+}
+.cd-desc-content h1, .cd-desc-content h2, .cd-desc-content h3 { margin-top: 1rem; margin-bottom: .4rem; }
+.cd-desc-content h1 { font-size: 1.3rem; font-weight: 700; }
+.cd-desc-content h2 { font-size: 1.1rem; font-weight: 700; }
+.cd-desc-content h3 { font-size: .95rem; font-weight: 600; }
+.cd-desc-content pre {
+  background: var(--ctf-bg-elevated); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius); padding: .8rem; overflow-x: auto; font-size: .8rem;
+}
+.cd-desc-content code {
+  background: var(--ctf-bg-elevated); padding: .1rem .35rem; border-radius: 3px; font-size: .82rem;
+}
+.cd-desc-content pre code { background: none; padding: 0; }
+.cd-desc-content ul, .cd-desc-content ol { padding-left: 1.5rem; }
+.cd-desc-content blockquote {
+  border-left: 3px solid var(--ctf-accent); padding-left: .8rem;
+  color: var(--ctf-text-muted); margin: .8rem 0;
+}
+.cd-desc-content a { color: var(--ctf-accent); }
+.cd-desc-content img { max-width: 100%; border-radius: var(--ctf-radius); }
+
+/* ── Attachment ──────────────────────────────────────── */
+.cd-attach {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .5rem .9rem; border-radius: var(--ctf-radius);
+  background: rgba(var(--ctf-accent-rgb),.06); border: 1px solid rgba(var(--ctf-accent-rgb),.15);
+  color: var(--ctf-accent); font-size: .82rem; text-decoration: none;
+  margin-top: .8rem; transition: border-color .15s;
+}
+.cd-attach:hover { border-color: var(--ctf-accent); color: var(--ctf-accent); text-decoration: none; }
+
+/* Tags */
+.cd-tags { display: flex; gap: .35rem; flex-wrap: wrap; margin-top: .8rem; }
+.cd-tag {
+  font-size: .65rem; padding: .12rem .45rem; border-radius: 99px;
+  background: rgba(var(--ctf-accent-rgb),.08); color: var(--ctf-accent);
+}
+
+/* ── Flag Submission ─────────────────────────────────── */
+.cd-submit-panel {
+  background: var(--ctf-bg-surface); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius-lg); padding: 1.5rem; margin-bottom: 1.2rem;
+}
+.cd-submit-title {
+  font-size: .88rem; font-weight: 700; color: var(--ctf-text-primary);
+  margin-bottom: .8rem; display: flex; align-items: center; gap: .4rem;
+}
+.cd-submit-row { display: flex; gap: .5rem; }
+.cd-submit-input {
+  flex: 1; padding: .6rem .9rem; border-radius: var(--ctf-radius);
+  border: 1px solid var(--ctf-border); background: var(--ctf-bg-input);
+  color: var(--ctf-text-primary); font-size: .88rem; font-family: 'SF Mono', Monaco, monospace;
+  outline: none; transition: border-color .15s;
+}
+.cd-submit-input:focus { border-color: var(--ctf-accent); }
+.cd-submit-btn {
+  padding: .6rem 1.4rem; border-radius: var(--ctf-radius);
+  background: var(--ctf-accent); color: #fff; font-weight: 600; font-size: .85rem;
+  border: none; cursor: pointer; transition: opacity .15s;
+  display: flex; align-items: center; gap: .35rem;
+}
+.cd-submit-btn:hover { opacity: .88; }
+.cd-submit-btn:disabled { opacity: .5; pointer-events: none; }
+
+/* Feedback */
+.cd-feedback {
+  margin-top: .6rem; padding: .55rem .9rem; border-radius: var(--ctf-radius);
+  font-size: .85rem; font-weight: 600;
+}
+.cd-feedback--correct {
+  background: rgba(34,197,94,.1); border: 1px solid rgba(34,197,94,.2); color: var(--ctf-green);
+}
+.cd-feedback--wrong {
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2); color: var(--ctf-red);
+}
+.cd-feedback--error {
+  background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.2); color: #d97706;
+}
+
+/* Shake animation for wrong answer */
+@keyframes cd-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}
+.cd-shake { animation: cd-shake .4s ease-in-out; }
+
+/* ── Stats + Rating ──────────────────────────────────── */
+.cd-stats-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
+  margin-bottom: 1.2rem;
+}
+@media (max-width: 640px) { .cd-stats-grid { grid-template-columns: 1fr; } }
+
+.cd-stats-panel, .cd-rating-panel {
+  background: var(--ctf-bg-surface); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius-lg); padding: 1.25rem;
+}
+.cd-panel-label {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--ctf-text-muted); margin-bottom: .8rem;
+}
+.cd-stat-rows { display: flex; flex-direction: column; gap: .5rem; }
+.cd-stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: .85rem;
+}
+.cd-stat-row-label { color: var(--ctf-text-muted); display: flex; align-items: center; gap: .35rem; }
+.cd-stat-row-value { font-weight: 700; color: var(--ctf-text-primary); }
+
+/* Rating bar */
+.cd-rating-bar-outer {
+  width: 100%; height: 8px; background: rgba(239,68,68,.15);
+  border-radius: 99px; overflow: hidden; margin: .6rem 0;
+}
+.cd-rating-bar-inner {
+  height: 100%; background: var(--ctf-green); border-radius: 99px;
+  transition: width .4s ease;
+}
+.cd-rating-labels {
+  display: flex; justify-content: space-between; font-size: .78rem;
+  color: var(--ctf-text-muted);
+}
+
+/* Vote buttons */
+.cd-vote-row { display: flex; gap: .6rem; margin-top: .8rem; }
+.cd-vote-btn {
+  flex: 1; padding: .5rem; border-radius: var(--ctf-radius);
+  border: 1px solid var(--ctf-border); background: var(--ctf-bg-elevated);
+  cursor: pointer; font-size: .88rem; display: flex; align-items: center;
+  justify-content: center; gap: .35rem; transition: all .15s;
+  color: var(--ctf-text-muted);
+}
+.cd-vote-btn:hover { border-color: var(--ctf-accent); }
+.cd-vote-btn.active-up { background: rgba(34,197,94,.12); border-color: rgba(34,197,94,.4); color: var(--ctf-green); }
+.cd-vote-btn.active-down { background: rgba(239,68,68,.12); border-color: rgba(239,68,68,.4); color: var(--ctf-red); }
+
+/* ── Solvers ─────────────────────────────────────────── */
+.cd-solvers-panel {
+  background: var(--ctf-bg-surface); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius-lg); padding: 1.25rem;
+}
+.cd-solver-row {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .45rem 0; font-size: .85rem;
+}
+.cd-solver-row + .cd-solver-row { border-top: 1px solid var(--ctf-border); }
+.cd-solver-name { font-weight: 600; color: var(--ctf-text-primary); }
+.cd-solver-time { margin-left: auto; font-size: .75rem; color: var(--ctf-text-muted); }
+.cd-first-blood-icon { color: #ef4444; font-size: .72rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="CommunityDetail()" x-init="init()" x-cloak>
+  <div class="cd-wrap">
+
+    <a href="/community" class="cd-back"><i class="fas fa-arrow-left"></i> Community Challenges</a>
+
+    <!-- Loading -->
+    <div x-show="loading" class="cd-loading">
+      <i class="fas fa-circle-notch fa-spin"></i>
+      <p style="margin-top:.8rem;font-size:.85rem;">Loading challenge...</p>
+    </div>
+
+    <template x-if="!loading && ch">
+
+      <div>
+        <!-- Header panel -->
+        <div class="cd-header-panel">
+          <div class="cd-badges">
+            <span class="cd-badge cd-badge-cat" x-text="ch.category.toUpperCase()"></span>
+            <span class="cd-badge" :class="'cd-badge-' + ch.community_difficulty"
+                  x-text="ch.community_difficulty"></span>
+            <span x-show="ch.difficulty !== ch.community_difficulty"
+                  style="font-size:.65rem;color:var(--ctf-text-muted);">
+              (author: <span x-text="ch.difficulty"></span>)
+            </span>
+            <span class="cd-badge-pts" x-text="ch.points + ' pts'"></span>
+          </div>
+          <div class="cd-title" x-text="ch.title"></div>
+          <div class="cd-meta">
+            <i class="fas fa-user" style="font-size:.7rem;"></i>
+            <span>by <strong x-text="ch.author"></strong></span>
+            <span>&middot;</span>
+            <span x-text="timeAgo(ch.created_at)"></span>
+          </div>
+
+          <!-- Solved banner -->
+          <div x-show="ch.user_solved" class="cd-solved-banner">
+            <i class="fas fa-check-circle"></i> You solved this challenge!
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="cd-desc-panel">
+          <div class="cd-desc-content" x-html="renderMd(ch.description)"></div>
+
+          <div x-show="ch.attachment_url" style="margin-top:1rem;">
+            <a :href="ch.attachment_url" class="cd-attach" target="_blank" rel="noopener">
+              <i class="fas fa-paperclip"></i> Attachment
+            </a>
+          </div>
+
+          <div x-show="ch.tags && ch.tags.length" class="cd-tags">
+            <template x-for="tag in ch.tags" :key="tag">
+              <span class="cd-tag" x-text="tag"></span>
+            </template>
+          </div>
+        </div>
+
+        <!-- Flag Submission -->
+        <div x-show="!ch.user_solved && !ch.is_author" class="cd-submit-panel">
+          <div class="cd-submit-title">
+            <i class="fas fa-flag"></i> Submit Flag
+          </div>
+          <div class="cd-submit-row" :class="{'cd-shake': shaking}">
+            <input class="cd-submit-input" type="text" x-model="flagInput"
+                   placeholder="flag{...}" @keydown.enter="submitFlag()"
+                   :disabled="submitting">
+            <button class="cd-submit-btn" @click="submitFlag()" :disabled="submitting || !flagInput.trim()">
+              <i class="fas fa-paper-plane"></i> Submit
+            </button>
+          </div>
+          <div x-show="feedback" class="cd-feedback" :class="feedbackClass" x-text="feedback"></div>
+        </div>
+
+        <!-- Author notice -->
+        <div x-show="ch.is_author" class="cd-submit-panel" style="text-align:center;">
+          <div style="color:var(--ctf-text-muted);font-size:.85rem;">
+            <i class="fas fa-info-circle"></i> You created this challenge — you cannot submit flags for it.
+          </div>
+        </div>
+
+        <!-- Stats + Rating side by side -->
+        <div class="cd-stats-grid">
+
+          <!-- Stats -->
+          <div class="cd-stats-panel">
+            <div class="cd-panel-label"><i class="fas fa-chart-bar"></i> Statistics</div>
+            <div class="cd-stat-rows">
+              <div class="cd-stat-row">
+                <span class="cd-stat-row-label"><i class="fas fa-flag"></i> Solves</span>
+                <span class="cd-stat-row-value" x-text="ch.solve_count"></span>
+              </div>
+              <div class="cd-stat-row">
+                <span class="cd-stat-row-label"><i class="fas fa-crosshairs"></i> Attempts</span>
+                <span class="cd-stat-row-value" x-text="ch.attempt_count"></span>
+              </div>
+              <div class="cd-stat-row">
+                <span class="cd-stat-row-label"><i class="fas fa-percentage"></i> Success Rate</span>
+                <span class="cd-stat-row-value" x-text="ch.success_rate + '%'"></span>
+              </div>
+              <div x-show="ch.first_blood" class="cd-stat-row">
+                <span class="cd-stat-row-label"><span class="cd-first-blood-icon">🩸</span> First Blood</span>
+                <span class="cd-stat-row-value" x-text="ch.first_blood ? ch.first_blood.user : ''"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rating -->
+          <div class="cd-rating-panel">
+            <div class="cd-panel-label"><i class="fas fa-star"></i> Community Rating</div>
+
+            <div style="text-align:center;font-size:1.5rem;font-weight:800;color:var(--ctf-text-primary);">
+              <span x-text="ratingPercent + '%'"></span>
+              <span style="font-size:.78rem;font-weight:400;color:var(--ctf-text-muted);">positive</span>
+            </div>
+
+            <div class="cd-rating-bar-outer">
+              <div class="cd-rating-bar-inner" :style="'width:' + ratingPercent + '%'"></div>
+            </div>
+            <div class="cd-rating-labels">
+              <span>👍 <span x-text="ch.thumbs_up"></span></span>
+              <span x-text="(ch.thumbs_up + ch.thumbs_down) + ' total votes'"></span>
+              <span>👎 <span x-text="ch.thumbs_down"></span></span>
+            </div>
+
+            <!-- Frustration warning -->
+            <div x-show="(ch.thumbs_up + ch.thumbs_down) >= 5 && ratingPercent < 40"
+                 style="margin-top:.6rem;padding:.4rem .7rem;border-radius:var(--ctf-radius);
+                        background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);
+                        color:#d97706;font-size:.75rem;text-align:center;">
+              ⚠️ Community flagged as frustrating design
+            </div>
+
+            <!-- Vote buttons -->
+            <div class="cd-vote-row">
+              <button class="cd-vote-btn"
+                      :class="{'active-up': ch.user_rating === 1}"
+                      @click="rate(1)">
+                👍 <span style="font-size:.78rem;">Like</span>
+              </button>
+              <button class="cd-vote-btn"
+                      :class="{'active-down': ch.user_rating === -1}"
+                      @click="rate(-1)">
+                👎 <span style="font-size:.78rem;">Dislike</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Solvers -->
+        <div x-show="ch.recent_solves && ch.recent_solves.length" class="cd-solvers-panel">
+          <div class="cd-panel-label"><i class="fas fa-users"></i> Recent Solvers</div>
+          <template x-for="s in ch.recent_solves" :key="s.user_id">
+            <div class="cd-solver-row">
+              <span x-show="s.is_first_blood" class="cd-first-blood-icon">🩸</span>
+              <span class="cd-solver-name" x-text="s.user"></span>
+              <span class="cd-solver-time" x-text="timeAgo(s.solved_at)"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+
+    </template>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/marked@14/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script>
+function CommunityDetail() {
+  return {
+    ch: null,
+    loading: true,
+    flagInput: '',
+    submitting: false,
+    feedback: '',
+    feedbackClass: '',
+    shaking: false,
+    challengeId: {{ challenge_id }},
+
+    get ratingPercent() {
+      if (!this.ch) return 0;
+      const total = this.ch.thumbs_up + this.ch.thumbs_down;
+      return total === 0 ? 0 : Math.round(this.ch.thumbs_up / total * 100);
+    },
+
+    async init() {
+      try {
+        const resp = await fetch('/community/api/challenges/' + this.challengeId);
+        const json = await resp.json();
+        if (json.success) this.ch = json.data;
+      } catch (e) {
+        console.error('Failed to load challenge', e);
+      }
+      this.loading = false;
+    },
+
+    renderMd(text) {
+      if (!text) return '';
+      try { return DOMPurify.sanitize(marked.parse(text)); }
+      catch (e) { return DOMPurify.sanitize(text); }
+    },
+
+    timeAgo(iso) {
+      if (!iso) return '';
+      const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+      return Math.floor(diff / 2592000) + 'mo ago';
+    },
+
+    async submitFlag() {
+      if (!this.flagInput.trim() || this.submitting) return;
+      this.submitting = true;
+      this.feedback = '';
+      this.feedbackClass = '';
+
+      try {
+        const resp = await fetch('/community/api/challenges/' + this.challengeId + '/attempt', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'CSRF-Token': init.csrfNonce,
+          },
+          body: JSON.stringify({ flag: this.flagInput }),
+        });
+        const json = await resp.json();
+
+        if (json.success && json.data.correct) {
+          this.feedback = '🎉 Correct! +' + json.data.points_awarded + ' points'
+            + (json.data.is_first_blood ? ' — First Blood! 🩸' : '');
+          this.feedbackClass = 'cd-feedback--correct';
+          this.ch.user_solved = true;
+          this.ch.solve_count = json.data.solve_count;
+          this.ch.attempt_count = json.data.attempt_count;
+          this.ch.success_rate = this.ch.attempt_count > 0
+            ? Math.round(this.ch.solve_count / this.ch.attempt_count * 100) : 0;
+        } else if (json.success && !json.data.correct) {
+          this.feedback = '❌ Incorrect flag. Try again!';
+          this.feedbackClass = 'cd-feedback--wrong';
+          this.ch.attempt_count = json.data.attempt_count;
+          this.shaking = true;
+          setTimeout(() => { this.shaking = false; }, 500);
+        } else {
+          this.feedback = (json.errors || ['Error'])[0];
+          this.feedbackClass = 'cd-feedback--error';
+        }
+      } catch (e) {
+        this.feedback = 'Network error';
+        this.feedbackClass = 'cd-feedback--error';
+      }
+      this.submitting = false;
+    },
+
+    async rate(value) {
+      try {
+        const resp = await fetch('/community/api/challenges/' + this.challengeId + '/rate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'CSRF-Token': init.csrfNonce,
+          },
+          body: JSON.stringify({ value }),
+        });
+        const json = await resp.json();
+        if (json.success) {
+          this.ch.thumbs_up = json.data.thumbs_up;
+          this.ch.thumbs_down = json.data.thumbs_down;
+          this.ch.user_rating = json.data.user_rating;
+        }
+      } catch (e) {
+        console.error('Rate failed', e);
+      }
+    },
+  };
+}
+</script>
+{% endblock %}

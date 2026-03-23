@@ -323,6 +323,7 @@ def create_app(config="CTFd.config.Config"):
         from CTFd.api import api
         from CTFd.auth import auth
         from CTFd.challenges import challenges
+        from CTFd.community import community
         from CTFd.competitions import competitions
         from CTFd.errors import render_error
         from CTFd.events import events
@@ -336,6 +337,7 @@ def create_app(config="CTFd.config.Config"):
         app.register_blueprint(teams)
         app.register_blueprint(users)
         app.register_blueprint(challenges)
+        app.register_blueprint(community)
         app.register_blueprint(competitions)
         app.register_blueprint(scoreboard)
         app.register_blueprint(auth)
@@ -344,6 +346,9 @@ def create_app(config="CTFd.config.Config"):
         app.register_blueprint(social)
 
         app.register_blueprint(admin)
+
+        from CTFd.models.community import init_community_tables
+        init_community_tables(app)
 
         for code in {403, 404, 500, 502}:
             app.register_error_handler(code, render_error)

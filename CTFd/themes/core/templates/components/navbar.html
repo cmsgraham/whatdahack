@@ -364,8 +364,13 @@
           </a>
         </li>
 
-        <li class="nav-item">
-          <a class="nav-link {% if request.blueprint == 'competitions' %}active{% endif %}"
+        <li class="nav-item">          <a class="nav-link {% if request.blueprint == 'community' %}active{% endif %}"
+             href="/community">
+            <i class="fas fa-puzzle-piece"></i> Community
+          </a>
+        </li>
+
+        <li class="nav-item">          <a class="nav-link {% if request.blueprint == 'competitions' %}active{% endif %}"
              href="{{ url_for('competitions.listing') }}">
             <i class="fas fa-layer-group"></i>{% trans %}Competitions{% endtrans %}
           </a>
