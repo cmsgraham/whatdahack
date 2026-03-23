@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+[x-cloak] { display: none !important; }
+
+:root, [data-bs-theme="light"] {
+  --sf-bg: #f3f4f6; --sf-surface: #ffffff; --sf-elevated: #f8f9fa;
+  --sf-input: #ffffff; --sf-text: #111827; --sf-muted: #6b7280;
+  --sf-border: #d1d5db; --sf-accent: #6366f1; --sf-accent-rgb: 99,102,241;
+  --sf-green: #22c55e; --sf-red: #ef4444;
+  --sf-radius: .55rem; --sf-radius-lg: .85rem;
+}
+[data-bs-theme="dark"] {
+  --sf-bg: #0d1117; --sf-surface: #161b22; --sf-elevated: #1c2333;
+  --sf-input: #0d1117; --sf-text: #e6edf3; --sf-muted: #8b949e;
+  --sf-border: #30363d; --sf-accent: #818cf8; --sf-accent-rgb: 129,140,248;
+  --sf-green: #4ade80; --sf-red: #f87171;
+}
+
+body { background: var(--sf-bg); }
+.sf-layout { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+/* ── Back link ─────────────────────────────────────── */
+.sf-back {
+  display: inline-flex; align-items: center; gap: .4rem;
+  color: var(--sf-muted); font-size: .82rem; text-decoration: none;
+  margin-bottom: 1rem; transition: color .12s;
+}
+.sf-back:hover { color: var(--sf-accent); }
+
+/* ── Post card ─────────────────────────────────────── */
+.sf-post {
+  background: var(--sf-surface); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg); padding: 1.3rem;
+  margin-bottom: 1rem;
+}
+.sf-post-header { display: flex; align-items: center; gap: .7rem; margin-bottom: .8rem; }
+.sf-avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: rgba(var(--sf-accent-rgb),.1); border: 1px solid rgba(var(--sf-accent-rgb),.2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden; color: var(--sf-accent); font-size: .8rem;
+}
+.sf-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.sf-avatar-sm { width: 32px; height: 32px; font-size: .7rem; }
+.sf-avatar-xs { width: 26px; height: 26px; font-size: .6rem; }
+.sf-post-author {
+  font-size: .92rem; font-weight: 700; color: var(--sf-text);
+  text-decoration: none;
+}
+.sf-post-author:hover { color: var(--sf-accent); }
+.sf-post-time { font-size: .72rem; color: var(--sf-muted); }
+.sf-post-type-badge {
+  font-size: .6rem; font-weight: 700; padding: .12rem .45rem;
+  border-radius: 99px; text-transform: uppercase; letter-spacing: .8px;
+}
+.sf-type--text { background: rgba(var(--sf-accent-rgb),.1); color: var(--sf-accent); }
+.sf-type--solve { background: rgba(34,197,94,.12); color: #16a34a; }
+.sf-type--discussion { background: rgba(245,158,11,.12); color: #d97706; }
+.sf-type--question { background: rgba(168,85,247,.12); color: #9333ea; }
+
+.sf-post-content {
+  font-size: .9rem; line-height: 1.7; color: var(--sf-text); word-break: break-word;
+}
+.sf-post-content p { margin: 0 0 .5rem; }
+.sf-post-content pre {
+  background: var(--sf-elevated); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius); padding: .7rem; overflow-x: auto;
+  font-size: .78rem; margin: .5rem 0;
+}
+.sf-post-content code { background: var(--sf-elevated); padding: .08rem .3rem; border-radius: 3px; font-size: .82rem; }
+.sf-post-content pre code { background: none; padding: 0; }
+.sf-post-content a { color: var(--sf-accent); }
+.sf-post-content blockquote { border-left: 3px solid var(--sf-accent); padding-left: .7rem; color: var(--sf-muted); margin: .5rem 0; }
+.sf-post-content img { max-width: 100%; border-radius: var(--sf-radius); margin: .5rem 0; }
+
+.sf-challenge-link {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .3rem .65rem; border-radius: var(--sf-radius);
+  background: rgba(var(--sf-accent-rgb),.06); border: 1px solid rgba(var(--sf-accent-rgb),.15);
+  color: var(--sf-accent); font-size: .78rem; text-decoration: none;
+  margin-top: .5rem; transition: border-color .15s;
+}
+.sf-challenge-link:hover { border-color: var(--sf-accent); color: var(--sf-accent); text-decoration: none; }
+
+.sf-post-image { margin-top: .6rem; border-radius: var(--sf-radius); max-width: 100%; max-height: 400px; object-fit: cover; }
+.sf-post-tags { display: flex; gap: .25rem; flex-wrap: wrap; margin-top: .5rem; }
+.sf-post-tag { font-size: .6rem; padding: .1rem .4rem; border-radius: 99px; background: rgba(var(--sf-accent-rgb),.06); color: var(--sf-accent); }
+
+/* ── Post actions ──────────────────────────────────── */
+.sf-actions {
+  display: flex; gap: .1rem; margin-top: .8rem; padding-top: .7rem;
+  border-top: 1px solid var(--sf-border);
+}
+.sf-action-btn {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: .35rem;
+  padding: .45rem; border-radius: var(--sf-radius); background: transparent;
+  border: none; color: var(--sf-muted); font-size: .82rem; cursor: pointer;
+  transition: all .12s;
+}
+.sf-action-btn:hover { background: var(--sf-elevated); color: var(--sf-text); }
+.sf-action-btn.liked { color: var(--sf-red); }
+
+/* ── Comment section ───────────────────────────────── */
+.sf-comments-section {
+  background: var(--sf-surface); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius-lg); padding: 1.1rem;
+}
+.sf-comments-title {
+  font-size: .92rem; font-weight: 700; color: var(--sf-text);
+  margin-bottom: 1rem;
+}
+
+/* Composer */
+.sf-comment-composer {
+  display: flex; gap: .5rem; align-items: flex-start; margin-bottom: 1.2rem;
+}
+.sf-comment-input {
+  flex: 1; padding: .5rem .7rem; border-radius: var(--sf-radius);
+  border: 1px solid var(--sf-border); background: var(--sf-input);
+  color: var(--sf-text); font-size: .82rem; resize: none;
+  font-family: inherit; min-height: 42px; outline: none;
+}
+.sf-comment-input:focus { border-color: var(--sf-accent); }
+.sf-comment-submit {
+  padding: .5rem .8rem; border-radius: var(--sf-radius);
+  background: var(--sf-accent); color: #fff; border: none;
+  cursor: pointer; font-size: .78rem; font-weight: 600;
+  align-self: flex-end; white-space: nowrap;
+}
+.sf-comment-submit:hover { opacity: .88; }
+.sf-comment-submit:disabled { opacity: .4; }
+
+/* Comment */
+.sf-comment {
+  position: relative; padding: .6rem 0; transition: background .12s;
+}
+.sf-comment + .sf-comment { border-top: 1px solid var(--sf-border); }
+.sf-comment-header { display: flex; align-items: center; gap: .5rem; margin-bottom: .3rem; }
+.sf-comment-author {
+  font-size: .8rem; font-weight: 700; color: var(--sf-text);
+  text-decoration: none;
+}
+.sf-comment-author:hover { color: var(--sf-accent); }
+.sf-comment-time { font-size: .65rem; color: var(--sf-muted); }
+.sf-comment-body {
+  font-size: .84rem; line-height: 1.55; color: var(--sf-text);
+  word-break: break-word;
+}
+.sf-comment-body p { margin: 0 0 .3rem; }
+.sf-comment-body code { background: var(--sf-elevated); padding: .08rem .3rem; border-radius: 3px; font-size: .78rem; }
+.sf-comment-body pre {
+  background: var(--sf-elevated); border: 1px solid var(--sf-border);
+  border-radius: var(--sf-radius); padding: .5rem; overflow-x: auto;
+  font-size: .75rem; margin: .3rem 0;
+}
+.sf-comment-body pre code { background: none; padding: 0; }
+.sf-comment-body a { color: var(--sf-accent); }
+
+.sf-comment-actions {
+  display: flex; gap: .5rem; margin-top: .3rem; font-size: .72rem;
+}
+.sf-comment-act {
+  background: none; border: none; color: var(--sf-muted);
+  cursor: pointer; padding: .1rem .3rem; border-radius: 3px;
+  display: flex; align-items: center; gap: .2rem;
+  transition: color .12s;
+}
+.sf-comment-act:hover { color: var(--sf-text); }
+.sf-comment-act.liked { color: var(--sf-red); }
+
+/* Threaded replies (nested) */
+.sf-replies {
+  margin-left: 1.4rem; padding-left: 1rem;
+  border-left: 2px solid var(--sf-border);
+}
+.sf-reply-composer {
+  display: flex; gap: .4rem; align-items: center; margin-top: .5rem;
+}
+.sf-reply-input {
+  flex: 1; padding: .35rem .6rem; border-radius: var(--sf-radius);
+  border: 1px solid var(--sf-border); background: var(--sf-input);
+  color: var(--sf-text); font-size: .78rem; outline: none;
+}
+.sf-reply-input:focus { border-color: var(--sf-accent); }
+.sf-reply-btn {
+  padding: .35rem .6rem; border-radius: var(--sf-radius);
+  background: var(--sf-accent); color: #fff; border: none;
+  font-size: .72rem; cursor: pointer; font-weight: 600;
+}
+.sf-reply-btn:hover { opacity: .88; }
+
+/* ── Loading/Empty ─────────────────────────────────── */
+.sf-loading { text-align: center; padding: 2rem; color: var(--sf-muted); }
+@keyframes sf-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.sf-loading i { animation: sf-pulse 1.2s infinite; font-size: 1.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="PostDetail()" x-init="init()" x-cloak>
+  <div class="sf-layout">
+
+    <a href="/feed" class="sf-back"><i class="fas fa-arrow-left"></i> Back to Feed</a>
+
+    <!-- Loading -->
+    <div x-show="loading" class="sf-loading">
+      <i class="fas fa-circle-notch fa-spin"></i>
+    </div>
+
+    <template x-if="post">
+      <div>
+        <!-- Post -->
+        <div class="sf-post">
+          <div class="sf-post-header">
+            <a :href="'/feed/user/' + post.author.id" class="sf-avatar" style="text-decoration:none;">
+              <template x-if="post.author && post.author.avatar">
+                <img :src="post.author.avatar" :alt="post.author.name">
+              </template>
+              <template x-if="!post.author || !post.author.avatar">
+                <i class="fas fa-user"></i>
+              </template>
+            </a>
+            <div style="flex:1;min-width:0;">
+              <a :href="'/feed/user/' + post.author.id" class="sf-post-author" x-text="post.author.name"></a>
+              <div class="sf-post-time" x-text="timeAgo(post.created_at)"></div>
+            </div>
+            <span class="sf-post-type-badge" :class="'sf-type--' + post.post_type" x-text="post.post_type"></span>
+          </div>
+
+          <div class="sf-post-content" x-html="renderMd(post.content)"></div>
+
+          <a x-show="post.challenge_id" :href="'/community/challenge/' + post.challenge_id" class="sf-challenge-link">
+            <i class="fas fa-puzzle-piece"></i>
+            <span x-text="post.challenge_name || 'Challenge #' + post.challenge_id"></span>
+          </a>
+
+          <img x-show="post.image_url" :src="post.image_url" class="sf-post-image" alt=""
+               onerror="this.style.display='none'">
+
+          <div x-show="post.tags && post.tags.length" class="sf-post-tags">
+            <template x-for="tag in post.tags" :key="tag">
+              <span class="sf-post-tag" x-text="'#' + tag"></span>
+            </template>
+          </div>
+
+          <div class="sf-actions">
+            <button class="sf-action-btn" :class="{'liked': post.liked}" @click="toggleLike()">
+              <i :class="post.liked ? 'fas fa-heart' : 'far fa-heart'"></i>
+              <span x-text="post.like_count || ''"></span>
+            </button>
+            <span class="sf-action-btn" style="cursor:default;">
+              <i class="far fa-comment"></i>
+              <span x-text="post.comment_count || ''"></span>
+            </span>
+            <button class="sf-action-btn" @click="sharePost()">
+              <i class="fas fa-share"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="sf-comments-section">
+          <div class="sf-comments-title">
+            <i class="fas fa-comments" style="opacity:.5;margin-right:.3rem;"></i>
+            Comments <span style="font-weight:400;color:var(--sf-muted);font-size:.82rem;" x-text="'(' + comments.length + ')'"></span>
+          </div>
+
+          <!-- New comment composer -->
+          <div x-show="userId" class="sf-comment-composer">
+            <div class="sf-avatar sf-avatar-sm">
+              <i class="fas fa-user"></i>
+            </div>
+            <textarea class="sf-comment-input" x-model="newComment" rows="1"
+                      placeholder="Write a comment..." @input="autoResize($event)"
+                      @keydown.meta.enter="submitComment()"
+                      @keydown.ctrl.enter="submitComment()"></textarea>
+            <button class="sf-comment-submit" @click="submitComment()" :disabled="!newComment.trim() || submitting">
+              Post
+            </button>
+          </div>
+
+          <!-- Empty -->
+          <div x-show="!commentsLoading && comments.length === 0"
+               style="text-align:center;color:var(--sf-muted);font-size:.82rem;padding:1.5rem;">
+            No comments yet. Be the first!
+          </div>
+
+          <!-- Comments list -->
+          <template x-for="c in comments" :key="c.id">
+            <div class="sf-comment">
+              <div class="sf-comment-header">
+                <a :href="'/feed/user/' + c.author.id" class="sf-avatar sf-avatar-sm" style="text-decoration:none;">
+                  <template x-if="c.author && c.author.avatar">
+                    <img :src="c.author.avatar" :alt="c.author.name">
+                  </template>
+                  <template x-if="!c.author || !c.author.avatar">
+                    <i class="fas fa-user"></i>
+                  </template>
+                </a>
+                <a :href="'/feed/user/' + c.author.id" class="sf-comment-author" x-text="c.author.name"></a>
+                <span class="sf-comment-time" x-text="timeAgo(c.created_at)"></span>
+              </div>
+              <div class="sf-comment-body" x-html="renderMd(c.content)"></div>
+              <div class="sf-comment-actions">
+                <button class="sf-comment-act" :class="{'liked': c.liked}" @click="toggleCommentLike(c)">
+                  <i :class="c.liked ? 'fas fa-heart' : 'far fa-heart'"></i>
+                  <span x-text="c.like_count || ''"></span>
+                </button>
+                <button class="sf-comment-act" @click="c._replying = !c._replying">
+                  <i class="fas fa-reply"></i> Reply
+                </button>
+                <button x-show="c.is_author" class="sf-comment-act" style="color:var(--sf-red);"
+                        @click="deleteComment(c)">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+
+              <!-- Reply composer -->
+              <div x-show="c._replying" class="sf-reply-composer" x-transition>
+                <input class="sf-reply-input" :x-ref="'reply_' + c.id"
+                       x-model="c._replyText" :placeholder="'Reply to ' + c.author.name + '...'"
+                       @keydown.enter="submitReply(c)">
+                <button class="sf-reply-btn" @click="submitReply(c)" :disabled="!c._replyText || !c._replyText.trim()">Reply</button>
+              </div>
+
+              <!-- Threaded replies -->
+              <div x-show="c.replies && c.replies.length" class="sf-replies">
+                <template x-for="r in c.replies" :key="r.id">
+                  <div class="sf-comment" style="border-top:none;padding:.4rem 0;">
+                    <div class="sf-comment-header">
+                      <a :href="'/feed/user/' + r.author.id" class="sf-avatar sf-avatar-xs" style="text-decoration:none;">
+                        <template x-if="r.author && r.author.avatar">
+                          <img :src="r.author.avatar" :alt="r.author.name">
+                        </template>
+                        <template x-if="!r.author || !r.author.avatar">
+                          <i class="fas fa-user"></i>
+                        </template>
+                      </a>
+                      <a :href="'/feed/user/' + r.author.id" class="sf-comment-author" style="font-size:.75rem;" x-text="r.author.name"></a>
+                      <span class="sf-comment-time" x-text="timeAgo(r.created_at)"></span>
+                    </div>
+                    <div class="sf-comment-body" style="font-size:.8rem;" x-html="renderMd(r.content)"></div>
+                    <div class="sf-comment-actions">
+                      <button class="sf-comment-act" :class="{'liked': r.liked}" @click="toggleCommentLike(r)">
+                        <i :class="r.liked ? 'fas fa-heart' : 'far fa-heart'"></i>
+                        <span x-text="r.like_count || ''"></span>
+                      </button>
+                      <button x-show="r.is_author" class="sf-comment-act" style="color:var(--sf-red);"
+                              @click="deleteComment(r)">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+
+      </div>
+    </template>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/marked@14/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script>
+function PostDetail() {
+  const postId = {{ post_id }};
+  return {
+    postId,
+    post: null,
+    comments: [],
+    loading: true,
+    commentsLoading: true,
+    newComment: '',
+    submitting: false,
+    userId: init.userId || null,
+
+    async init() {
+      await Promise.all([this.fetchPost(), this.fetchComments()]);
+      this.loading = false;
+    },
+
+    async fetchPost() {
+      try {
+        const resp = await fetch('/feed/api/posts/' + this.postId);
+        const json = await resp.json();
+        if (json.success) this.post = json.data;
+      } catch(e) { console.error(e); }
+    },
+
+    async fetchComments() {
+      this.commentsLoading = true;
+      try {
+        const resp = await fetch('/feed/api/posts/' + this.postId + '/comments');
+        const json = await resp.json();
+        if (json.success) {
+          this.comments = json.data.map(c => ({ ...c, _replying: false, _replyText: '' }));
+        }
+      } catch(e) { console.error(e); }
+      this.commentsLoading = false;
+    },
+
+    async submitComment() {
+      if (!this.newComment.trim() || this.submitting) return;
+      this.submitting = true;
+      try {
+        const resp = await fetch('/feed/api/posts/' + this.postId + '/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
+          body: JSON.stringify({ content: this.newComment }),
+        });
+        const json = await resp.json();
+        if (json.success) {
+          this.newComment = '';
+          await this.fetchComments();
+          if (this.post) this.post.comment_count = (this.post.comment_count || 0) + 1;
+        }
+      } catch(e) { console.error(e); }
+      this.submitting = false;
+    },
+
+    async submitReply(comment) {
+      if (!comment._replyText || !comment._replyText.trim()) return;
+      try {
+        const resp = await fetch('/feed/api/posts/' + this.postId + '/comments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
+          body: JSON.stringify({ content: comment._replyText, parent_id: comment.id }),
+        });
+        const json = await resp.json();
+        if (json.success) {
+          comment._replyText = '';
+          comment._replying = false;
+          await this.fetchComments();
+          if (this.post) this.post.comment_count = (this.post.comment_count || 0) + 1;
+        }
+      } catch(e) { console.error(e); }
+    },
+
+    async toggleLike() {
+      if (!this.post) return;
+      try {
+        const resp = await fetch('/feed/api/posts/' + this.postId + '/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
+        });
+        const json = await resp.json();
+        if (json.success) {
+          this.post.liked = json.data.liked;
+          this.post.like_count = json.data.like_count;
+        }
+      } catch(e) {}
+    },
+
+    async toggleCommentLike(c) {
+      try {
+        const resp = await fetch('/feed/api/comments/' + c.id + '/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
+        });
+        const json = await resp.json();
+        if (json.success) {
+          c.liked = json.data.liked;
+          c.like_count = json.data.like_count;
+        }
+      } catch(e) {}
+    },
+
+    async deleteComment(c) {
+      if (!confirm('Delete this comment?')) return;
+      try {
+        await fetch('/feed/api/comments/' + c.id, {
+          method: 'DELETE',
+          headers: { 'CSRF-Token': init.csrfNonce },
+        });
+        await this.fetchComments();
+        if (this.post) this.post.comment_count = Math.max(0, (this.post.comment_count || 1) - 1);
+      } catch(e) {}
+    },
+
+    sharePost() {
+      const url = window.location.origin + '/feed/post/' + this.postId;
+      if (navigator.clipboard) { navigator.clipboard.writeText(url); alert('Link copied!'); }
+    },
+
+    renderMd(text) {
+      if (!text) return '';
+      try { return DOMPurify.sanitize(marked.parse(text)); }
+      catch(e) { return DOMPurify.sanitize(text); }
+    },
+
+    timeAgo(iso) {
+      if (!iso) return '';
+      const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+      if (diff < 60) return 'just now';
+      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+      if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+      return Math.floor(diff / 2592000) + 'mo ago';
+    },
+
+    autoResize(e) {
+      e.target.style.height = 'auto';
+      e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
+    },
+  };
+}
+</script>
+{% endblock %}
