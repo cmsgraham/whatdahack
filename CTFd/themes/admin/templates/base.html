@@ -25,6 +25,13 @@
 			'end': {{ Configs.end | tojson }}
 		}
 	</script>
+	<script>
+		(function(){
+			var stored=localStorage.getItem('theme');
+			var theme=stored||(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+			document.documentElement.setAttribute('data-bs-theme',theme);
+		})();
+	</script>
 	{% block stylesheets %} {% endblock %}
 	{% for stylesheet in get_registered_admin_stylesheets() %}
 		{% if stylesheet.startswith('http') %}
@@ -65,6 +72,51 @@
   --adm-shadow:        0 1px 3px rgba(0,0,0,.4);
   --adm-shadow-lg:     0 8px 32px rgba(0,0,0,.5);
 }
+/* ── Light mode tokens ─────────────────────────────────────────────── */
+[data-bs-theme="light"]{
+  --adm-bg-page:       #f6f8fa;
+  --adm-bg-surface:    #ffffff;
+  --adm-bg-elevated:   #f6f8fa;
+  --adm-bg-overlay:    #eaeef2;
+  --adm-border:        #d0d7de;
+  --adm-border-subtle: #e8ecf0;
+  --adm-text:          #24292f;
+  --adm-text-s2:       #57606a;
+  --adm-text-muted:    #768390;
+  --adm-text-dim:      #8c959f;
+  --adm-danger:        #cf222e;
+  --adm-warning:       #9a6700;
+  --adm-warn-bright:   #bf8700;
+  --adm-success:       #1a7f37;
+  --adm-info:          #0969da;
+  --adm-shadow:        0 1px 3px rgba(0,0,0,.12);
+  --adm-shadow-lg:     0 8px 32px rgba(0,0,0,.14);
+}
+[data-bs-theme="light"] .adm-nav{
+  background:rgba(255,255,255,.92)!important;
+  border-bottom:1px solid rgba(0,0,0,.09);
+}
+[data-bs-theme="light"] .adm-nav .navbar-brand{color:#24292f!important;}
+[data-bs-theme="light"] .adm-nav .adm-brand-top{color:#24292f!important;}
+[data-bs-theme="light"] .adm-nav .navbar-nav .nav-link{color:#57606a!important;}
+[data-bs-theme="light"] .adm-nav .navbar-nav .nav-link:hover{color:#24292f!important;background:rgba(0,0,0,.05)!important;}
+[data-bs-theme="light"] .adm-nav .navbar-nav .nav-item.active>.nav-link,
+[data-bs-theme="light"] .adm-nav .navbar-nav .nav-link.active{color:var(--adm-accent)!important;background:rgba(5,150,105,.1)!important;}
+[data-bs-theme="light"] .adm-nav .dropdown-menu{background:#ffffff!important;border:1px solid #d0d7de!important;}
+[data-bs-theme="light"] .adm-nav .dropdown-item{color:#24292f!important;}
+[data-bs-theme="light"] .adm-nav .dropdown-item:hover{background:rgba(0,0,0,.05)!important;}
+[data-bs-theme="light"] .adm-icon-btn{color:#57606a!important;}
+[data-bs-theme="light"] .adm-icon-btn:hover{color:#24292f!important;background:rgba(0,0,0,.06)!important;}
+[data-bs-theme="light"] .table thead th{background:#f6f8fa!important;color:#57606a!important;}
+[data-bs-theme="light"] .table td{color:#24292f!important;}
+[data-bs-theme="light"] .table-striped tbody tr:nth-of-type(odd){background:rgba(0,0,0,.018)!important;}
+[data-bs-theme="light"] tbody tr:hover{background:rgba(0,0,0,.04)!important;}
+[data-bs-theme="light"] .custom-select{
+  background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%2357606a' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")!important;
+}
+[data-bs-theme="light"] code{background:#eaeef2;color:#0969da;}
+[data-bs-theme="light"] .CodeMirror{background:#f6f8fa!important;color:#24292f!important;border:1px solid #d0d7de!important;}
+[data-bs-theme="light"] footer.footer{background:#ffffff!important;border-top:1px solid #d0d7de!important;}
 /* ── Base ──────────────────────────────────────────────────────────── */
 html,body{background:var(--adm-bg-page)!important;color:var(--adm-text)!important;}
 body{padding-top:56px!important;}
@@ -386,8 +438,9 @@ footer.footer a:hover{color:var(--adm-accent)!important;}
 					{% endif %}
 				</ul>
 				<div class="d-flex align-items-center">
-					<span class="adm-util-sep d-none d-md-inline-block"></span>
-					<a class="adm-icon-btn" href="{{ url_for('views.static_html', route='/') }}" title="View site" target="_blank">
+					<span class="adm-util-sep d-none d-md-inline-block"></span>				<button class="adm-icon-btn theme-switch" title="Toggle light/dark mode" style="background:none;border:none;cursor:pointer;">
+					<i class="fas fa-moon"></i><span class="d-md-none ml-2">Toggle theme</span>
+				</button>					<a class="adm-icon-btn" href="{{ url_for('views.static_html', route='/') }}" title="View site" target="_blank">
 						<i class="fas fa-external-link-alt"></i><span class="d-md-none ml-2">View site</span>
 					</a>
 					<a class="adm-icon-btn" href="https://docs.ctfd.io/" target="_blank" title="Documentation">
@@ -436,6 +489,36 @@ footer.footer a:hover{color:var(--adm-accent)!important;}
 	{% endblock %}
 
 	{% block scripts %} {% endblock %}
+
+	<script>
+	(function(){
+		function getTheme(){
+			var s=localStorage.getItem('theme');
+			if(s)return s;
+			return window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+		}
+		function applyTheme(t){
+			document.documentElement.setAttribute('data-bs-theme',t);
+			var icon=document.querySelector('.theme-switch i.fas');
+			if(icon){icon.className='fas fa-'+(t==='dark'?'moon':'sun');}
+		}
+		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){
+			if(!localStorage.getItem('theme'))applyTheme(getTheme());
+		});
+		document.addEventListener('DOMContentLoaded',function(){
+			applyTheme(getTheme());
+			document.querySelectorAll('.theme-switch').forEach(function(btn){
+				btn.addEventListener('click',function(e){
+					e.preventDefault();
+					var current=document.documentElement.getAttribute('data-bs-theme')||'dark';
+					var next=current==='dark'?'light':'dark';
+					localStorage.setItem('theme',next);
+					applyTheme(next);
+				});
+			});
+		});
+	})();
+	</script>
 
 	{% for script in get_registered_admin_scripts() %}
 		{% if script.startswith('http') %}
