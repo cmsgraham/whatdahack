@@ -208,33 +208,7 @@ body { background: var(--st-bg) !important; }
   margin-bottom: .5rem;
 }
 
-/* ── Tokens tab ───────────────────────────────────────────────────────────── */
-.st-token-table {
-  width: 100%; border-collapse: collapse; font-size: .82rem;
-}
-.st-token-table th {
-  font-size: .65rem; text-transform: uppercase; letter-spacing: 1px;
-  color: var(--st-muted); padding: .5rem .75rem;
-  border-bottom: 2px solid var(--st-border);
-}
-.st-token-table td {
-  padding: .65rem .75rem;
-  border-bottom: 1px solid var(--st-border-s);
-  color: var(--st-text);
-  vertical-align: middle;
-}
-.st-token-del { color: var(--st-muted); cursor: pointer; transition: color .15s; }
-.st-token-del:hover { color: #dc3545; }
 
-/* Avatar large upload preview in tokens area */
-.st-avatar-upload-wrap {
-  display: flex; flex-direction: column; align-items: center;
-  gap: .5rem; padding: 1.2rem; cursor: pointer;
-  border: 2px dashed var(--st-border);
-  border-radius: 10px; transition: border-color .2s;
-  margin-bottom: 1rem;
-}
-.st-avatar-upload-wrap:hover { border-color: var(--st-accent); }
 </style>
 {% endblock %}
 
@@ -243,7 +217,7 @@ body { background: var(--st-bg) !important; }
 <div class="st-header">
   <div class="container">
     <h1><span class="accent">[</span> {% trans %}Settings{% endtrans %} <span class="accent">]</span></h1>
-    <p>// profile, security &amp; API tokens</p>
+    <p>// profile &amp; security</p>
   </div>
 </div>
 
@@ -292,17 +266,13 @@ body { background: var(--st-bg) !important; }
 
           <!-- Nav pills -->
           <nav class="st-nav" role="tablist">
-            <button class="st-nav-btn active" data-bs-toggle="pill"
+            <button class="st-nav-btn active" data-bs-toggle="pill" role="tab" aria-selected="true"
                     data-bs-target="#st-profile" type="button">
               <i class="fas fa-id-card"></i> {% trans %}Profile{% endtrans %}
             </button>
-            <button class="st-nav-btn" data-bs-toggle="pill"
+            <button class="st-nav-btn" data-bs-toggle="pill" role="tab" aria-selected="false"
                     data-bs-target="#st-security" type="button">
               <i class="fas fa-lock"></i> {% trans %}Security{% endtrans %}
-            </button>
-            <button class="st-nav-btn" data-bs-toggle="pill"
-                    data-bs-target="#st-tokens" type="button">
-              <i class="fas fa-key"></i> {% trans %}API Tokens{% endtrans %}
             </button>
           </nav>
         </div>
@@ -324,7 +294,7 @@ body { background: var(--st-bg) !important; }
                    value="{{ User.avatar or '' }}">
 
             <!-- ─ PROFILE TAB ─ -->
-            <div class="tab-pane fade show active" id="st-profile">
+            <div class="tab-pane fade show active" id="st-profile" role="tabpanel">
 
               <!-- Identity card -->
               <div class="st-card">
@@ -396,7 +366,7 @@ body { background: var(--st-bg) !important; }
             </div>
 
             <!-- ─ SECURITY TAB ─ -->
-            <div class="tab-pane fade" id="st-security">
+            <div class="tab-pane fade" id="st-security" role="tabpanel">
               <div class="st-card">
                 <div class="st-card-head">
                   <div class="st-card-head-icon"><i class="fas fa-lock"></i></div>
@@ -430,118 +400,6 @@ body { background: var(--st-bg) !important; }
 
           </form>
           {% endwith %}
-
-          <!-- ═══ TOKENS TAB ═══ -->
-          <div class="tab-pane fade" id="st-tokens">
-
-            {% with form = Forms.self.TokensForm() %}
-            <form method="POST" x-data="TokensForm" @submit.prevent="generateToken()" class="mb-0">
-              <div class="modal fade" tabindex="-1" x-ref="tokenModal">
-                <div class="modal-dialog modal-lg">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">{% trans %}API Key Generated{% endtrans %}</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                      <p>{% trans %}Copy your API Key — it won't be shown again!{% endtrans %}</p>
-                      <div class="input-group mb-3">
-                        <input type="text" class="form-control" x-ref="token" x-model="token" readonly>
-                        <button class="btn btn-outline-secondary px-3" type="button" @click="copyToken()">
-                          <i class="fas fa-clipboard"></i>
-                        </button>
-                      </div>
-                    </div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Got it!</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="st-card mb-3">
-                <div class="st-card-head">
-                  <div class="st-card-head-icon"><i class="fas fa-plus"></i></div>
-                  <span class="st-card-head-title">{% trans %}Generate Token{% endtrans %}</span>
-                </div>
-                <div class="st-card-body">
-                  <div class="st-field-row">
-                    <label class="st-field-label">{{ form.expiration.label.text }}</label>
-                    {{ form.expiration(class="form-control") }}
-                  </div>
-                  <div class="st-field-row">
-                    <label class="st-field-label">{{ form.description.label.text }}</label>
-                    {{ form.description(class="form-control", rows="2") }}
-                  </div>
-                </div>
-                <div class="st-submit-bar">
-                  {{ form.submit(class="st-save-btn") }}
-                </div>
-              </div>
-            </form>
-            {% endwith %}
-
-            {% if tokens %}
-            <div class="st-card" x-data="Tokens">
-              <div class="st-card-head">
-                <div class="st-card-head-icon"><i class="fas fa-list"></i></div>
-                <span class="st-card-head-title">{% trans %}Active Tokens{% endtrans %}</span>
-              </div>
-
-              <!-- Delete confirm modal -->
-              <div class="modal fade" x-ref="confirmModal" tabindex="-1" role="dialog" aria-modal="true">
-                <div class="modal-dialog" role="document">
-                  <div class="modal-content">
-                    <div class="modal-header">
-                      <h5 class="modal-title">{% trans %}Delete Token{% endtrans %}</h5>
-                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body"><p>{% trans %}Are you sure you want to delete this token?{% endtrans %}</p></div>
-                    <div class="modal-footer">
-                      <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
-                      <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="deleteSelectedToken()">{% trans %}Delete{% endtrans %}</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style="overflow-x:auto;">
-                <table class="st-token-table">
-                  <thead>
-                    <tr>
-                      <th>{% trans %}Created{% endtrans %}</th>
-                      <th>{% trans %}Expiration{% endtrans %}</th>
-                      <th>{% trans %}Description{% endtrans %}</th>
-                      <th style="width:40px;">&nbsp;</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                  {% for token in tokens %}
-                    <tr x-ref="token-{{ token.id }}">
-                      <td><span data-time="{{ token.created | isoformat }}"></span></td>
-                      <td><span data-time="{{ token.expiration | isoformat }}"></span></td>
-                      <td>{{ token.description | default('—', true) }}</td>
-                      <td class="text-center">
-                        <span class="st-token-del" role="button" @click="deleteTokenModal({{ token.id }})">
-                          <i class="fas fa-trash-alt"></i>
-                        </span>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            {% else %}
-            <div class="st-card">
-              <div class="st-card-body" style="text-align:center;color:var(--st-muted);padding:2rem;">
-                <i class="fas fa-key" style="font-size:2rem;display:block;margin-bottom:.75rem;opacity:.4;"></i>
-                <p style="font-size:.8rem;margin:0;">{% trans %}No tokens yet. Generate one above.{% endtrans %}</p>
-              </div>
-            </div>
-            {% endif %}
-
-          </div><!-- /tokens tab -->
 
         </div><!-- /tab-content -->
       </div><!-- /col -->
