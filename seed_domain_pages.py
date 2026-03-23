@@ -155,6 +155,102 @@ SHARED_STYLE = """
   line-height:1.6;
 }
 .dp-tip strong{color:var(--dp-accent2);}
+/* ── Sample challenge card ──────────────────────────────────────────────── */
+.dp-chall{
+  background:var(--dp-surface);
+  border:1px solid var(--dp-border);
+  border-radius:12px;
+  overflow:hidden;
+  margin-bottom:2.75rem;
+}
+.dp-chall-header{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.6rem;
+  padding:1rem 1.4rem;
+  background:rgba(var(--dp-accent-rgb),.06);
+  border-bottom:1px solid var(--dp-border);
+}
+.dp-chall-name{
+  font-size:1.05rem;font-weight:700;color:var(--dp-accent);
+  display:flex;align-items:center;gap:.5rem;
+}
+.dp-chall-meta{
+  display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;
+}
+.dp-chall-badge{
+  font-size:.68rem;font-weight:700;padding:.18rem .6rem;
+  border-radius:999px;text-transform:uppercase;letter-spacing:.05em;
+}
+.dp-chall-badge--cat{
+  background:rgba(var(--dp-accent-rgb),.15);
+  color:var(--dp-accent);
+  border:1px solid rgba(var(--dp-accent-rgb),.25);
+}
+.dp-chall-badge--easy   {background:rgba(5,150,105,.14);color:#059669;border:1px solid rgba(5,150,105,.3);}
+.dp-chall-badge--medium {background:rgba(234,179,8,.14);color:#ca8a04;border:1px solid rgba(234,179,8,.3);}
+.dp-chall-badge--hard   {background:rgba(239,68,68,.14);color:#dc2626;border:1px solid rgba(239,68,68,.3);}
+.dp-chall-pts{
+  font-size:.72rem;font-weight:700;
+  color:var(--dp-muted);
+}
+.dp-chall-body{
+  padding:1.25rem 1.4rem;
+}
+.dp-chall-scenario{
+  font-size:.88rem;color:var(--dp-text);line-height:1.72;
+  margin-bottom:1rem;
+}
+.dp-chall-files{
+  display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;
+}
+.dp-chall-file{
+  font-size:.73rem;font-family:ui-monospace,monospace;
+  padding:.22rem .65rem;border-radius:6px;
+  background:var(--dp-bg);border:1px solid var(--dp-border);
+  color:var(--dp-muted);
+  display:inline-flex;align-items:center;gap:.3rem;
+}
+.dp-chall-solve{
+  margin-top:1rem;
+  background:var(--dp-bg);
+  border-radius:8px;
+  padding:1rem 1.2rem;
+}
+.dp-chall-solve-label{
+  font-size:.68rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--dp-accent2);
+  margin-bottom:.55rem;
+}
+.dp-chall-steps{list-style:none;padding:0;margin:0;}
+.dp-chall-steps li{
+  font-size:.83rem;color:var(--dp-text);line-height:1.65;
+  padding:.22rem 0;
+  display:flex;align-items:baseline;gap:.5rem;
+}
+.dp-chall-steps li::before{
+  content:counter(step);
+  counter-increment:step;
+  font-size:.65rem;font-weight:800;
+  color:var(--dp-accent2);
+  background:rgba(var(--dp-accent2-rgb),.12);
+  border:1px solid rgba(var(--dp-accent2-rgb),.25);
+  border-radius:999px;
+  width:1.3rem;height:1.3rem;
+  display:inline-flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+  margin-top:.15rem;
+}
+.dp-chall-steps{counter-reset:step;}
+.dp-chall-flag{
+  font-family:ui-monospace,monospace;
+  font-size:.8rem;
+  color:var(--dp-accent2);
+  background:rgba(var(--dp-accent2-rgb),.08);
+  padding:.3rem .75rem;
+  border-radius:6px;
+  border:1px solid rgba(var(--dp-accent2-rgb),.2);
+  display:inline-block;
+  margin-top:.65rem;
+}
 /* ── Landing page grid ───────────────────────────────────────────────────── */
 .dp-domain-card{
   display:flex;flex-direction:column;
@@ -230,6 +326,45 @@ def _example_pill(text):
     return f'<span class="dp-example-pill">{text}</span>'
 
 
+def _sample_challenge(name, category, difficulty, points, scenario, files, steps, flag):
+    """Renders a mock CTF challenge card.
+    difficulty: 'easy' | 'medium' | 'hard'
+    files: list of filename strings
+    steps: list of step strings
+    """
+    diff_labels = {'easy': 'Easy', 'medium': 'Medium', 'hard': 'Hard'}
+    files_html = "".join(
+        f'<span class="dp-chall-file"><i class="fas fa-file-code"></i>{f}</span>'
+        for f in files
+    )
+    steps_html = "".join(f'<li>{s}</li>' for s in steps)
+    return f"""
+    <div class="dp-section">
+      <h2 class="dp-section-title">
+        <i class="fas fa-flag"></i> Sample Challenge
+      </h2>
+      <div class="dp-chall">
+        <div class="dp-chall-header">
+          <div class="dp-chall-name"><i class="fas fa-flag"></i> {name}</div>
+          <div class="dp-chall-meta">
+            <span class="dp-chall-badge dp-chall-badge--cat">{category}</span>
+            <span class="dp-chall-badge dp-chall-badge--{difficulty}">{diff_labels[difficulty]}</span>
+            <span class="dp-chall-pts">{points} pts</span>
+          </div>
+        </div>
+        <div class="dp-chall-body">
+          <div class="dp-chall-scenario">{scenario}</div>
+          <div class="dp-chall-files">{files_html}</div>
+          <div class="dp-chall-solve">
+            <div class="dp-chall-solve-label">How to solve it</div>
+            <ol class="dp-chall-steps">{steps_html}</ol>
+            <div class="dp-chall-flag">{flag}</div>
+          </div>
+        </div>
+      </div>
+    </div>"""
+
+
 def _overview_section(what, how_it_works, examples):
     """what: str (HTML), how_it_works: str (HTML), examples: list[str]"""
     pills = "".join(_example_pill(e) for e in examples)
@@ -252,7 +387,7 @@ def _overview_section(what, how_it_works, examples):
     </div>"""
 
 
-def _page(icon, title, lead, official, training, tips, tools=None, overview=None):
+def _page(icon, title, lead, official, training, tips, tools=None, overview=None, sample=None):
     off_html = "".join(_card(*r) for r in official)
     train_html = "".join(_card(*r) for r in training)
 
@@ -265,6 +400,10 @@ def _page(icon, title, lead, official, training, tips, tools=None, overview=None
     if overview:
         overview_block = _overview_section(*overview)
 
+    sample_block = ""
+    if sample:
+        sample_block = _sample_challenge(*sample)
+
     return SHARED_STYLE + f"""
 <div class="dp-wrap">
 
@@ -276,6 +415,7 @@ def _page(icon, title, lead, official, training, tips, tools=None, overview=None
   </div>
 
   {overview_block}
+  {sample_block}
   {_section("fas fa-link", "Official Resources &amp; Standards", off_html)}
   {_section("fas fa-graduation-cap", "Free Training &amp; Practice", train_html)}
   {tool_section}
@@ -352,6 +492,22 @@ WEB = _page(
          "OAuth state bypass", "GraphQL introspection abuse", "CORS misconfiguration",
          "XXE (external entity injection)", "Command injection via form field"]
     ),
+    sample=(
+        "Blind Order",
+        "Web", "medium", 250,
+        """A small e-commerce site lets you sort products by column name via a <code>?sort=</code> query parameter.
+        The application passes this value directly into a SQL <code>ORDER BY</code> clause — sanitising only for spaces.
+        There is no visible error output, making this a <em>blind SQL injection</em>.""",
+        ["shop.zip"],
+        [
+            "Intercept the <code>GET /products?sort=name</code> request in Burp Suite.",
+            "Notice the parameter is reflected in an <code>ORDER BY</code> clause by testing <code>sort=name ASC</code> vs <code>sort=name DESC</code>.",
+            "Use a boolean-based payload: <code>sort=(CASE WHEN 1=1 THEN name ELSE price END)</code> — the order changes, confirming blind injection.",
+            "Write a Python loop using <code>SUBSTR()</code> to extract the <code>flag</code> column from the <code>secrets</code> table letter by letter.",
+            "Assemble the bytes into the flag string.",
+        ],
+        "FLAG{bl1nd_0rd3r_by_expl01t}"
+    ),
     official=[
         ("OWASP Foundation", "https://owasp.org",
          "The Open Web Application Security Project — the gold standard for web app security guidance.", ["Foundation", "Standards"]),
@@ -423,6 +579,21 @@ CRYPTO = _page(
          "Vigenère / frequency analysis", "Diffie-Hellman small subgroup",
          "Common-modulus RSA attack", "Substitute classical cipher (Caesar, ROT13)"]
     ),
+    sample=(
+        "Tiny Exponent",
+        "Crypto", "easy", 100,
+        """You intercepted an RSA-encrypted message sent to three different recipients, all sharing the same public exponent <code>e = 3</code>.
+        You have the three ciphertexts <code>c1, c2, c3</code> and their corresponding moduli <code>n1, n2, n3</code>.
+        The plaintext is short enough that <code>m³ &lt; n1·n2·n3</code>.""",
+        ["challenge.py", "output.txt"],
+        [
+            "Recognise the setup: same message, same <code>e=3</code>, three different moduli — this is Håstad's broadcast attack.",
+            "Compute <code>C = CRT([c1,c2,c3], [n1,n2,n3])</code> using the Chinese Remainder Theorem in Python (<code>sympy.crt</code> or manual implementation).",
+            "Take the integer cube root of <code>C</code>: <code>m = iroot(C, 3)</code>.",
+            "Convert the integer <code>m</code> to bytes: <code>long_to_bytes(m)</code> from the <code>Crypto.Util.number</code> module.",
+        ],
+        "FLAG{h4st4d_br04dc4st_3=3}"
+    ),
     official=[
         ("NIST Cryptographic Standards (CSRC)", "https://csrc.nist.gov",
          "Official NIST guidance on block ciphers, hash functions, digital signatures, and key derivation.", ["Standards", "NIST"]),
@@ -487,6 +658,20 @@ REVERSE = _page(
          "License key validation reversal", "Go / Rust binary decompilation",
          "ARM firmware flag extraction", "Dynamic analysis with GDB",
          "Self-modifying code", "C++ vtable tracing"]
+    ),
+    sample=(
+        "KeyCheck",
+        "Reverse Engineering", "easy", 150,
+        """You are given a Linux ELF binary that asks for a password and prints <em>"Access granted — here is your flag"</em> if correct, otherwise <em>"Wrong!"</em>.
+        The binary is stripped (no function names) and was compiled with <code>-O2</code>.""",
+        ["keychecker"],
+        [
+            "Run <code>strings keychecker | grep -i flag</code> — nothing obvious. Run <code>file</code> and <code>checksec</code> to understand the binary.",
+            "Open in Ghidra. Find <code>main</code> via the entry-point symbol. Decompile it.",
+            "Identify a <code>strcmp()</code> call comparing your input to a hard-coded string — Ghidra shows the string in the decompilation view.",
+            "The comparison string is the password. Run the binary and enter it to confirm the flag is printed.",
+        ],
+        "FLAG{gh1dra_str1ng_1s_all_u_n33d}"
     ),
     official=[
         ("Ghidra", "https://ghidra-sre.org",
@@ -555,6 +740,21 @@ FORENSICS = _page(
          "Log analysis (find attacker IP)", "Email header analysis",
          "Encoded payload in DNS queries", "Corrupted ZIP / PNG header repair"]
     ),
+    sample=(
+        "Late Night Packet",
+        "Forensics", "easy", 100,
+        """The SOC team captured network traffic during a suspected data exfiltration. You receive a <code>.pcap</code> file.
+        Your goal is to find what was stolen and recover the flag hidden inside the transferred data.""",
+        ["capture.pcap"],
+        [
+            "Open <code>capture.pcap</code> in Wireshark. Go to <em>Statistics → Protocol Hierarchy</em> — notice an unusually large amount of HTTP traffic.",
+            "Filter to <code>http</code> and look for <em>POST</em> requests to an external IP. Right-click → Follow → HTTP Stream.",
+            "The POST body is Base64-encoded. Copy the encoded blob.",
+            "Decode it: <code>echo '&lt;blob&gt;' | base64 -d</code> — the output is a PNG image.",
+            "Open the image to reveal the flag printed on it.",
+        ],
+        "FLAG{pcap_foll0w_the_str34m}"
+    ),
     official=[
         ("Autopsy / The Sleuth Kit", "https://www.sleuthkit.org/autopsy/",
          "Free, open-source digital forensics platform for analysing disk images and file systems.", ["Free", "Disk Forensics", "Open Source"]),
@@ -617,6 +817,21 @@ PWN = _page(
          "Stack canary brute-force (forking server)", "SROP (sigreturn-oriented programming)",
          "GOT overwrite", "Off-by-one overflow",
          "Tcache poisoning (glibc 2.29+)", "Shellcode injection (NX disabled)"]
+    ),
+    sample=(
+        "ret2win",
+        "Pwn", "easy", 150,
+        """A 64-bit Linux ELF service reads your name with <code>gets()</code> into a 64-byte stack buffer and then calls <code>greet()</code>.
+        There is also a function called <code>win()</code> that runs <code>/bin/sh</code> — it is never called by the program. NX is enabled; PIE is disabled.""",
+        ["vuln", "libc.so.6"],
+        [
+            "Run <code>checksec vuln</code>: NX=on, PIE=off, no canary — confirms a ret-to-win approach.",
+            "Find the <code>win()</code> address: <code>objdump -d vuln | grep win</code> (e.g. <code>0x401196</code>).",
+            "Calculate the offset to the return address: <code>python3 -c \"import pwn; pwn.cyclic(200)\"</code>, crash the binary, read <code>rsp</code> in GDB, run <code>pwn.cyclic_find()</code>.",
+            "Build the exploit: <code>payload = b'A'*offset + p64(win_addr)</code>.",
+            "Send with pwntools: <code>p = process('./vuln'); p.sendline(payload); p.interactive()</code> — drops you to a shell.",
+        ],
+        "FLAG{sm4shed_the_st4ck_g0t_sh3ll}"
     ),
     official=[
         ("pwntools", "https://pwntools.com",
@@ -683,6 +898,21 @@ MISC = _page(
          "Git history recovery (git log)", "Zip / archive bomb analysis",
          "Regex golf / code golf", "Game hacking (netcat protocol)"]
     ),
+    sample=(
+        "Invisible Ink",
+        "Misc", "easy", 75,
+        """You receive a <code>.png</code> image of a plain white-on-black company logo. The challenge description says:
+        <em>"Sometimes the best hiding spot is the one nobody looks at."</em>""",
+        ["logo.png"],
+        [
+            "Run <code>strings logo.png</code> — no obvious flag.",
+            "Run <code>exiftool logo.png</code> — nothing hidden in metadata.",
+            "Try <code>steghide extract -sf logo.png -p ''</code> — extracts <code>secret.txt</code> with an empty passphrase.",
+            "Read <code>secret.txt</code> to get the flag.",
+            "<em>(Alternative path)</em>: run <code>zsteg logo.png</code> — it would have found the LSB-embedded data automatically.",
+        ],
+        "FLAG{st3gh1d3_empty_p4ssw0rd}"
+    ),
     official=[
         ("CTFtime", "https://ctftime.org",
          "The authoritative calendar of CTF events worldwide, with team rankings and historical writeups.", ["Resource", "Community"]),
@@ -743,6 +973,22 @@ OSINT = _page(
          "Decode GPS EXIF from image", "Shodan search for exposed service",
          "Certificate Transparency subdomain enum", "Identify ship/aircraft from AIS/ADS-B",
          "Reverse email → real name", "Find source code from a screenshot"]
+    ),
+    sample=(
+        "Gone Offline",
+        "OSINT", "medium", 200,
+        """A threat actor posted a photo on a now-deleted Twitter account and claimed it was taken "somewhere in the capital".
+        The only artefact you have is a screenshot of the tweet including the image.
+        Find the exact street address of where the photo was taken.""",
+        ["tweet_screenshot.png"],
+        [
+            "Crop the embedded image from the screenshot. Reverse-image search with Google, TinEye, and Yandex — Yandex finds a match on a local tourism blog.",
+            "The blog post names the city district. Cross-reference with Google Street View to identify the visible building facade and street signage.",
+            "Check the Wayback Machine for the original tweet URL (extracted from the screenshot URL bar) — the archived version still has the original image with GPS EXIF intact.",
+            "Run <code>exiftool original.jpg</code> — GPS coordinates appear. Convert DMS to decimal and look up in Google Maps.",
+            "The pin drops on a specific cafe. The street address is the flag.",
+        ],
+        "FLAG{47.6062_N_122.3321_W_pike_place_market}"
     ),
     official=[
         ("OSINT Framework", "https://osintframework.com",
@@ -809,6 +1055,21 @@ CLOUD = _page(
          "ECS task role abuse", "Terraform state file leak (S3)",
          "GitHub Actions secret exfiltration", "Container image layer secret extraction"]
     ),
+    sample=(
+        "BucketList",
+        "Cloud", "easy", 125,
+        """You have been given the domain name of a small startup: <code>startup-assets.s3.amazonaws.com</code>.
+        The security team suspects the S3 bucket has a misconfigured ACL. Investigate and retrieve the flag.""",
+        [],
+        [
+            "List the bucket without credentials: <code>aws s3 ls s3://startup-assets --no-sign-request</code> — it succeeds, confirming public-read ACL.",
+            "Browse the listing — spot an interesting file: <code>internal/config_backup.json</code>.",
+            "Download it: <code>aws s3 cp s3://startup-assets/internal/config_backup.json . --no-sign-request</code>.",
+            "Open the JSON — it contains an <code>aws_secret_access_key</code> and a <code>flag</code> field.",
+            "Read the <code>flag</code> value directly from the file.",
+        ],
+        "FLAG{publ1c_s3_1s_n0t_priv4te}"
+    ),
     official=[
         ("AWS Security Documentation", "https://aws.amazon.com/security/",
          "Official AWS security best practices, IAM policy docs, and the Well-Architected Security Pillar.", ["Official", "AWS"]),
@@ -874,6 +1135,21 @@ MOBILE = _page(
          "Deep-link parameter injection", "iOS Keychain extraction",
          "Frida hook to dump decrypted payload", "APK repack and re-sign"]
     ),
+    sample=(
+        "UnlockMe",
+        "Mobile", "medium", 200,
+        """You receive an Android APK that shows a PIN entry screen.
+        Entering the correct 6-digit PIN displays the flag. The app performs root and emulator detection before proceeding.""",
+        ["unlockme.apk"],
+        [
+            "Decompile with <code>jadx-gui unlockme.apk</code>. Search for <code>onCheckPin</code> — find a method that compares user input against a SHA-256 hash.",
+            "The hash <code>8d969eef6...&lt;snip&gt;</code> matches the SHA-256 of <code>123456</code> (identify with <code>hashcat --example-hashes</code> or CrackStation).",
+            "The app crashes on emulator. Bypass using Frida: hook <code>isEmulator()</code> to return <code>false</code>.",
+            "Run the patched check: <code>frida -U -f com.ctf.unlockme --no-pause -l bypass.js</code>.",
+            "Enter PIN <code>123456</code> in the app — the flag is displayed on screen.",
+        ],
+        "FLAG{fr1d4_byp4ss_em_d3t3ct10n}"
+    ),
     official=[
         ("OWASP Mobile Application Security", "https://mas.owasp.org",
          "The OWASP MAS project — MASVS (testing standard) and MASTG (testing guide) with hundreds of test cases.", ["Official", "Standard", "OWASP"]),
@@ -936,6 +1212,20 @@ HARDWARE = _page(
          "Web interface command injection (router)", "Private key in firmware filesystem",
          "Insecure bootloader bypass", "MQTT broker unauthenticated subscribe",
          "OTA update replay attack", "Exposed JTAG test pads on PCB"]
+    ),
+    sample=(
+        "FirmwareFrenzy",
+        "Hardware", "medium", 250,
+        """You receive a 4 MB binary dump from a consumer IoT router: <code>router_fw.bin</code>.
+        The vendor claims the firmware is encrypted, but the security team suspects the flag is stored in plain text inside the filesystem.""",
+        ["router_fw.bin"],
+        [
+            "Run <code>binwalk router_fw.bin</code> — it detects a SquashFS filesystem at offset <code>0x50000</code> and a LZMA-compressed kernel.",
+            "Extract: <code>binwalk -e router_fw.bin</code> — a directory <code>_router_fw.bin.extracted/</code> appears.",
+            "Run <code>firmwalker _router_fw.bin.extracted/</code> — it highlights <code>/etc/config/system</code> as containing a password.",
+            "Open the file — it contains: <code>option flag 'FLAG{b1nwalk_squashfs_4_th3_w1n}'</code>.",
+        ],
+        "FLAG{b1nwalk_squashfs_4_th3_w1n}"
     ),
     official=[
         ("OWASP IoT Project", "https://owasp.org/www-project-internet-of-things/",
