@@ -438,10 +438,13 @@ footer.footer a:hover{color:var(--adm-accent)!important;}
 					{% endif %}
 				</ul>
 				<div class="d-flex align-items-center">
-					<span class="adm-util-sep d-none d-md-inline-block"></span>				<button class="adm-icon-btn theme-switch" title="Toggle light/dark mode" style="background:none;border:none;cursor:pointer;">
-					<i class="fas fa-moon"></i><span class="d-md-none ml-2">Toggle theme</span>
-				</button>					<a class="adm-icon-btn" href="{{ url_for('views.static_html', route='/') }}" title="View site" target="_blank">
-						<i class="fas fa-external-link-alt"></i><span class="d-md-none ml-2">View site</span>
+					<button class="adm-icon-btn theme-switch" title="Toggle light/dark mode">
+						<i class="fas fa-moon"></i>
+						<span class="d-md-none ml-2">Toggle theme</span>
+					</button>
+					<span class="adm-util-sep d-none d-md-inline-block"></span>
+					<a class="adm-icon-btn" href="{{ url_for('views.static_html', route='/') }}" title="← Back to site">
+						<i class="fas fa-globe"></i><span class="d-md-none ml-2">Public site</span>
 					</a>
 					<a class="adm-icon-btn" href="https://docs.ctfd.io/" target="_blank" title="Documentation">
 						<i class="far fa-question-circle"></i><span class="d-md-none ml-2">Docs</span>
