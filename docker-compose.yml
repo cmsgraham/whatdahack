@@ -13,6 +13,11 @@ services:
       - ACCESS_LOG=-
       - ERROR_LOG=-
       - REVERSE_PROXY=true
+      - MAIL_SERVER=mail
+      - MAIL_PORT=25
+      - MAIL_USE_TLS=false
+      - MAIL_USE_SSL=false
+      - MAILFROM_ADDR=noreply@whatdahack.com
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads
@@ -72,6 +77,17 @@ services:
     - .data/redis:/data
     networks:
         internal:
+
+  mail:
+    image: namshi/smtp
+    restart: always
+    environment:
+      - MAILNAME=whatdahack.com
+    volumes:
+      - ./conf/exim4/dkim.private:/etc/dkim/mail.private:ro
+      - ./conf/exim4/exim4.conf.localmacros:/etc/exim4/_docker_additional_macros:ro
+    networks:
+      default:
 
 networks:
     default:
