@@ -35,13 +35,276 @@
 			<link rel="stylesheet" type="text/css" href="{{ stylesheet }}">
 		{% endif %}
 	{% endfor %}
+	<style>
+/* ═══════════════════════════════════════════════════════════════
+   Admin Panel — Modern Dark Theme  (whatdahack.com)
+   Tokens mirror the public core theme.
+═══════════════════════════════════════════════════════════════ */
+:root{
+  --adm-accent:        #059669;
+  --adm-accent-rgb:    5,150,105;
+  --adm-accent-hover:  #047857;
+  --adm-bg-page:       #0d1117;
+  --adm-bg-surface:    #161b22;
+  --adm-bg-elevated:   #1c2128;
+  --adm-bg-overlay:    #21262d;
+  --adm-border:        #30363d;
+  --adm-border-subtle: #21262d;
+  --adm-text:          #e6edf3;
+  --adm-text-s2:       #c9d1d9;
+  --adm-text-muted:    #8b949e;
+  --adm-text-dim:      #6e7681;
+  --adm-danger:        #f85149;
+  --adm-warning:       #d29922;
+  --adm-warn-bright:   #e3b341;
+  --adm-success:       #3fb950;
+  --adm-info:          #58a6ff;
+  --adm-r:             8px;
+  --adm-r-sm:          5px;
+  --adm-r-lg:          12px;
+  --adm-shadow:        0 1px 3px rgba(0,0,0,.4);
+  --adm-shadow-lg:     0 8px 32px rgba(0,0,0,.5);
+}
+/* ── Base ──────────────────────────────────────────────────────────── */
+html,body{background:var(--adm-bg-page)!important;color:var(--adm-text)!important;}
+body{padding-top:56px!important;}
+main{min-height:calc(100vh - 90px);}
+h1,h2,h3,h4,h5,h6{color:var(--adm-text)!important;}
+a{color:var(--adm-accent);}
+a:hover{color:var(--adm-accent-hover);text-decoration:none;}
+.text-muted{color:var(--adm-text-muted)!important;}
+.text-secondary{color:var(--adm-text-s2)!important;}
+.text-danger{color:var(--adm-danger)!important;}
+.text-warning{color:var(--adm-warn-bright)!important;}
+.text-success{color:var(--adm-success)!important;}
+hr{border-color:var(--adm-border)!important;}
+.lead{color:var(--adm-text-s2)!important;}
+/* ── Admin Navbar ──────────────────────────────────────────────────── */
+.adm-nav{
+  background:rgba(13,17,23,.92)!important;
+  border-bottom:1px solid #30363d;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  padding:0;min-height:52px;position:relative;
+}
+.adm-nav::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(5,150,105,.4) 50%,transparent);
+  pointer-events:none;
+}
+.adm-nav .container{min-height:52px;display:flex;align-items:center;}
+/* brand */
+.adm-nav .navbar-brand{
+  display:flex;align-items:center;gap:.45rem;padding:0;margin-right:1.5rem;
+  color:#e6edf3!important;text-decoration:none!important;
+}
+.adm-nav .navbar-brand .adm-brand-icon{color:var(--adm-accent);font-size:1.05rem;}
+.adm-nav .navbar-brand .adm-brand-text{display:flex;flex-direction:column;line-height:1;}
+.adm-nav .navbar-brand .adm-brand-top{
+  font-size:.78rem;font-weight:700;letter-spacing:1.8px;
+  text-transform:uppercase;color:#e6edf3;
+}
+.adm-nav .navbar-brand .adm-brand-sub{
+  font-size:.56rem;letter-spacing:2.5px;text-transform:uppercase;
+  color:var(--adm-accent);margin-top:1px;opacity:.85;
+}
+.adm-nav .navbar-brand:hover .adm-brand-top{color:var(--adm-accent);}
+/* toggler */
+.adm-nav .navbar-toggler{
+  border:1px solid rgba(48,54,61,.9);border-radius:7px;
+  padding:.28rem .5rem;color:#8b949e;background:transparent;box-shadow:none!important;
+}
+.adm-nav .navbar-toggler:hover{border-color:rgba(5,150,105,.4);background:rgba(255,255,255,.05);}
+/* nav links */
+.adm-nav .navbar-nav .nav-link{
+  font-size:.73rem;font-weight:500;letter-spacing:.45px;
+  text-transform:uppercase;color:#8b949e!important;
+  padding:.4rem .65rem!important;border-radius:5px;
+  transition:color .18s,background .18s;
+}
+.adm-nav .navbar-nav .nav-link:hover{color:#c9d1d9!important;background:rgba(255,255,255,.055);}
+.adm-nav .navbar-nav .nav-item.active>.nav-link,
+.adm-nav .navbar-nav .nav-link.active{color:var(--adm-accent)!important;background:rgba(5,150,105,.12);}
+/* dropdown */
+.adm-nav .dropdown-menu{
+  background:#1c2128!important;border:1px solid #30363d!important;
+  border-radius:10px!important;box-shadow:0 12px 40px rgba(0,0,0,.4)!important;
+  padding:.3rem!important;min-width:11rem;
+}
+.adm-nav .dropdown-item{
+  border-radius:5px!important;color:#c9d1d9!important;
+  font-size:.78rem!important;padding:.4rem .7rem!important;
+  transition:background .12s,color .12s!important;
+}
+.adm-nav .dropdown-item:hover{background:rgba(255,255,255,.06)!important;color:#e6edf3!important;}
+.adm-nav .dropdown-divider{border-color:#30363d!important;}
+/* right icon buttons */
+.adm-icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  background:transparent;border:none;border-radius:7px;
+  color:#8b949e;font-size:.73rem;font-weight:500;letter-spacing:.4px;
+  padding:.35rem .55rem;cursor:pointer;text-decoration:none;
+  white-space:nowrap;transition:color .15s,background .15s;line-height:1;
+}
+.adm-icon-btn i{font-size:.78rem;}
+.adm-icon-btn:hover{color:#c9d1d9;background:rgba(255,255,255,.07);text-decoration:none;}
+.adm-icon-btn-logout:hover{color:#f85149!important;background:rgba(248,81,73,.08)!important;}
+.adm-util-sep{width:1px;height:20px;background:#30363d;margin:0 .25rem;flex-shrink:0;display:inline-block;}
+@media(max-width:767.98px){
+  .adm-icon-btn{width:100%;justify-content:flex-start;padding:.5rem .7rem;font-size:.82rem;}
+  .adm-util-sep{display:none!important;}
+  .adm-nav .navbar-nav .nav-link{font-size:.82rem;padding:.5rem .7rem!important;}
+}
+/* ── Jumbotron ─────────────────────────────────────────────────────── */
+.jumbotron{
+  background:var(--adm-bg-surface)!important;
+  border-bottom:1px solid var(--adm-border)!important;
+  border-radius:0!important;padding:1.35rem 0!important;margin-bottom:0!important;
+}
+.jumbotron h1{font-size:1.55rem!important;font-weight:600!important;letter-spacing:.5px!important;margin-bottom:.15rem!important;}
+/* ── Cards ─────────────────────────────────────────────────────────── */
+.card{
+  background:var(--adm-bg-surface)!important;
+  border:1px solid var(--adm-border)!important;
+  border-radius:var(--adm-r)!important;
+  box-shadow:var(--adm-shadow);color:var(--adm-text)!important;
+}
+.card-header{
+  background:var(--adm-bg-elevated)!important;
+  border-bottom:1px solid var(--adm-border)!important;
+  color:var(--adm-text-s2)!important;
+  border-radius:calc(var(--adm-r) - 1px) calc(var(--adm-r) - 1px) 0 0!important;
+  padding:.75rem 1rem;
+}
+.card.border-danger{border-color:rgba(248,81,73,.4)!important;}
+.card.border-danger .card-header{background:rgba(248,81,73,.07)!important;color:#f85149!important;}
+.card-body{color:var(--adm-text)!important;}
+/* ── Tables ─────────────────────────────────────────────────────────── */
+.table{color:var(--adm-text)!important;margin-bottom:0;}
+.table thead th{
+  color:var(--adm-text-muted)!important;font-size:.7rem!important;
+  font-weight:700!important;letter-spacing:.6px!important;text-transform:uppercase!important;
+  border-bottom:1px solid var(--adm-border)!important;
+  background:var(--adm-bg-elevated)!important;padding:.65rem 1rem!important;border-top:none!important;
+}
+.table td{
+  border-color:var(--adm-border-subtle)!important;vertical-align:middle!important;
+  padding:.6rem 1rem!important;color:var(--adm-text-s2)!important;
+}
+.table-striped tbody tr:nth-of-type(odd){background:rgba(255,255,255,.018)!important;}
+tbody tr:hover{background:rgba(255,255,255,.04)!important;}
+/* ── Forms ──────────────────────────────────────────────────────────── */
+.form-control,.custom-select{
+  background:var(--adm-bg-overlay)!important;border:1px solid var(--adm-border)!important;
+  color:var(--adm-text)!important;border-radius:var(--adm-r-sm)!important;font-size:.875rem;
+}
+.form-control:focus,.custom-select:focus{
+  border-color:var(--adm-accent)!important;
+  box-shadow:0 0 0 3px rgba(5,150,105,.2)!important;
+  background:var(--adm-bg-overlay)!important;color:var(--adm-text)!important;
+}
+.form-control::placeholder{color:var(--adm-text-dim)!important;}
+.form-text,.form-text.text-muted{color:var(--adm-text-muted)!important;}
+label{color:var(--adm-text-s2)!important;}
+.input-group-text{
+  background:var(--adm-bg-elevated)!important;border-color:var(--adm-border)!important;
+  color:var(--adm-text-muted)!important;
+}
+.custom-select{
+  background-image:url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='4' height='5' viewBox='0 0 4 5'%3e%3cpath fill='%238b949e' d='M2 0L0 2h4zm0 5L0 3h4z'/%3e%3c/svg%3e")!important;
+}
+.form-check-input{accent-color:var(--adm-accent);}
+/* ── Buttons ────────────────────────────────────────────────────────── */
+.btn{
+  border-radius:var(--adm-r-sm)!important;font-size:.8rem!important;
+  font-weight:600!important;letter-spacing:.2px!important;
+  transition:all .18s ease!important;
+}
+.btn-primary{background:var(--adm-accent)!important;border-color:var(--adm-accent)!important;color:#fff!important;}
+.btn-primary:hover{background:var(--adm-accent-hover)!important;border-color:var(--adm-accent-hover)!important;}
+.btn-secondary,.btn-default{background:var(--adm-bg-elevated)!important;border-color:var(--adm-border)!important;color:var(--adm-text)!important;}
+.btn-secondary:hover,.btn-default:hover{background:var(--adm-bg-overlay)!important;}
+.btn-danger{background:transparent!important;border-color:#f85149!important;color:#f85149!important;}
+.btn-danger:hover{background:rgba(248,81,73,.1)!important;}
+.btn-warning{background:var(--adm-warning)!important;border-color:var(--adm-warning)!important;color:#fff!important;}
+.btn-success{background:var(--adm-success)!important;border-color:var(--adm-success)!important;color:#fff!important;}
+.btn-info{background:#5b7290!important;border-color:#5b7290!important;color:#fff!important;}
+.btn-sm{padding:.3rem .65rem!important;font-size:.75rem!important;}
+.btn-sm.btn-danger{padding:.3rem .65rem!important;}
+.btn-outline-secondary{background:transparent!important;border-color:var(--adm-border)!important;color:var(--adm-text-muted)!important;}
+.btn-outline-secondary:hover{background:var(--adm-bg-elevated)!important;color:var(--adm-text)!important;}
+/* ── Badges ─────────────────────────────────────────────────────────── */
+.badge{font-size:.68rem!important;font-weight:600!important;letter-spacing:.35px;border-radius:4px!important;padding:.28em .6em!important;}
+.badge-success{background:rgba(63,185,80,.18)!important;color:#3fb950!important;}
+.badge-danger{background:rgba(248,81,73,.18)!important;color:#f85149!important;}
+.badge-warning{background:rgba(210,153,34,.18)!important;color:var(--adm-warn-bright)!important;}
+.badge-info{background:rgba(88,166,255,.15)!important;color:#58a6ff!important;}
+.badge-primary{background:rgba(5,150,105,.18)!important;color:var(--adm-accent)!important;}
+.badge-secondary{background:var(--adm-bg-elevated)!important;color:var(--adm-text-muted)!important;border:1px solid var(--adm-border);}
+.badge-dark{background:var(--adm-bg-overlay)!important;color:var(--adm-text-muted)!important;}
+/* ── Alerts ─────────────────────────────────────────────────────────── */
+.alert{border-radius:var(--adm-r-sm)!important;border:none!important;}
+.alert-danger{background:rgba(248,81,73,.1)!important;color:#f85149!important;border-left:3px solid #f85149!important;}
+.alert-warning{background:rgba(210,153,34,.1)!important;color:var(--adm-warn-bright)!important;border-left:3px solid var(--adm-warn-bright)!important;}
+.alert-success{background:rgba(63,185,80,.1)!important;color:#3fb950!important;border-left:3px solid #3fb950!important;}
+.alert-info{background:rgba(88,166,255,.1)!important;color:#58a6ff!important;border-left:3px solid #58a6ff!important;}
+.alert .close{color:inherit!important;opacity:.7;}
+/* ── Breadcrumbs ────────────────────────────────────────────────────── */
+.breadcrumb{background:transparent!important;padding:0!important;margin-bottom:.4rem!important;font-size:.75rem!important;}
+.breadcrumb-item a{color:var(--adm-text-muted)!important;}
+.breadcrumb-item a:hover{color:var(--adm-accent)!important;}
+.breadcrumb-item.active{color:var(--adm-text-s2)!important;}
+.breadcrumb-item+.breadcrumb-item::before{color:var(--adm-text-dim)!important;}
+/* ── Tabs ───────────────────────────────────────────────────────────── */
+.nav-tabs{border-color:var(--adm-border)!important;}
+.nav-tabs .nav-link{color:var(--adm-text-muted)!important;border-color:transparent!important;border-radius:var(--adm-r-sm) var(--adm-r-sm) 0 0!important;font-size:.8rem;}
+.nav-tabs .nav-link:hover{color:var(--adm-text)!important;background:rgba(255,255,255,.03)!important;border-color:transparent!important;}
+.nav-tabs .nav-link.active{background:transparent!important;border-color:var(--adm-border) var(--adm-border) transparent!important;color:var(--adm-text)!important;}
+.tab-content{padding-top:.75rem;}
+/* config nav-pills */
+.nav-pills .nav-link{color:var(--adm-text-muted)!important;border-radius:var(--adm-r-sm)!important;font-size:.8rem;transition:.15s;padding:.4rem .7rem;}
+.nav-pills .nav-link:hover{color:var(--adm-text)!important;background:rgba(255,255,255,.05)!important;}
+.nav-pills .nav-link.active{background:rgba(5,150,105,.15)!important;color:var(--adm-accent)!important;}
+.section-title{color:var(--adm-text-dim)!important;border-top:1px solid var(--adm-border)!important;font-size:.68rem!important;font-weight:700!important;letter-spacing:.6px;text-transform:uppercase;margin-top:.5rem;padding-top:.5rem;display:block;}
+/* ── Dropdowns (non-nav) ────────────────────────────────────────────── */
+.dropdown-menu{background:var(--adm-bg-elevated)!important;border:1px solid var(--adm-border)!important;border-radius:var(--adm-r)!important;box-shadow:var(--adm-shadow-lg)!important;padding:.3rem!important;}
+.dropdown-item{border-radius:var(--adm-r-sm)!important;color:var(--adm-text-s2)!important;font-size:.8rem!important;padding:.4rem .75rem!important;}
+.dropdown-item:hover{background:rgba(255,255,255,.06)!important;color:var(--adm-text)!important;}
+.dropdown-divider{border-color:var(--adm-border)!important;}
+.dropdown-header{color:var(--adm-text-dim)!important;font-size:.68rem!important;letter-spacing:.5px;text-transform:uppercase;}
+/* ── Modals ─────────────────────────────────────────────────────────── */
+.modal-content{background:var(--adm-bg-surface)!important;border:1px solid var(--adm-border)!important;border-radius:var(--adm-r)!important;color:var(--adm-text)!important;}
+.modal-header{border-bottom-color:var(--adm-border)!important;}
+.modal-footer{border-top-color:var(--adm-border)!important;}
+.modal-backdrop{background:rgba(0,0,0,.6)!important;}
+.close{color:var(--adm-text-muted)!important;}
+/* ── Pagination ─────────────────────────────────────────────────────── */
+.page-link{background:var(--adm-bg-surface)!important;border-color:var(--adm-border)!important;color:var(--adm-text-muted)!important;}
+.page-link:hover{background:var(--adm-bg-elevated)!important;color:var(--adm-text)!important;border-color:var(--adm-border)!important;}
+.page-item.active .page-link{background:var(--adm-accent)!important;border-color:var(--adm-accent)!important;color:#fff!important;}
+.page-item.disabled .page-link{background:var(--adm-bg-surface)!important;color:var(--adm-text-dim)!important;}
+/* ── Code / CodeMirror ──────────────────────────────────────────────── */
+code{background:var(--adm-bg-overlay);color:var(--adm-accent);border-radius:3px;padding:.15em .4em;font-size:.875em;}
+.CodeMirror{background:var(--adm-bg-overlay)!important;color:var(--adm-text)!important;border:1px solid var(--adm-border)!important;border-radius:var(--adm-r-sm)!important;}
+/* ── Footer ─────────────────────────────────────────────────────────── */
+footer.footer{background:var(--adm-bg-surface)!important;border-top:1px solid var(--adm-border)!important;padding:.75rem 0!important;}
+footer.footer a,footer.footer small{color:var(--adm-text-dim)!important;}
+footer.footer a:hover{color:var(--adm-accent)!important;}
+/* ── Version upgrade banner ─────────────────────────────────────────── */
+.container-fluid.bg-warning{background:rgba(210,153,34,.12)!important;border-bottom:1px solid rgba(210,153,34,.3)!important;}
+.container-fluid.bg-warning a{color:var(--adm-warn-bright);}
+</style>
 </head>
 
 <body>
-	<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+	<nav class="navbar navbar-expand-md fixed-top adm-nav">
 		<div class="container">
 			<a href="{{ url_for('admin.statistics') }}" class="navbar-brand">
-				<i class="fas fa-shield-alt mr-1"></i>Admin
+				<i class="fas fa-shield-alt adm-brand-icon"></i>
+				<span class="adm-brand-text">
+					<span class="adm-brand-top">{{ Configs.ctf_name or 'CTFd' }}</span>
+					<span class="adm-brand-sub">Admin Panel</span>
+				</span>
 			</a>
 			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#base-navbars"
 					aria-controls="base-navbars" aria-expanded="false" aria-label="Toggle navigation">
@@ -122,23 +385,19 @@
 						{% endif %}
 					{% endif %}
 				</ul>
-				<ul class="nav navbar-nav navbar-right">
-					<li class="nav-item">
-						<a class="nav-link" href="{{ url_for('views.static_html', route='/') }}" title="View site">
-							<i class="fas fa-external-link-alt"></i>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link" href="https://docs.ctfd.io/" target="_blank" title="Documentation">
-							<i class="far fa-question-circle"></i>
-						</a>
-					</li>
-					<li class="nav-item">
-						<a class="nav-link text-warning" href="{{ url_for('auth.logout') }}" title="Logout {{ User.name }}">
-							<i class="fas fa-sign-out-alt"></i><span class="d-md-none ml-1">Logout</span>
-						</a>
-					</li>
-				</ul>
+				<div class="d-flex align-items-center">
+					<span class="adm-util-sep d-none d-md-inline-block"></span>
+					<a class="adm-icon-btn" href="{{ url_for('views.static_html', route='/') }}" title="View site" target="_blank">
+						<i class="fas fa-external-link-alt"></i><span class="d-md-none ml-2">View site</span>
+					</a>
+					<a class="adm-icon-btn" href="https://docs.ctfd.io/" target="_blank" title="Documentation">
+						<i class="far fa-question-circle"></i><span class="d-md-none ml-2">Docs</span>
+					</a>
+					<span class="adm-util-sep d-none d-md-inline-block"></span>
+					<a class="adm-icon-btn adm-icon-btn-logout" href="{{ url_for('auth.logout') }}" title="Logout {{ User.name }}">
+						<i class="fas fa-sign-out-alt"></i><span class="d-md-none ml-2">Logout {{ User.name }}</span>
+					</a>
+				</div>
 			</div>
 		</div>
 	</nav>
