@@ -160,15 +160,6 @@
 			<div class="d-flex flex-wrap" style="gap:.5rem">
 				{% set lc = comp.lifecycle or 'draft' %}
 
-				{% if lc in ('draft', 'scheduled') %}
-				<form method="POST" action="{{ url_for('admin.competitions_activate', competition_id=comp.id) }}" class="d-inline">
-					<input type="hidden" name="nonce" value="{{ Session.nonce }}">
-					<button type="submit" class="btn btn-success btn-sm">
-						<i class="fas fa-play-circle mr-1"></i>Set as Active (Global)
-					</button>
-				</form>
-				{% endif %}
-
 				{% if lc not in ('ended', 'archived') %}
 				<form method="POST" action="{{ url_for('admin.competitions_end', competition_id=comp.id) }}"
 				      class="d-inline"

@@ -246,6 +246,16 @@ def competitions_clone(competition_id):
 @admins_only
 def competitions_activate(competition_id):
     comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    # Reset previously active competition's lifecycle back to scheduled
+    prev_slug = get_config("active_competition")
+    if prev_slug and prev_slug != comp.slug:
+        prev = Competition.query.filter_by(slug=prev_slug).first()
+        if prev and prev.lifecycle == "active":
+            prev.lifecycle = "scheduled"
+    # Mark this competition as active and visible
+    comp.lifecycle = "active"
+    comp.state = "visible"
+    db.session.commit()
     set_config("active_competition", comp.slug)
     clear_standings()
     clear_challenges()
@@ -259,6 +269,9 @@ def competitions_activate(competition_id):
 @admins_only
 def competitions_deactivate(competition_id):
     comp = Competition.query.filter_by(id=competition_id).first_or_404()
+    if comp.lifecycle == "active":
+        comp.lifecycle = "scheduled"
+    db.session.commit()
     set_config("active_competition", None)
     clear_standings()
     clear_challenges()
