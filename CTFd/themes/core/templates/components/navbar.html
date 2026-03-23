@@ -239,6 +239,26 @@
 .ctf-nav .ctf-lang-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
 .ctf-nav .ctf-lang-menu .dropdown-item.ctf-lang-active { color: var(--nav-active-text) !important; background: rgba(var(--nav-accent-rgb), .1) !important; font-weight: 600; }
 
+/* ── Resources dropdown ──────────────────────────────────────────────────── */
+.ctf-nav .ctf-dropdown-menu {
+  background: var(--nav-dropdown-bg) !important;
+  border: 1px solid var(--nav-dropdown-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18) !important;
+  padding: .35rem;
+  min-width: 210px;
+}
+.ctf-nav .ctf-dropdown-menu .dropdown-item {
+  border-radius: 6px;
+  font-size: .82rem;
+  padding: .44rem .8rem;
+  color: var(--nav-text);
+  background: transparent;
+  transition: background .12s, color .12s;
+}
+.ctf-nav .ctf-dropdown-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
+.ctf-nav .ctf-dd-divider { border-color: var(--nav-dropdown-border); margin: .3rem .45rem; }
+
 /* ── Mobile collapsed menu ───────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
   .ctf-nav .ctf-nav-utils { flex-direction: column; align-items: flex-start; padding-bottom: .5rem; }
@@ -329,6 +349,33 @@
              href="{{ url_for('competitions.listing') }}">
             <i class="fas fa-layer-group"></i>{% trans %}Competitions{% endtrans %}
           </a>
+        </li>
+
+        <!-- Resources dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if request.path.startswith('/resources') %}active{% endif %}"
+             href="#" id="nav-resources-dd" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %}
+          </a>
+          <ul class="dropdown-menu ctf-dropdown-menu" aria-labelledby="nav-resources-dd">
+            <li>
+              <a class="dropdown-item" href="/resources">
+                <i class="fas fa-th" style="width:1.1em;opacity:.6;"></i> All Domains
+              </a>
+            </li>
+            <li><hr class="dropdown-divider ctf-dd-divider"></li>
+            <li><a class="dropdown-item" href="/resources/web"><span style="margin-right:.45rem;">🌐</span> Web Security</a></li>
+            <li><a class="dropdown-item" href="/resources/crypto"><span style="margin-right:.45rem;">🔐</span> Cryptography</a></li>
+            <li><a class="dropdown-item" href="/resources/reverse-engineering"><span style="margin-right:.45rem;">🔬</span> Reverse Engineering</a></li>
+            <li><a class="dropdown-item" href="/resources/forensics"><span style="margin-right:.45rem;">🔍</span> Forensics</a></li>
+            <li><a class="dropdown-item" href="/resources/pwn"><span style="margin-right:.45rem;">💥</span> Binary Exploitation</a></li>
+            <li><a class="dropdown-item" href="/resources/misc"><span style="margin-right:.45rem;">🎲</span> Miscellaneous</a></li>
+            <li><a class="dropdown-item" href="/resources/osint"><span style="margin-right:.45rem;">👁️</span> OSINT</a></li>
+            <li><a class="dropdown-item" href="/resources/cloud"><span style="margin-right:.45rem;">☁️</span> Cloud / DevOps</a></li>
+            <li><a class="dropdown-item" href="/resources/mobile"><span style="margin-right:.45rem;">📱</span> Mobile</a></li>
+            <li><a class="dropdown-item" href="/resources/hardware"><span style="margin-right:.45rem;">🔧</span> Hardware / IoT</a></li>
+          </ul>
         </li>
       </ul>
 
