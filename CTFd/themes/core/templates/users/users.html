@@ -321,6 +321,21 @@ body { background-color: var(--ctf-bg-page) !important; }
 }
 .ctf-page-select:focus { outline: none; border-color: var(--ctf-accent); }
 
+/* ── Sortable headers ───────────────────────────────────────────────────── */
+.ctf-sort-link {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  cursor: pointer;
+  transition: color .15s;
+}
+.ctf-sort-link:hover { color: var(--ctf-accent); text-decoration: none; }
+.ctf-sort-link.active { color: var(--ctf-accent); }
+.ctf-sort-icon { font-size: .55rem; opacity: .5; }
+.ctf-sort-link.active .ctf-sort-icon { opacity: 1; }
+
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
   .ctf-user-list-head { grid-template-columns: 1fr 80px; }
@@ -362,7 +377,9 @@ body { background-color: var(--ctf-bg-page) !important; }
 
   <!-- Search bar -->
   {% with form = Forms.users.PublicUserSearchForm(field=field, q=q) %}
-    <form method="GET">
+    <form method="GET" id="users-search-form">
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <input type="hidden" name="order" value="{{ order }}">
       <div class="ctf-filter-bar">
         {{ form.field(class="ctf-select") }}
         {{ form.q(class="ctf-input", placeholder=form.q.description) }}
@@ -376,9 +393,24 @@ body { background-color: var(--ctf-bg-page) !important; }
   <!-- User list -->
   <div class="ctf-user-list">
     <!-- Header -->
+    {%- set name_order = 'asc' if (sort == 'name' and order == 'desc') else 'desc' if sort != 'name' else 'asc' -%}
+    {%- set name_order = 'desc' if (sort == 'name' and order == 'asc') else ('asc' if sort != 'name') -%}
+    {%- set score_order = 'asc' if (sort == 'score' and order == 'desc') else 'desc' -%}
     <div class="ctf-user-list-head">
-      <span>{% trans %}User{% endtrans %}</span>
-      <span class="ctf-col-pts text-right" style="text-align:right;padding-right:.5rem;">{% trans %}Points{% endtrans %}</span>
+      <span>
+        <a class="ctf-sort-link{% if sort == 'name' %} active{% endif %}"
+           href="?sort=name&order={{ 'asc' if (sort == 'name' and order == 'desc') else 'desc' if (sort == 'name' and order == 'asc') else 'asc' }}{% if q %}&field={{ field }}&q={{ q }}{% endif %}">
+          {% trans %}User{% endtrans %}
+          <i class="fas fa-{% if sort == 'name' %}{% if order == 'asc' %}sort-up{% else %}sort-down{% endif %}{% else %}sort{% endif %} ctf-sort-icon"></i>
+        </a>
+      </span>
+      <span class="ctf-col-pts" style="text-align:right;padding-right:.5rem;">
+        <a class="ctf-sort-link{% if sort == 'score' %} active{% endif %}"
+           href="?sort=score&order={{ 'asc' if (sort == 'score' and order == 'desc') else 'desc' }}{% if q %}&field={{ field }}&q={{ q }}{% endif %}">
+          {% trans %}Points{% endtrans %}
+          <i class="fas fa-{% if sort == 'score' %}{% if order == 'asc' %}sort-up{% else %}sort-down{% endif %}{% else %}sort-down{% endif %} ctf-sort-icon"></i>
+        </a>
+      </span>
       <span class="ctf-col-country">{% trans %}Country{% endtrans %}</span>
     </div>
 
