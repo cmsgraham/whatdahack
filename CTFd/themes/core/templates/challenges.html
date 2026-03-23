@@ -3,6 +3,7 @@
 {% block stylesheets %}
 {{ super() }}
 <style>
+[x-cloak] { display: none !important; }
 /* ── Theme tokens — light (default) ────────────────────────────────────── */
 :root,
 [data-bs-theme="light"] {
@@ -728,7 +729,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
       </div>
 
       <!-- Filter bar (inside ChallengeBoard so getCategories() is accessible) -->
-      <div x-show="loaded" class="challenge-filters" style="display:none!important" x-cloak>
+      <div x-show="loaded" class="challenge-filters" x-cloak>
         <!-- Category filter -->
         <select class="cf-select" x-model="filterCat">
           <option value="all">All Categories</option>
@@ -789,7 +790,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
       </div>
 
       <!-- Challenge grid -->
-      <div x-show="loaded" style="display:none!important" x-cloak>
+      <div x-show="loaded" x-cloak>
         <template x-for="(category, idx) in getCategories()" :key="idx">
 
           <!-- Section: visible only when category matches filter AND has results -->
