@@ -38,8 +38,13 @@
   --st-hdr2:       #161b22;
 }
 
-.jumbotron { display: none !important; }
-body { background: var(--st-bg) !important; }
+/* ── Fix: form wrapper breaks Bootstrap's direct-child tab hiding rule ──── */
+/* Bootstrap uses .tab-content > .tab-pane (direct child), but our panes    */
+/* are .tab-content > form > .tab-pane, so override with descendant selector */
+.tab-content .tab-pane { display: none; }
+.tab-content .tab-pane.active { display: block; }
+
+
 
 /* ── Page header ──────────────────────────────────────────────────────────── */
 .st-header {
