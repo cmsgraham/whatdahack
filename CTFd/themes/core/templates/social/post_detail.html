@@ -58,6 +58,14 @@ body{
 .bnav-item:hover,.bnav-item.active{color:var(--app-accent);}
 .bnav-item i{font-size:1.15rem;}
 .bnav-label{font-size:.6rem;font-weight:600;letter-spacing:.5px;}
+.bnav-item--create{padding:0!important;gap:0!important;justify-content:center;}
+.bnav-create{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--app-accent),var(--app-accent2));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;margin-top:-10px;
+  box-shadow:0 4px 14px rgba(var(--app-accent-rgb),.35);
+}
 @media(min-width:640px){
   .app-bottom-nav{display:none;}
   .detail-shell{padding-bottom:0;}
@@ -509,8 +517,8 @@ body{
     <a href="/feed" class="bnav-item">
       <i class="fas fa-home"></i><span class="bnav-label">Feed</span>
     </a>
-    <a href="/feed" class="bnav-item" style="padding-top:0;">
-      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--app-accent),var(--app-accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;margin-top:-14px;box-shadow:0 4px 14px rgba(var(--app-accent-rgb),.35);"><i class="fas fa-plus"></i></div>
+    <a href="/feed" class="bnav-item bnav-item--create">
+      <div class="bnav-create"><i class="fas fa-plus"></i></div>
     </a>
     <a href="/feed" class="bnav-item">
       <i class="fas fa-bell"></i><span class="bnav-label">Alerts</span>
