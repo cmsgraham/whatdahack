@@ -317,6 +317,41 @@ body { background: var(--lb-page) !important; }
 .lb-chart-body label[for],
 .lb-chart-body select { display: none !important; }
 
+/* Bottom Nav */
+.app-bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:90;
+  background:var(--lb-surface);
+  border-top:1px solid var(--lb-border);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+[data-bs-theme="dark"] .app-bottom-nav{background:rgba(22,24,28,.92);}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:.55rem 0 .35rem;gap:.15rem;cursor:pointer;
+  color:var(--lb-muted);text-decoration:none;transition:color .12s;
+  border:none;background:none;font-family:inherit;
+}
+.bnav-item:hover,.bnav-item.active{color:var(--lb-accent);}
+.bnav-item i{font-size:1.15rem;}
+.bnav-label{font-size:.6rem;font-weight:600;letter-spacing:.5px;}
+.bnav-spacer{flex:1;}
+.bnav-item--create{
+  position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(6px + env(safe-area-inset-bottom,0px));
+  padding:0;z-index:1;text-decoration:none;
+}
+.bnav-create{
+  width:48px;height:48px;border-radius:50%;
+  background:linear-gradient(135deg,var(--lb-accent),#06b6d4);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;border:none;cursor:pointer;
+  box-shadow:0 4px 14px rgba(var(--lb-acc-rgb),.35);
+  transition:transform .15s,box-shadow .15s;
+}
+.bnav-create:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(var(--lb-acc-rgb),.45);}
+
 /* Responsive */
 @media (max-width: 575.98px) {
   .lb-thead { grid-template-columns: 46px 36px 1fr 76px; padding: .45rem .9rem; }
@@ -324,6 +359,10 @@ body { background: var(--lb-page) !important; }
   .lb-hero-title { font-size: 1.9rem; letter-spacing: -1px; }
   .lb-score-label { display: none; }
   .lb-bracket-tag { display: none; }
+  .lb-body { padding-bottom: calc(70px + env(safe-area-inset-bottom,0px)); }
+}
+@media (min-width: 640px) {
+  .app-bottom-nav { display:none; }
 }
 </style>
 {% endblock %}
@@ -492,6 +531,26 @@ body { background: var(--lb-page) !important; }
     </div><!-- /#scoreboard -->
   </div>
 </div>
+
+<!-- Bottom Nav Bar -->
+<nav class="app-bottom-nav">
+  <a href="/feed" class="bnav-item">
+    <i class="fas fa-home"></i><span class="bnav-label">Feed</span>
+  </a>
+  <a href="/feed" class="bnav-item">
+    <i class="fas fa-bell"></i><span class="bnav-label">Alerts</span>
+  </a>
+  <div class="bnav-spacer"></div>
+  <a href="/scoreboard" class="bnav-item active">
+    <i class="fas fa-trophy"></i><span class="bnav-label">Score</span>
+  </a>
+  <a href="/feed/user/me" class="bnav-item">
+    <i class="fas fa-user"></i><span class="bnav-label">Profile</span>
+  </a>
+  <a href="/feed" class="bnav-item--create">
+    <div class="bnav-create"><i class="fas fa-plus"></i></div>
+  </a>
+</nav>
 
 {% endblock %}
 
