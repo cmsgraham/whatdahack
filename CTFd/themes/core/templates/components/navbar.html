@@ -346,13 +346,11 @@
       <!-- Left links -->
       <ul class="navbar-nav me-auto ctf-nav-links">
         {% for page in Plugins.user_menu_pages %}
-          {% if not page.route.startswith('/resources') %}
           <li class="nav-item">
             <a class="nav-link" href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
               {{ page.title }}
             </a>
           </li>
-          {% endif %}
         {% endfor %}
 
         {% if Configs.account_visibility != 'admins' %}
@@ -404,31 +402,13 @@
         </li>
 
         <!-- Resources dropdown -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle {% if request.path.startswith('/resources') %}active{% endif %}"
-             href="#" id="nav-resources-dd" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false">
+        <li class="nav-item dropdown" x-data="{ open: false }" @click.outside="open = false">
+          <a class="nav-link dropdown-toggle {% if request.path == '/kali' %}active{% endif %}"
+             href="#" role="button" @click.prevent="open = !open" :aria-expanded="open">
             <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %}
           </a>
-          <ul class="dropdown-menu ctf-dropdown-menu" aria-labelledby="nav-resources-dd">
-            <li>
-              <a class="dropdown-item" href="/resources">
-                <i class="fas fa-th" style="width:1.1em;opacity:.6;"></i> All Domains
-              </a>
-            </li>
-            <li><hr class="dropdown-divider ctf-dd-divider"></li>
-            <li><a class="dropdown-item" href="/resources/web"><span style="margin-right:.45rem;">🌐</span> Web Security</a></li>
-            <li><a class="dropdown-item" href="/resources/crypto"><span style="margin-right:.45rem;">🔐</span> Cryptography</a></li>
-            <li><a class="dropdown-item" href="/resources/reverse-engineering"><span style="margin-right:.45rem;">🔬</span> Reverse Engineering</a></li>
-            <li><a class="dropdown-item" href="/resources/forensics"><span style="margin-right:.45rem;">🔍</span> Forensics</a></li>
-            <li><a class="dropdown-item" href="/resources/pwn"><span style="margin-right:.45rem;">💥</span> Binary Exploitation</a></li>
-            <li><a class="dropdown-item" href="/resources/misc"><span style="margin-right:.45rem;">🎲</span> Miscellaneous</a></li>
-            <li><a class="dropdown-item" href="/resources/osint"><span style="margin-right:.45rem;">👁️</span> OSINT</a></li>
-            <li><a class="dropdown-item" href="/resources/cloud"><span style="margin-right:.45rem;">☁️</span> Cloud / DevOps</a></li>
-            <li><a class="dropdown-item" href="/resources/mobile"><span style="margin-right:.45rem;">📱</span> Mobile</a></li>
-            <li><a class="dropdown-item" href="/resources/hardware"><span style="margin-right:.45rem;">🔧</span> Hardware / IoT</a></li>
-            <li><hr class="dropdown-divider ctf-dd-divider"></li>
-            <li><a class="dropdown-item" href="/kali"><span style="margin-right:.45rem;">🐉</span> Kali Linux Guide</a></li>
+          <ul class="dropdown-menu ctf-dropdown-menu" :class="{ 'show': open }">
+            <li><a class="dropdown-item" href="/kali"><span style="margin-right:.45rem;">🐉</span> Kali Linux Guide &amp; Cheat Sheet</a></li>
           </ul>
         </li>
       </ul>
