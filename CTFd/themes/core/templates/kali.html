@@ -178,23 +178,43 @@ body { background: var(--k-bg-page); }
   display: flex; align-items: center; gap: .4rem;
 }
 .k-cheat-cat-title i { font-size: .75rem; }
-.k-cheat-table { width: 100%; border-collapse: collapse; }
+.k-cheat-table { width: 100%; border-collapse: separate; border-spacing: 0 2px; }
 .k-cheat-table th {
   text-align: left; font-size: .68rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .8px; color: var(--k-text-muted); padding: .4rem .6rem;
+  letter-spacing: .8px; color: var(--k-text-muted); padding: .5rem .75rem;
   border-bottom: 1px solid var(--k-border); background: var(--k-bg-elevated);
 }
 .k-cheat-table td {
-  padding: .45rem .6rem; border-bottom: 1px solid rgba(var(--k-accent-rgb),.06);
-  font-size: .82rem; color: var(--k-text); vertical-align: top;
+  padding: .55rem .75rem; border-bottom: 1px solid rgba(var(--k-accent-rgb),.06);
+  font-size: .82rem; color: var(--k-text); vertical-align: middle;
 }
 .k-cheat-table tr:hover td { background: rgba(var(--k-accent-rgb),.03); }
-.k-cheat-table td:first-child { white-space: nowrap; width: 1%; }
+
+/* Command cell — code block styling */
+.k-cheat-table td.k-cmd-cell { white-space: nowrap; width: 1%; position: relative; padding-right: 2.4rem; }
 .k-cheat-table code {
-  background: var(--k-bg-code); padding: .12rem .4rem; border-radius: 4px;
-  font-size: .75rem; font-family: 'SF Mono', Monaco, Consolas, monospace;
-  color: var(--k-accent); word-break: break-all; white-space: normal;
+  display: inline-block;
+  background: var(--k-bg-code); padding: .25rem .55rem; border-radius: 6px;
+  font-size: .76rem; font-family: 'SF Mono', Monaco, Consolas, monospace;
+  color: var(--k-accent); white-space: pre; word-break: keep-all;
+  max-width: 54vw; overflow-x: auto; scrollbar-width: thin;
+  border: 1px solid rgba(var(--k-accent-rgb),.1);
 }
+.k-cheat-table code::-webkit-scrollbar { height: 3px; }
+.k-cheat-table code::-webkit-scrollbar-thumb { background: rgba(var(--k-accent-rgb),.25); border-radius: 3px; }
+
+/* Copy button */
+.k-copy-btn {
+  position: absolute; right: .4rem; top: 50%; transform: translateY(-50%);
+  background: transparent; border: none; cursor: pointer;
+  color: var(--k-text-muted); font-size: .7rem; padding: .25rem;
+  border-radius: 4px; opacity: 0; transition: opacity .15s, color .15s, background .15s;
+  line-height: 1; display: inline-flex; align-items: center; justify-content: center;
+}
+.k-copy-btn:hover { color: var(--k-accent); background: rgba(var(--k-accent-rgb),.1); }
+.k-copy-btn.copied { color: var(--k-accent); opacity: 1; }
+tr:hover .k-copy-btn { opacity: 1; }
+
 .k-cheat-table .k-desc { color: var(--k-text-muted); font-size: .78rem; }
 .k-cheat-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
 @media (min-width: 768px) { .k-cheat-grid { grid-template-columns: 1fr 1fr; } }
@@ -205,6 +225,8 @@ body { background: var(--k-bg-page); }
   .k-section-title { font-size: 1.1rem; }
   .k-step { flex-direction: column; gap: .6rem; }
   .k-tool { flex-direction: column; gap: .6rem; }
+  .k-cheat-table code { max-width: 65vw; }
+  .k-cheat-table td.k-cmd-cell { padding-right: 2rem; }
 }
 </style>
 {% endblock %}
@@ -1155,4 +1177,35 @@ body { background: var(--k-bg-page); }
   </section>
 
 </div>
+
+<script>
+(function(){
+  // Add k-cmd-cell class and copy buttons to command cells
+  document.querySelectorAll('.k-cheat-table').forEach(function(table){
+    table.querySelectorAll('tbody tr').forEach(function(row){
+      var cells = row.querySelectorAll('td');
+      cells.forEach(function(td){
+        if(td.classList.contains('k-desc')) return;
+        var code = td.querySelector('code');
+        if(!code) return;
+        td.classList.add('k-cmd-cell');
+        var btn = document.createElement('button');
+        btn.className = 'k-copy-btn';
+        btn.title = 'Copy command';
+        btn.innerHTML = '<i class="fas fa-copy"></i>';
+        btn.addEventListener('click', function(e){
+          e.preventDefault();
+          var text = code.textContent;
+          navigator.clipboard.writeText(text).then(function(){
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.classList.add('copied');
+            setTimeout(function(){ btn.innerHTML = '<i class="fas fa-copy"></i>'; btn.classList.remove('copied'); }, 1500);
+          });
+        });
+        td.appendChild(btn);
+      });
+    });
+  });
+})();
+</script>
 {% endblock %}
