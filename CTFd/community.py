@@ -42,6 +42,7 @@ VALID_DIFFICULTIES = ("easy", "medium", "hard", "insane")
 
 
 @community.route("/community")
+@authed_only
 def browse():
     total_challenges = CommunityChallenge.query.filter_by(state="published").count()
     total_solves = (
@@ -81,6 +82,7 @@ def edit(challenge_id):
 
 
 @community.route("/community/challenge/<int:challenge_id>")
+@authed_only
 def detail(challenge_id):
     ch = CommunityChallenge.query.get_or_404(challenge_id)
     if ch.state != "published":
@@ -119,6 +121,7 @@ def _serialize_challenge(c, solved_ids=None, user_ratings=None):
 
 
 @community.route("/community/api/challenges", methods=["GET"])
+@authed_only
 def api_list_challenges():
     page = request.args.get("page", 1, type=int)
     per_page = min(request.args.get("per_page", 20, type=int), 100)
@@ -283,6 +286,7 @@ def api_create_challenge():
 
 
 @community.route("/community/api/challenges/<int:cid>", methods=["GET"])
+@authed_only
 def api_get_challenge(cid):
     ch = CommunityChallenge.query.get_or_404(cid)
     if ch.state != "published":
@@ -640,6 +644,7 @@ def api_rate_challenge(cid):
 
 
 @community.route("/community/api/categories", methods=["GET"])
+@authed_only
 def api_categories():
     rows = (
         db.session.query(

@@ -56,6 +56,7 @@ def _score_subquery():
 
 
 @users.route("/users")
+@authed_only
 @check_account_visibility
 def listing():
     q = request.args.get("q")
@@ -127,6 +128,7 @@ def private():
 
 
 @users.route("/users/<int:user_id>")
+@authed_only
 @check_account_visibility
 @check_score_visibility
 def public(user_id):

@@ -5,6 +5,7 @@ from CTFd.constants.config import ChallengeVisibilityTypes, Configs
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.dates import ctf_ended, ctf_paused, ctf_started
 from CTFd.utils.decorators import (
+    authed_only,
     during_ctf_time_only,
     require_complete_profile,
     require_verified_emails,
@@ -17,6 +18,7 @@ challenges = Blueprint("challenges", __name__)
 
 
 @challenges.route("/challenges", methods=["GET"])
+@authed_only
 @require_complete_profile
 @during_ctf_time_only
 @require_verified_emails

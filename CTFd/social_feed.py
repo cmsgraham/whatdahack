@@ -96,11 +96,13 @@ def _serialize_comment(c, liked_ids=None, current_uid=None):
 
 
 @social_feed.route("/feed")
+@authed_only
 def feed():
     return render_template("social/feed.html")
 
 
 @social_feed.route("/feed/post/<int:post_id>")
+@authed_only
 def post_detail(post_id):
     p = SocialPost.query.get_or_404(post_id)
     if p.deleted and not is_admin():
@@ -109,6 +111,7 @@ def post_detail(post_id):
 
 
 @social_feed.route("/feed/user/<int:user_id>")
+@authed_only
 def user_profile(user_id):
     from CTFd.models import Users
 
@@ -167,6 +170,7 @@ def api_upload_image():
 
 
 @social_feed.route("/feed/api/posts", methods=["GET"])
+@authed_only
 def api_list_posts():
     page = request.args.get("page", 1, type=int)
     per_page = min(request.args.get("per_page", 20, type=int), 50)
@@ -323,6 +327,7 @@ def api_delete_post(pid):
 
 
 @social_feed.route("/feed/api/posts/<int:pid>", methods=["GET"])
+@authed_only
 def api_get_post(pid):
     p = SocialPost.query.get_or_404(pid)
     if p.deleted and not is_admin():
@@ -379,6 +384,7 @@ def api_toggle_like_post(pid):
 
 
 @social_feed.route("/feed/api/posts/<int:pid>/comments", methods=["GET"])
+@authed_only
 def api_list_comments(pid):
     p = SocialPost.query.get_or_404(pid)
     if p.deleted and not is_admin():
@@ -559,6 +565,7 @@ def api_toggle_follow(uid):
 
 
 @social_feed.route("/feed/api/users/<int:uid>/profile", methods=["GET"])
+@authed_only
 def api_user_profile(uid):
     from CTFd.models import Users
 

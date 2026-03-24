@@ -35,6 +35,7 @@ from CTFd.utils.competitions import (
 from CTFd.utils.config import is_teams_mode
 from CTFd.utils.config.visibility import scores_visible
 from CTFd.utils.decorators import (
+    authed_only,
     require_complete_profile,
     require_competition_registered,
     require_verified_emails,
@@ -76,6 +77,7 @@ def _inject_competition(slug):
 
 
 @competitions.route("/competitions")
+@authed_only
 def listing():
     """List all publicly visible, non-archived competitions."""
     from CTFd.models import Competition
@@ -110,6 +112,7 @@ def listing():
 
 
 @competitions.route("/competitions/<slug>")
+@authed_only
 def show(slug):
     """Render the competition landing page."""
     import time as _time
@@ -143,6 +146,7 @@ def show(slug):
 
 
 @competitions.route("/competitions/history")
+@authed_only
 def history():
     """List all ended and archived competitions (historical record)."""
     from CTFd.models import Competition
@@ -210,6 +214,7 @@ def challenges(slug):
 
 
 @competitions.route("/competitions/<slug>/scoreboard")
+@authed_only
 @check_account_visibility
 @check_score_visibility
 def scoreboard(slug):
@@ -234,6 +239,7 @@ def scoreboard(slug):
 
 
 @competitions.route("/leaderboard")
+@authed_only
 @check_account_visibility
 @check_score_visibility
 def leaderboard():
