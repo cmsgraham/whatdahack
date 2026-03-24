@@ -128,6 +128,10 @@
 			var diffEl = document.querySelector("select[name=difficulty]");
 			var difficulty = diffEl ? diffEl.value : "";
 
+			// Try to grab the first flag value from the Flags tab
+			var flagEl = document.querySelector("#flags input[type=text], #flags textarea");
+			var flagVal = flagEl ? flagEl.value : "";
+
 			fetch("/community/api/generate-banner", {
 				method: "POST",
 				credentials: "same-origin",
@@ -140,6 +144,7 @@
 					category: category,
 					difficulty: difficulty,
 					description: desc.substring(0, 300),
+					flag: flagVal,
 					custom_prompt: aiPrompt.value
 				})
 			})

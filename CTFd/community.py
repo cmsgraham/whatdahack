@@ -234,6 +234,32 @@ def api_upload_file():
 
 logger = logging.getLogger(__name__)
 
+import re as _re
+
+
+def _extract_flag_hint(flag_raw):
+    """Return a safe, partial visual hint derived from a flag.
+
+    Rules:
+    - Strip common wrappers  (flag{…}, CTF{…}, whatdahack{…}, etc.)
+    - Take ≤40 % of the inner content (min 2, max 8 chars)
+    - Append '…' so it's clearly incomplete
+    - Never return the full inner content
+    """
+    if not flag_raw or len(flag_raw) < 4:
+        return None
+    # Strip wrapper  e.g. flag{inner}
+    m = _re.match(r'^[A-Za-z0-9_]+\{(.+)\}$', flag_raw)
+    inner = m.group(1) if m else flag_raw
+    if len(inner) < 4:
+        return None
+    cut = max(2, min(8, int(len(inner) * 0.4)))
+    # Safety: never return full inner
+    if cut >= len(inner):
+        cut = max(2, len(inner) // 2)
+    return inner[:cut] + '…'
+
+
 BANNER_SIZE = "1792x1024"
 BANNER_DEFAULT_PROMPT = (
     "Create a clean, high-contrast banner image for a cybersecurity CTF challenge, "
@@ -272,6 +298,7 @@ def api_generate_banner():
     difficulty = (data.get("difficulty") or "").strip()
     description = (data.get("description") or "").strip()[:300]
     custom_prompt = (data.get("custom_prompt") or "").strip()[:500]
+    flag_raw = (data.get("flag") or "").strip()
 
     # Build the prompt from challenge content
     context_parts = []
@@ -284,9 +311,21 @@ def api_generate_banner():
     if description:
         context_parts.append(f"Brief description: {description}")
 
+    # Extract a partial flag hint — never the full flag
+    flag_hint = _extract_flag_hint(flag_raw)
+
     prompt = BANNER_DEFAULT_PROMPT
     if context_parts:
         prompt += " " + ". ".join(context_parts) + "."
+    if flag_hint:
+        prompt += (
+            f" Hidden clue: subtly embed a visual representation or symbolic reference "
+            f"to the partial text '{flag_hint}' somewhere in the image — as a texture, "
+            f"pattern, reflection, shadow, or embedded in the environment (e.g. on a "
+            f"screen, wall, hologram). It should look like an Easter egg that a keen "
+            f"observer would notice but NOT be the main focus. Do NOT write it as "
+            f"plain readable text — make it cryptic, partially obscured, or stylised."
+        )
     if custom_prompt:
         prompt += " Additional creative direction: " + custom_prompt
 
