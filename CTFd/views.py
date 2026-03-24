@@ -399,6 +399,14 @@ def files(path):
     :param path:
     :return:
     """
+    # Social feed images are stored on disk without a Files DB record
+    if path.startswith("social/"):
+        upload_folder = app.config.get("UPLOAD_FOLDER", os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads"))
+        fpath = safe_join(upload_folder, path)
+        if fpath and os.path.isfile(fpath):
+            return send_file(fpath)
+        abort(404)
+
     f = Files.query.filter_by(location=path).first_or_404()
     if f.type == "challenge":
         if challenges_visible():
