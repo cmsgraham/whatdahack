@@ -1052,7 +1052,7 @@ function App(){
 
     async deletePost(id){
       if(!confirm('Delete this post?'))return;
-      try{await fetch('/feed/api/posts/'+id,{method:'DELETE',headers:{'CSRF-Token':window.init.csrfNonce}});
+      try{await fetch('/feed/api/posts/'+id,{method:'DELETE',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce}});
         this.posts=this.posts.filter(p=>p.id!==id);}catch(e){}
     },
     reportPost(id){
@@ -1136,7 +1136,7 @@ function App(){
     },
     async deleteComment(c){
       if(!confirm('Delete?'))return;
-      try{await fetch('/feed/api/comments/'+c.id,{method:'DELETE',headers:{'CSRF-Token':window.init.csrfNonce}});
+      try{await fetch('/feed/api/comments/'+c.id,{method:'DELETE',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce}});
         const r=await fetch('/feed/api/posts/'+this.commentSheet.postId+'/comments');
         const j=await r.json();
         if(j.success)this.commentSheet.comments=j.data.map(function(c){return Object.assign({},c,{_replying:false,_replyText:''});});

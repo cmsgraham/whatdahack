@@ -657,7 +657,7 @@ function PostDetail(){
       if(!confirm('Delete this comment?'))return;
       try{
         await fetch('/feed/api/comments/'+c.id,{
-          method:'DELETE',headers:{'CSRF-Token':window.init.csrfNonce},
+          method:'DELETE',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce},
         });
         await this.fetchComments();
         if(this.post)this.post.comment_count=Math.max(0,(this.post.comment_count||1)-1);
