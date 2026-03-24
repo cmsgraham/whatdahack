@@ -33,59 +33,16 @@
 .jumbotron { display: none !important; }
 body { background-color: var(--comp-bg-page) !important; }
 
-/* ── Page header ────────────────────────────────────────────────────────── */
-.comp-hero {
-  padding: 3rem 0 2.5rem;
-  background: linear-gradient(135deg, var(--comp-bg-header1) 0%, var(--comp-bg-header2) 100%);
-  border-bottom: 1px solid var(--comp-border);
-  position: relative;
-  overflow: hidden;
-}
-.comp-hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--comp-accent-rgb), .07) 0%, transparent 60%);
-  pointer-events: none;
-}
-.comp-hero .breadcrumb {
-  background: transparent;
-  padding: 0;
-  margin-bottom: .6rem;
-  font-size: .75rem;
-  letter-spacing: .4px;
-}
-.comp-hero .breadcrumb-item + .breadcrumb-item::before { color: var(--comp-muted); }
-.comp-hero .breadcrumb-item a { color: var(--comp-accent); text-decoration: none; }
-.comp-hero .breadcrumb-item a:hover { text-decoration: underline; }
-.comp-hero .breadcrumb-item.active { color: var(--comp-muted); }
+/* ── Page header — uses unified component ───────────────────────────────── */
 
-.comp-hero h1 {
-  font-size: 2rem;
-  font-weight: 800;
-  color: var(--comp-text);
-  letter-spacing: -.5px;
-  margin-bottom: .5rem;
-}
-.comp-hero h1 .accent { color: var(--comp-accent); }
-.comp-hero .comp-meta {
-  font-size: .82rem;
-  color: var(--comp-muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: .75rem;
-  align-items: center;
-  margin-top: .4rem;
-}
-.comp-hero .comp-meta i { opacity: .7; }
-
-/* ── Active badge ────────────────────────────────────────────────────────── */
+/* ── Active badge (used in hero extra area) ──────────────────────────────── */
 .comp-badge-active {
   display: inline-flex;
   align-items: center;
   gap: .3rem;
-  background: rgba(var(--comp-accent-rgb), .15);
-  color: var(--comp-accent);
-  border: 1px solid rgba(var(--comp-accent-rgb), .35);
+  background: rgba(var(--ph-acc-rgb), .15);
+  color: var(--ph-accent);
+  border: 1px solid rgba(var(--ph-acc-rgb), .35);
   border-radius: 999px;
   padding: .2rem .65rem;
   font-size: .7rem;
@@ -97,13 +54,25 @@ body { background-color: var(--comp-bg-page) !important; }
   content: '';
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: var(--comp-accent);
+  background: var(--ph-accent);
   animation: comp-pulse 1.6s ease-in-out infinite;
 }
 @keyframes comp-pulse {
   0%,100% { opacity:1; transform:scale(1); }
   50%      { opacity:.5; transform:scale(1.3); }
 }
+
+/* ── Comp meta (inside hero extra) ───────────────────────────────────────── */
+.comp-meta {
+  font-size: .82rem;
+  color: rgba(248,250,252,.45);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .75rem;
+  align-items: center;
+  margin-top: .4rem;
+}
+.comp-meta i { opacity: .7; }
 
 /* ── Content area ────────────────────────────────────────────────────────── */
 .comp-body { padding: 2.5rem 0 3rem; }
@@ -242,7 +211,6 @@ body { background-color: var(--comp-bg-page) !important; }
 }
 
 @media (max-width: 575.98px) {
-  .comp-hero h1 { font-size: 1.5rem; }
   .comp-info-grid { grid-template-columns: 1fr 1fr; }
 }
 </style>
@@ -251,26 +219,18 @@ body { background-color: var(--comp-bg-page) !important; }
 {% block content %}
 
 <!-- Hero / page header -->
-<div class="comp-hero">
-  <div class="container">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <a href="{{ url_for('competitions.listing') }}">
-            <i class="fas fa-layer-group me-1"></i>{% trans %}Competitions{% endtrans %}
-          </a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">{{ competition.name }}</li>
-      </ol>
-    </nav>
-
-    <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
-      <h1><span class="accent">[</span> {{ competition.name }} <span class="accent">]</span></h1>
-      {% if active_competition and active_competition.id == competition.id %}
-        <span class="comp-badge-active">{% trans %}Active{% endtrans %}</span>
-      {% endif %}
-    </div>
-
+{% set ph_eyebrow  = "Competition" %}
+{% set ph_title    = competition.name %}
+{% set ph_accent   = "" %}
+{% set ph_subtitle = "// " ~ competition.name ~ " — competition hub" %}
+{% set ph_breadcrumbs = [
+  {"label": "Competitions", "url": url_for('competitions.listing')},
+  {"label": competition.name}
+] %}
+{% set ph_extra_html %}
+    {% if active_competition and active_competition.id == competition.id %}
+      <span class="comp-badge-active">{% trans %}Active{% endtrans %}</span>
+    {% endif %}
     <div class="comp-meta">
       {% if competition.start %}
         <span><i class="fas fa-play-circle me-1"></i>{{ competition.start.strftime('%b %d, %Y %H:%M UTC') }}</span>
@@ -283,8 +243,8 @@ body { background-color: var(--comp-bg-page) !important; }
         {% if competition.team_size and competition.team_size > 0 %}(max {{ competition.team_size }}){% endif %}
       </span>
     </div>
-  </div>
-</div>
+{% endset %}
+{% include "components/page_header.html" %}
 
 <!-- Body -->
 <div class="comp-body">

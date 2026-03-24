@@ -12,54 +12,23 @@
 {% block stylesheets %}
 {{ super() }}
 <style>
-/* ── Competition scoreboard banner ─────────────────────────────────────── */
-.comp-sb-banner {
-  background: linear-gradient(135deg, var(--lb-hdr-from) 0%, var(--lb-hdr-to) 100%);
-  border-bottom: 1px solid var(--lb-border);
-  padding: 2.2rem 0 1.8rem;
-  position: relative;
-  overflow: hidden;
-}
-.comp-sb-banner::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--lb-acc-rgb), .07) 0%, transparent 60%);
-  pointer-events: none;
-}
-.comp-sb-banner .breadcrumb {
-  background: transparent; padding: 0; margin-bottom: .5rem;
-  font-size: .73rem; letter-spacing: .4px;
-}
-.comp-sb-banner .breadcrumb-item + .breadcrumb-item::before { color: var(--lb-muted); }
-.comp-sb-banner .breadcrumb-item a { color: var(--lb-accent); text-decoration: none; }
-.comp-sb-banner .breadcrumb-item a:hover { text-decoration: underline; }
-.comp-sb-banner .breadcrumb-item.active { color: var(--lb-muted); }
-.comp-sb-banner h1 {
-  font-size: 1.8rem; font-weight: 800;
-  color: var(--lb-text);
-  letter-spacing: -.4px; margin-bottom: .35rem;
-}
-.comp-sb-banner h1 .accent { color: var(--lb-accent); }
-.comp-sb-banner .comp-context-links {
-  display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem;
-}
+/* ── Competition scoreboard — uses unified page header ─────────────────── */
 .comp-context-link {
   display: inline-flex; align-items: center; gap: .3rem;
   font-size: .73rem; font-weight: 600; letter-spacing: .5px;
   text-transform: uppercase;
-  color: var(--lb-accent);
+  color: var(--ph-accent);
   text-decoration: none;
   padding: .22rem .6rem;
-  border: 1px solid rgba(var(--lb-acc-rgb), .35);
+  border: 1px solid rgba(var(--ph-acc-rgb), .35);
   border-radius: 6px;
   transition: background .15s;
 }
-.comp-context-link:hover { background: rgba(var(--lb-acc-rgb), .08); }
+.comp-context-link:hover { background: rgba(var(--ph-acc-rgb), .08); }
 .comp-context-link.is-active {
-  background: rgba(var(--lb-acc-rgb), .12);
-  border-color: rgba(var(--lb-acc-rgb), .5);
+  background: rgba(var(--ph-acc-rgb), .12);
+  border-color: rgba(var(--ph-acc-rgb), .5);
 }
-/* Hide the base scoreboard page header (we replaced it) */
-.ctf-page-header { display: none !important; }
 </style>
 {% endblock %}
 
@@ -71,33 +40,26 @@
 {{ super() }}
 {% endblock %}
 
-{% block content %}
+{% block page_hero %}
 <!-- Competition scoreboard banner -->
-<div class="comp-sb-banner">
-  <div class="container">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <a href="{{ url_for('competitions.listing') }}">{% trans %}Competitions{% endtrans %}</a>
-        </li>
-        <li class="breadcrumb-item">
-          <a href="{{ url_for('competitions.show', slug=competition.slug) }}">{{ competition.name }}</a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans %}Scoreboard{% endtrans %}</li>
-      </ol>
-    </nav>
-
-    <h1><span class="accent">[</span> {{ competition.name }} <span class="accent">]</span></h1>
-
+{% set ph_eyebrow  = "Competition" %}
+{% set ph_title    = competition.name %}
+{% set ph_accent   = "" %}
+{% set ph_subtitle = "// " ~ competition.name ~ " — scoreboard" %}
+{% set ph_breadcrumbs = [
+  {"label": "Competitions", "url": url_for('competitions.listing')},
+  {"label": competition.name, "url": url_for('competitions.show', slug=competition.slug)},
+  {"label": "Scoreboard"}
+] %}
+{% set ph_extra_html %}
     {% if competition.is_ended %}
-    <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:8px;padding:.65rem 1rem;margin-top:.6rem;display:inline-flex;align-items:center;gap:.5rem;font-size:.82rem;">
+    <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);border-radius:8px;padding:.65rem 1rem;margin-top:.3rem;display:inline-flex;align-items:center;gap:.5rem;font-size:.82rem;">
       <i class="fas fa-flag-checkered" style="color:#b45309"></i>
       <span style="color:#92400e;font-weight:600">{% trans %}Final Standings{% endtrans %}</span>
       <span style="color:#b45309">— {% trans %}This competition has ended. Results are read-only.{% endtrans %}</span>
     </div>
     {% endif %}
-
-    <div class="comp-context-links">
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem;">
       <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-context-link">
         <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
       </a>
@@ -105,9 +67,7 @@
         <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
       </a>
     </div>
-  </div>
-</div>
-
-{{ super() }}
+{% endset %}
+{% include "components/page_header.html" %}
 {% endblock %}
 

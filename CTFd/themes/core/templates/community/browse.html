@@ -32,21 +32,11 @@
 
 body { background: var(--ctf-bg-page); }
 
-/* ── Hero ──────────────────────────────────────────────── */
-.cc-hero {
-  background: linear-gradient(135deg, rgba(var(--ctf-accent-rgb),.12) 0%, rgba(var(--ctf-accent-rgb),.04) 100%);
-  border-bottom: 1px solid var(--ctf-border);
-  padding: 2.5rem 0 2rem;
-}
-.cc-hero-title {
-  font-size: 1.8rem; font-weight: 800; color: var(--ctf-text-primary);
-  letter-spacing: -.02em;
-}
-.cc-hero-sub { color: var(--ctf-text-muted); font-size: .92rem; margin-top: .3rem; }
-.cc-stats { display: flex; gap: 2rem; margin-top: 1.2rem; flex-wrap: wrap; }
+/* ── Hero — now uses unified page header component ─────── */
+.cc-stats { display: flex; gap: 2rem; margin-top: .4rem; flex-wrap: wrap; }
 .cc-stat { text-align: center; }
-.cc-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--ctf-accent); }
-.cc-stat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ctf-text-muted); }
+.cc-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--ph-accent); }
+.cc-stat-label { font-size: .72rem; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(248,250,252,.45); }
 
 /* ── Action bar ────────────────────────────────────────── */
 .cc-actions {
@@ -213,7 +203,6 @@ body { background: var(--ctf-bg-page); }
 .cc-loading i { animation: cc-pulse 1.2s infinite; font-size: 1.5rem; }
 
 @media (max-width: 640px) {
-  .cc-hero-title { font-size: 1.3rem; }
   .cc-grid { grid-template-columns: 1fr; }
   .cc-actions { flex-direction: column; }
   .cc-search { max-width: 100%; }
@@ -226,10 +215,11 @@ body { background: var(--ctf-bg-page); }
 <div x-data="CommunityBrowse()" x-init="init()" x-cloak>
 
   <!-- Hero -->
-  <div class="cc-hero">
-    <div class="container">
-      <div class="cc-hero-title"><i class="fas fa-puzzle-piece" style="opacity:.5;margin-right:.4rem;"></i> Community Challenges</div>
-      <div class="cc-hero-sub">Create, share, solve, and rate challenges built by the community</div>
+  {% set ph_eyebrow  = "Community" %}
+  {% set ph_title    = "Community " %}
+  {% set ph_accent   = "Challenges" %}
+  {% set ph_subtitle = "// create, share, solve, and rate community challenges" %}
+  {% set ph_extra_html %}
       <div class="cc-stats">
         <div class="cc-stat">
           <div class="cc-stat-value">{{ stats.total_challenges }}</div>
@@ -244,8 +234,8 @@ body { background: var(--ctf-bg-page); }
           <div class="cc-stat-label">Authors</div>
         </div>
       </div>
-    </div>
-  </div>
+  {% endset %}
+  {% include "components/page_header.html" %}
 
   <div class="container">
 

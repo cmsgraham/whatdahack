@@ -48,64 +48,7 @@
 .jumbotron { display: none !important; }
 body { background: var(--lb-page) !important; }
 
-/* ── HERO ─────────────────────────────────────────────────────────── */
-.lb-hero {
-  background: linear-gradient(160deg, var(--lb-hdr-from) 0%, var(--lb-hdr-to) 100%);
-  padding: 3.5rem 0 2.8rem;
-  position: relative;
-  overflow: hidden;
-}
-.lb-hero::before {
-  content: '';
-  position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse 90% 70% at 15% 60%,  rgba(var(--lb-acc-rgb),.09) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 90% at 85% 10%,  rgba(var(--lb-acc-rgb),.04) 0%, transparent 50%);
-  pointer-events: none;
-}
-.lb-hero::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(var(--lb-acc-rgb),.55) 50%, transparent 100%);
-}
-.lb-hero-inner {
-  position: relative; z-index: 1;
-  display: flex; align-items: flex-end;
-  justify-content: space-between; flex-wrap: wrap; gap: 1rem;
-}
-.lb-hero-eyebrow {
-  font-size: .65rem; font-weight: 700;
-  letter-spacing: 4px; text-transform: uppercase;
-  color: var(--lb-accent); margin-bottom: .5rem;
-}
-.lb-hero-title {
-  font-size: 2.6rem; font-weight: 900;
-  letter-spacing: -1.5px; color: #f8fafc;
-  line-height: 1; margin: 0;
-}
-.lb-hero-subtitle {
-  font-size: .72rem; color: rgba(248,250,252,.35);
-  letter-spacing: 2px; text-transform: uppercase; margin: .65rem 0 0;
-}
-.lb-hero-badge {
-  display: flex; align-items: center; gap: .5rem;
-  background: rgba(var(--lb-acc-rgb),.12);
-  border: 1px solid rgba(var(--lb-acc-rgb),.25);
-  border-radius: 20px; padding: .4rem .9rem;
-  font-size: .7rem; color: var(--lb-accent);
-  font-weight: 600; letter-spacing: .5px;
-}
-.lb-hero-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--lb-accent);
-  box-shadow: 0 0 0 3px rgba(var(--lb-acc-rgb),.25);
-  animation: lb-pulse 2s ease-in-out infinite;
-}
-@keyframes lb-pulse {
-  0%,100% { box-shadow: 0 0 0 3px rgba(var(--lb-acc-rgb),.25); }
-  50%      { box-shadow: 0 0 0 6px rgba(var(--lb-acc-rgb),.0);  }
-}
+/* ── HERO — now uses unified page header component ─────────────── */
 
 /* ── BODY ─────────────────────────────────────────────────────────── */
 .lb-body { padding: 2rem 0 5rem; }
@@ -330,7 +273,6 @@ body { background: var(--lb-page) !important; }
 @media (max-width: 575.98px) {
   .lb-thead { grid-template-columns: 46px 36px 1fr 76px; padding: .45rem .9rem; }
   .lb-row   { grid-template-columns: 46px 36px 1fr 76px; padding: .85rem .9rem; }
-  .lb-hero-title { font-size: 1.9rem; letter-spacing: -1px; }
   .lb-score-label { display: none; }
   .lb-bracket-tag { display: none; }
   .lb-body { padding-bottom: calc(70px + env(safe-area-inset-bottom,0px)); }
@@ -344,21 +286,14 @@ body { background: var(--lb-page) !important; }
 {% block content %}
 
 <!-- HERO -->
-<div class="lb-hero">
-  <div class="container">
-    <div class="lb-hero-inner">
-      <div>
-        <p class="lb-hero-eyebrow">Platform Rankings</p>
-        <h1 class="lb-hero-title">Leader<span style="color:var(--lb-accent)">board</span></h1>
-        <p class="lb-hero-subtitle">// competitive standings &amp; scores</p>
-      </div>
-      <div class="lb-hero-badge">
-        <span class="lb-hero-dot"></span>
-        Live Scores
-      </div>
-    </div>
-  </div>
-</div>
+{% block page_hero %}
+{% set ph_eyebrow  = "Platform Rankings" %}
+{% set ph_title    = "Leader" %}
+{% set ph_accent   = "board" %}
+{% set ph_subtitle = "// competitive standings & scores" %}
+{% set ph_badge_html = '<div class="ph-hero-badge"><span class="ph-hero-dot"></span> Live Scores</div>' %}
+{% include "components/page_header.html" %}
+{% endblock %}
 
 <!-- BODY -->
 <div class="lb-body">

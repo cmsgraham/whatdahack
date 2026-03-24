@@ -1,0 +1,160 @@
+{#
+  Unified Page Header Component
+  ─────────────────────────────
+  Usage:
+    {% set ph_eyebrow  = "Platform Rankings" %}
+    {% set ph_title    = "Leader" %}
+    {% set ph_accent   = "board" %}
+    {% set ph_subtitle = "// competitive standings & scores" %}
+    {# Optional: ph_breadcrumbs (list of {label, url} dicts; last item has no url) #}
+    {# Optional: ph_badge_html (raw HTML for a badge/pill on the right) #}
+    {# Optional: ph_extra_html (raw HTML rendered below title row, e.g. stats or meta) #}
+    {% include "components/page_header.html" %}
+#}
+
+<!-- ═══ Unified page header CSS (rendered once via <style>) ═══ -->
+<style>
+/* ── Page header tokens ────────────────────────────────────────────────── */
+:root, [data-bs-theme="light"] {
+  --ph-hdr-from:   #1e293b;
+  --ph-hdr-to:     #0f172a;
+  --ph-accent:     #059669;
+  --ph-acc-rgb:    5, 150, 105;
+}
+[data-bs-theme="dark"] {
+  --ph-hdr-from:   #070a10;
+  --ph-hdr-to:     #040609;
+  --ph-accent:     #10b981;
+  --ph-acc-rgb:    16, 185, 129;
+}
+
+/* ── Hero section ──────────────────────────────────────────────────────── */
+.ph-hero {
+  background: linear-gradient(160deg, var(--ph-hdr-from) 0%, var(--ph-hdr-to) 100%);
+  padding: 3.5rem 0 2.8rem;
+  position: relative;
+  overflow: hidden;
+}
+.ph-hero::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 90% 70% at 15% 60%, rgba(var(--ph-acc-rgb),.09) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 90% at 85% 10%, rgba(var(--ph-acc-rgb),.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+.ph-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(var(--ph-acc-rgb),.55) 50%, transparent 100%);
+}
+
+/* ── Breadcrumb ────────────────────────────────────────────────────────── */
+.ph-hero .breadcrumb {
+  background: transparent; padding: 0; margin-bottom: .6rem;
+  font-size: .72rem; letter-spacing: .4px;
+}
+.ph-hero .breadcrumb-item + .breadcrumb-item::before { color: rgba(248,250,252,.3); }
+.ph-hero .breadcrumb-item a { color: var(--ph-accent); text-decoration: none; }
+.ph-hero .breadcrumb-item a:hover { text-decoration: underline; }
+.ph-hero .breadcrumb-item.active { color: rgba(248,250,252,.4); }
+
+/* ── Inner layout ──────────────────────────────────────────────────────── */
+.ph-hero-inner {
+  position: relative; z-index: 1;
+  display: flex; align-items: flex-end;
+  justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+}
+
+/* ── Typography ────────────────────────────────────────────────────────── */
+.ph-hero-eyebrow {
+  font-size: .65rem; font-weight: 700;
+  letter-spacing: 4px; text-transform: uppercase;
+  color: var(--ph-accent); margin-bottom: .5rem;
+}
+.ph-hero-title {
+  font-size: 2.6rem; font-weight: 900;
+  letter-spacing: -1.5px; color: #f8fafc;
+  line-height: 1; margin: 0;
+}
+.ph-hero-title .ph-accent { color: var(--ph-accent); }
+.ph-hero-subtitle {
+  font-size: .72rem; color: rgba(248,250,252,.35);
+  letter-spacing: 2px; text-transform: uppercase; margin: .65rem 0 0;
+}
+
+/* ── Badge ─────────────────────────────────────────────────────────────── */
+.ph-hero-badge {
+  display: flex; align-items: center; gap: .5rem;
+  background: rgba(var(--ph-acc-rgb),.12);
+  border: 1px solid rgba(var(--ph-acc-rgb),.25);
+  border-radius: 20px; padding: .4rem .9rem;
+  font-size: .7rem; color: var(--ph-accent);
+  font-weight: 600; letter-spacing: .5px;
+}
+.ph-hero-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ph-accent);
+  box-shadow: 0 0 0 3px rgba(var(--ph-acc-rgb),.25);
+  animation: ph-pulse 2s ease-in-out infinite;
+}
+@keyframes ph-pulse {
+  0%,100% { box-shadow: 0 0 0 3px rgba(var(--ph-acc-rgb),.25); }
+  50%     { box-shadow: 0 0 0 6px rgba(var(--ph-acc-rgb),.0);  }
+}
+
+/* ── Extra content area (stats, meta, context links) ───────────────────── */
+.ph-hero-extra {
+  position: relative; z-index: 1;
+  margin-top: .75rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 575.98px) {
+  .ph-hero { padding: 2.5rem 0 2rem; }
+  .ph-hero-title { font-size: 1.9rem; letter-spacing: -1px; }
+  .ph-hero-inner { flex-direction: column; align-items: flex-start; }
+}
+</style>
+
+<!-- ═══ Unified page header HTML ═══ -->
+<div class="ph-hero">
+  <div class="container">
+    {# Optional breadcrumb #}
+    {% if ph_breadcrumbs is defined and ph_breadcrumbs %}
+    <nav aria-label="breadcrumb" style="position:relative;z-index:1">
+      <ol class="breadcrumb">
+        {% for bc in ph_breadcrumbs %}
+          {% if loop.last %}
+            <li class="breadcrumb-item active" aria-current="page">{{ bc.label }}</li>
+          {% else %}
+            <li class="breadcrumb-item"><a href="{{ bc.url }}">{{ bc.label }}</a></li>
+          {% endif %}
+        {% endfor %}
+      </ol>
+    </nav>
+    {% endif %}
+
+    <div class="ph-hero-inner">
+      <div>
+        {% if ph_eyebrow is defined and ph_eyebrow %}
+          <p class="ph-hero-eyebrow">{{ ph_eyebrow }}</p>
+        {% endif %}
+        <h1 class="ph-hero-title">
+          {{ ph_title | default('Page') }}<span class="ph-accent">{{ ph_accent | default('') }}</span>
+        </h1>
+        {% if ph_subtitle is defined and ph_subtitle %}
+          <p class="ph-hero-subtitle">{{ ph_subtitle }}</p>
+        {% endif %}
+      </div>
+      {% if ph_badge_html is defined and ph_badge_html %}
+        {{ ph_badge_html | safe }}
+      {% endif %}
+    </div>
+
+    {% if ph_extra_html is defined and ph_extra_html %}
+      <div class="ph-hero-extra">{{ ph_extra_html | safe }}</div>
+    {% endif %}
+  </div>
+</div>

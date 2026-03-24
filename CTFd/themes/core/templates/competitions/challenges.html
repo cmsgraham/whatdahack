@@ -11,54 +11,23 @@
 {% block stylesheets %}
 {{ super() }}
 <style>
-/* ── Competition challenges banner ─────────────────────────────────────── */
-.comp-challenges-banner {
-  background: linear-gradient(135deg, var(--ctf-header-bg1, #e5e7eb) 0%, var(--ctf-header-bg2, #d1d5db) 100%);
-  border-bottom: 1px solid var(--ctf-border, #d1d5db);
-  padding: 2.2rem 0 1.8rem;
-  position: relative;
-  overflow: hidden;
-}
-.comp-challenges-banner::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb, 5,150,105), .07) 0%, transparent 60%);
-  pointer-events: none;
-}
-.comp-challenges-banner .breadcrumb {
-  background: transparent; padding: 0; margin-bottom: .5rem;
-  font-size: .73rem; letter-spacing: .4px;
-}
-.comp-challenges-banner .breadcrumb-item + .breadcrumb-item::before { color: var(--ctf-text-muted, #6b7280); }
-.comp-challenges-banner .breadcrumb-item a { color: var(--ctf-accent, #059669); text-decoration: none; }
-.comp-challenges-banner .breadcrumb-item a:hover { text-decoration: underline; }
-.comp-challenges-banner .breadcrumb-item.active { color: var(--ctf-text-muted, #6b7280); }
-.comp-challenges-banner h1 {
-  font-size: 1.8rem; font-weight: 800;
-  color: var(--ctf-text-primary, #111827);
-  letter-spacing: -.4px; margin-bottom: .35rem;
-}
-.comp-challenges-banner h1 .accent { color: var(--ctf-accent, #059669); }
-.comp-challenges-banner .comp-context-links {
-  display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem;
-}
+/* ── Competition challenges — uses unified page header ─────────────────── */
 .comp-context-link {
   display: inline-flex; align-items: center; gap: .3rem;
   font-size: .73rem; font-weight: 600; letter-spacing: .5px;
   text-transform: uppercase;
-  color: var(--ctf-accent, #059669);
+  color: var(--ph-accent);
   text-decoration: none;
   padding: .22rem .6rem;
-  border: 1px solid rgba(var(--ctf-accent-rgb, 5,150,105), .35);
+  border: 1px solid rgba(var(--ph-acc-rgb), .35);
   border-radius: 6px;
   transition: background .15s;
 }
-.comp-context-link:hover { background: rgba(var(--ctf-accent-rgb, 5,150,105), .08); }
+.comp-context-link:hover { background: rgba(var(--ph-acc-rgb), .08); }
 .comp-context-link.is-active {
-  background: rgba(var(--ctf-accent-rgb, 5,150,105), .12);
-  border-color: rgba(var(--ctf-accent-rgb, 5,150,105), .5);
+  background: rgba(var(--ph-acc-rgb), .12);
+  border-color: rgba(var(--ph-acc-rgb), .5);
 }
-/* Hide the base challenges header (we replaced it) */
-.ctf-challenges-header { display: none !important; }
 </style>
 {% endblock %}
 
@@ -70,25 +39,19 @@
 {{ super() }}
 {% endblock %}
 
-{% block content %}
+{% block page_hero %}
 <!-- Competition challenges banner -->
-<div class="comp-challenges-banner">
-  <div class="container">
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item">
-          <a href="{{ url_for('competitions.listing') }}">{% trans %}Competitions{% endtrans %}</a>
-        </li>
-        <li class="breadcrumb-item">
-          <a href="{{ url_for('competitions.show', slug=competition.slug) }}">{{ competition.name }}</a>
-        </li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans %}Challenges{% endtrans %}</li>
-      </ol>
-    </nav>
-
-    <h1><span class="accent">[</span> {{ competition.name }} <span class="accent">]</span></h1>
-
-    <div class="comp-context-links">
+{% set ph_eyebrow  = "Competition" %}
+{% set ph_title    = competition.name %}
+{% set ph_accent   = "" %}
+{% set ph_subtitle = "// " ~ competition.name ~ " — challenges" %}
+{% set ph_breadcrumbs = [
+  {"label": "Competitions", "url": url_for('competitions.listing')},
+  {"label": competition.name, "url": url_for('competitions.show', slug=competition.slug)},
+  {"label": "Challenges"}
+] %}
+{% set ph_extra_html %}
+    <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.3rem;">
       <a href="{{ url_for('competitions.challenges', slug=competition.slug) }}" class="comp-context-link is-active">
         <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
       </a>
@@ -96,9 +59,7 @@
         <i class="fas fa-trophy"></i>{% trans %}Scoreboard{% endtrans %}
       </a>
     </div>
-  </div>
-</div>
-
-{{ super() }}
+{% endset %}
+{% include "components/page_header.html" %}
 {% endblock %}
 

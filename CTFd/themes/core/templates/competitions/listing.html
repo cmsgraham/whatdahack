@@ -30,23 +30,7 @@
 .jumbotron { display: none !important; }
 body { background-color: var(--cl-bg-page) !important; }
 
-.cl-header {
-  padding: 2.8rem 0 2.2rem;
-  background: linear-gradient(135deg, var(--cl-bg-header1) 0%, var(--cl-bg-header2) 100%);
-  border-bottom: 1px solid var(--cl-border);
-  position: relative; overflow: hidden;
-}
-.cl-header::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--cl-accent-rgb), .07) 0%, transparent 60%);
-  pointer-events: none;
-}
-.cl-header h1 {
-  font-size: 2rem; font-weight: 800;
-  color: var(--cl-text); letter-spacing: -.5px; margin-bottom: .35rem;
-}
-.cl-header h1 .accent { color: var(--cl-accent); }
-.cl-header p { color: var(--cl-muted); font-size: .88rem; margin: 0; }
+/* ── Page header — uses unified component ─────────────────────────────── */
 
 .cl-body { padding: 2.5rem 0 3rem; }
 
@@ -164,19 +148,17 @@ body { background-color: var(--cl-bg-page) !important; }
 .cl-empty p { font-size: .9rem; margin: 0; }
 
 @media (max-width: 575.98px) {
-  .cl-header h1 { font-size: 1.5rem; }
   .cl-grid { grid-template-columns: 1fr; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="cl-header">
-  <div class="container">
-    <h1><span class="accent">[</span> {% trans %}Competitions{% endtrans %} <span class="accent">]</span></h1>
-    <p>// {% trans %}browse and join available competitions{% endtrans %}</p>
-  </div>
-</div>
+{% set ph_eyebrow  = "Platform" %}
+{% set ph_title    = "Compet" %}
+{% set ph_accent   = "itions" %}
+{% set ph_subtitle = "// browse and join available competitions" %}
+{% include "components/page_header.html" %}
 
 <div class="cl-body">
   <div class="container">

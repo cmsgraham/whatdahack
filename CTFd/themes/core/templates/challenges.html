@@ -76,44 +76,7 @@ body {
   background-color: var(--ctf-bg-page) !important;
 }
 
-/* ── Page header ─────────────────────────────────────────────────────────── */
-.ctf-challenges-header {
-  padding: 2.5rem 0 2rem;
-  background: linear-gradient(135deg, var(--ctf-header-bg1) 0%, var(--ctf-header-bg2) 100%);
-  border-bottom: 1px solid var(--ctf-border);
-  position: relative;
-  overflow: hidden;
-}
-.ctf-challenges-header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb), .06) 0%, transparent 60%);
-  pointer-events: none;
-}
-.ctf-challenges-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, var(--ctf-accent) 50%, transparent 100%);
-  opacity: .3;
-}
-.ctf-challenges-header h1 {
-  font-size: 1.75rem;
-  letter-spacing: 8px;
-  text-transform: uppercase;
-  color: var(--ctf-text-primary);
-  margin: 0;
-  font-weight: 700;
-}
-.ctf-challenges-header h1 .accent { color: var(--ctf-accent); }
-.ctf-challenges-header p {
-  color: var(--ctf-text-muted);
-  font-size: .75rem;
-  letter-spacing: 2px;
-  margin: .4rem 0 0;
-}
+/* ── Page header — now uses unified page header component ─────────────── */
 
 /* ── Filter bar ─────────────────────────────────────────────────────────── */
 .challenge-filters {
@@ -684,12 +647,13 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
 
 {% block content %}
 <!-- Page header -->
-<div class="ctf-challenges-header">
-  <div class="container">
-    <h1><span class="accent">[</span> {% trans %}Challenges{% endtrans %} <span class="accent">]</span></h1>
-    <p>// browse, filter, and pwn your way to the top</p>
-  </div>
-</div>
+{% block page_hero %}
+{% set ph_eyebrow  = "Capture The Flag" %}
+{% set ph_title    = "Chall" %}
+{% set ph_accent   = "enges" %}
+{% set ph_subtitle = "// browse, filter, and pwn your way to the top" %}
+{% include "components/page_header.html" %}
+{% endblock %}
 
 <div class="container">
   <div class="row">
