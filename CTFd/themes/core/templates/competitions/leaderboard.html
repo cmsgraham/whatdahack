@@ -6,71 +6,14 @@
   Extends the base scoreboard.html template and:
   1. Does NOT inject window.__CTF_COMPETITION_ID__ so the scoreboard API
      calls default to platform-scoped (scope='platform') challenges.
-  2. Overrides the page header with a leaderboard-specific banner.
+  2. Overrides the page hero with a leaderboard-specific unified header.
 #}
 
-{% block stylesheets %}
-{{ super() }}
-<style>
-/* ── Platform leaderboard banner ──────────────────────────────────────── */
-.platform-lb-banner {
-  background: linear-gradient(160deg, var(--lb-hdr-from) 0%, var(--lb-hdr-to) 100%);
-  border-bottom: none;
-  padding: 3rem 0 2.4rem;
-  position: relative;
-  overflow: hidden;
-}
-.platform-lb-banner::before {
-  content: ''; position: absolute; inset: 0;
-  background:
-    radial-gradient(ellipse 90% 70% at 15% 60%, rgba(var(--lb-acc-rgb), .09) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 90% at 85% 10%, rgba(var(--lb-acc-rgb), .04) 0%, transparent 50%);
-  pointer-events: none;
-}
-.platform-lb-banner::after {
-  content: '';
-  position: absolute;
-  bottom: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(var(--lb-acc-rgb), .55) 50%, transparent 100%);
-}
-.platform-lb-banner .container { position: relative; z-index: 1; }
-.platform-lb-banner .lb-eyebrow {
-  font-size: .65rem; font-weight: 700;
-  letter-spacing: 4px; text-transform: uppercase;
-  color: var(--lb-accent); margin-bottom: .5rem;
-}
-.platform-lb-banner h1 {
-  font-size: 2.2rem; font-weight: 900;
-  color: #f8fafc;
-  letter-spacing: -1px; margin-bottom: .25rem; line-height: 1.1;
-}
-.platform-lb-banner h1 .accent { color: var(--lb-accent); }
-.platform-lb-banner .sub {
-  font-size: .72rem; color: rgba(248,250,252,.35);
-  letter-spacing: 2px; text-transform: uppercase; margin-top: .5rem;
-}
-/* Hide the base scoreboard hero — this banner replaces it */
-.lb-hero { display: none !important; }
-</style>
-{% endblock %}
-
-{% block content %}
-<!-- Platform leaderboard banner -->
-<div class="platform-lb-banner">
-  <div class="container">
-    <div class="lb-eyebrow">{% trans %}Platform Wide{% endtrans %}</div>
-    <h1><span class="accent">[</span> {% trans %}Leaderboard{% endtrans %} <span class="accent">]</span></h1>
-    <p class="sub">{% trans %}Overall standings across all platform challenges{% endtrans %}</p>
-  </div>
-</div>
-
-{% if infos %}
-<div class="container mt-2">
-  {% for info in infos %}
-  <div class="alert alert-info" role="alert">{{ info }}</div>
-  {% endfor %}
-</div>
-{% endif %}
-
-{{ super() }}
+{% block page_hero %}
+{% set ph_eyebrow  = "Platform Wide" %}
+{% set ph_title    = "Leader" %}
+{% set ph_accent   = "board" %}
+{% set ph_subtitle = "// overall standings across all platform challenges" %}
+{% set ph_badge_html = '<div class="ph-hero-badge"><span class="ph-hero-dot"></span> Live Scores</div>' %}
+{% include "components/page_header.html" %}
 {% endblock %}
