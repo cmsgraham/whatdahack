@@ -289,33 +289,7 @@ body { background: var(--lb-page) !important; }
 .lb-empty-title { font-size: 1rem; font-weight: 700; color: var(--lb-text); margin: 0 0 .4rem; }
 .lb-empty-sub { font-size: .78rem; color: var(--lb-muted); margin: 0; max-width: 280px; }
 
-/* Chart card */
-.lb-chart-card {
-  background: var(--lb-surface); border: 1px solid var(--lb-border);
-  border-radius: 16px; box-shadow: var(--lb-shadow-sm);
-  overflow: hidden; margin-bottom: 2.5rem;
-}
-.lb-chart-head {
-  display: flex; align-items: center; gap: .6rem;
-  padding: .9rem 1.5rem; background: var(--lb-surface-2);
-  border-bottom: 1px solid var(--lb-border-s);
-}
-.lb-chart-icon {
-  width: 26px; height: 26px; border-radius: 7px;
-  background: rgba(var(--lb-acc-rgb),.1);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--lb-accent); font-size: .7rem;
-}
-.lb-chart-title {
-  font-size: .65rem; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 2.5px; color: var(--lb-muted);
-}
-.lb-chart-body { padding: .5rem 0; min-height: 40px; }
-/* Hide clunky slider + labels from ScoreboardDetail */
-.lb-chart-body input[type="range"],
-.lb-chart-body .form-range,
-.lb-chart-body label[for],
-.lb-chart-body select { display: none !important; }
+
 
 /* Bottom Nav */
 .app-bottom-nav{
@@ -512,21 +486,7 @@ body { background: var(--lb-page) !important; }
 
       </div><!-- /lb-card -->
 
-      <!-- Score progression chart (hidden until ScoreboardDetail has data) -->
-      <div class="lb-chart-card"
-           x-data="ScoreboardDetail"
-           :class="{'d-none': !show}"
-           @bracket-change.window="activeBracket=$event.detail; update();">
-        <div class="lb-chart-head">
-          <div class="lb-chart-icon"><i class="fas fa-chart-line"></i></div>
-          <span class="lb-chart-title">Score Progression</span>
-        </div>
-        <div class="lb-chart-body" id="score-graph" x-ref="scoregraph">
-          <div style="text-align:center;padding:2rem;color:var(--lb-muted);">
-            <i class="fas fa-circle-notch fa-spin" style="color:var(--lb-accent);opacity:.7;"></i>
-          </div>
-        </div>
-      </div>
+
 
     </div><!-- /#scoreboard -->
   </div>
