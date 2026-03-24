@@ -260,8 +260,11 @@ def api_create_post():
         return jsonify({"success": False, "errors": ["No data"]}), 400
 
     content = (data.get("content") or "").strip()
-    if not content or len(content) > 10000:
-        return jsonify({"success": False, "errors": ["Content required (max 10,000 chars)"]}), 400
+    images_list = data.get("images") or []
+    if not content and not images_list:
+        return jsonify({"success": False, "errors": ["Content or images required"]}), 400
+    if len(content) > 10000:
+        return jsonify({"success": False, "errors": ["Content too long (max 10,000 chars)"]}), 400
 
     post_type = data.get("post_type", "text")
     if post_type not in VALID_POST_TYPES:
