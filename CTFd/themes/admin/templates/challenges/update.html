@@ -92,9 +92,85 @@
 		<small class="form-text text-muted">
 			Uploading a file will store it with this challenge's files and fill in the URL above automatically.
 		</small>
+
+		<div class="mt-3 p-3" style="border:1px dashed #555;border-radius:6px;">
+			<label class="mb-1" style="font-size:.9rem;font-weight:600;">
+				<i class="fas fa-magic"></i> Generate Banner with AI
+			</label>
+			<div class="input-group">
+				<input type="text" class="form-control" id="chal-ai-prompt"
+				       placeholder="Optional: describe what you want (e.g. dark hacker theme with binary rain)"
+				       maxlength="500">
+				<div class="input-group-append">
+					<button class="btn btn-outline-primary" type="button" id="chal-ai-generate">
+						<i class="fas fa-magic"></i> Generate
+					</button>
+				</div>
+			</div>
+			<small class="form-text text-muted">
+				Uses AI to create a banner based on challenge name, category &amp; difficulty. Your prompt adds extra creative direction.
+			</small>
+		</div>
 	</div>
 	<script>
 	(function () {
+		// AI banner generation
+		var aiBtn = document.getElementById("chal-ai-generate");
+		var aiPrompt = document.getElementById("chal-ai-prompt");
+		aiBtn.addEventListener("click", function () {
+			aiBtn.disabled = true;
+			var origHtml = aiBtn.innerHTML;
+			aiBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Generating…';
+
+			var name = document.querySelector(".chal-name") ? document.querySelector(".chal-name").value : "";
+			var category = document.querySelector(".chal-category") ? document.querySelector(".chal-category").value : "";
+			var desc = document.querySelector(".chal-desc-editor") ? document.querySelector(".chal-desc-editor").value : "";
+			var diffEl = document.querySelector("select[name=difficulty]");
+			var difficulty = diffEl ? diffEl.value : "";
+
+			fetch("/community/api/generate-banner", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: {
+					"Content-Type": "application/json",
+					"CSRF-Token": init.csrfNonce
+				},
+				body: JSON.stringify({
+					title: name,
+					category: category,
+					difficulty: difficulty,
+					description: desc.substring(0, 300),
+					custom_prompt: aiPrompt.value
+				})
+			})
+			.then(function (r) { return r.json(); })
+			.then(function (data) {
+				if (data.success && data.data && data.data.url) {
+					var urlInput = document.getElementById("chal-image-url");
+					urlInput.value = data.data.url;
+
+					var preview = document.getElementById("chal-image-preview");
+					if (!preview) {
+						preview = document.createElement("div");
+						preview.id = "chal-image-preview";
+						preview.className = "mt-2";
+						urlInput.closest(".form-group").insertBefore(preview, document.querySelector(".custom-file"));
+					}
+					preview.innerHTML = '<img src="' + data.data.url + '" alt="Banner preview" style="max-height:120px;border-radius:6px;border:1px solid #444;">';
+				} else {
+					alert("AI generation failed: " + ((data.errors || ["Unknown error"]).join(". ")));
+				}
+			})
+			.catch(function () {
+				alert("AI banner generation failed. Please try again.");
+			})
+			.finally(function () {
+				aiBtn.disabled = false;
+				aiBtn.innerHTML = origHtml;
+			});
+		});
+
+		// File upload handler
 		document.getElementById("chal-image-upload").addEventListener("change", function (e) {
 			var file = e.target.files[0];
 			if (!file) return;
