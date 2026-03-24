@@ -286,6 +286,14 @@
 }
 .ctf-nav .ctf-dropdown-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
 .ctf-nav .ctf-dd-divider { border-color: var(--nav-dropdown-border); margin: .3rem .45rem; }
+#ctf-resources-dd .dropdown-menu.show {
+  display: block !important;
+  position: absolute !important;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+}
+#ctf-resources-dd { position: relative; }
 
 /* ── Mobile collapsed menu ───────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
@@ -404,14 +412,13 @@
         <!-- Resources dropdown -->
         <li class="nav-item dropdown" id="ctf-resources-dd">
           <a class="nav-link dropdown-toggle {% if request.path == '/kali' %}active{% endif %}"
-             href="#" role="button" onclick="event.preventDefault();var m=document.querySelector('#ctf-resources-dd .dropdown-menu');m.classList.toggle('show');">
+             href="#" role="button" id="ctf-resources-toggle">
             <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %}
           </a>
           <ul class="dropdown-menu ctf-dropdown-menu">
             <li><a class="dropdown-item" href="/kali"><span style="margin-right:.45rem;">🐉</span> Kali Linux Guide &amp; Cheat Sheet</a></li>
           </ul>
         </li>
-        <script>document.addEventListener('click',function(e){var dd=document.getElementById('ctf-resources-dd');if(dd&&!dd.contains(e.target)){dd.querySelector('.dropdown-menu').classList.remove('show');}});</script>
       </ul>
 
       <hr class="d-md-none ctf-nav-divider">
@@ -553,3 +560,22 @@
     </div>
   </div>
 </nav>
+<script>
+(function(){
+  var toggle = document.getElementById('ctf-resources-toggle');
+  var dd = document.getElementById('ctf-resources-dd');
+  if (toggle && dd) {
+    var menu = dd.querySelector('.dropdown-menu');
+    toggle.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      menu.classList.toggle('show');
+    });
+    document.addEventListener('click', function(e) {
+      if (!dd.contains(e.target)) {
+        menu.classList.remove('show');
+      }
+    });
+  }
+})();
+</script>

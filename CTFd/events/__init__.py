@@ -2,15 +2,17 @@ from flask import Blueprint, Response, current_app, stream_with_context
 
 from CTFd.models import db
 from CTFd.utils import get_app_config
-from CTFd.utils.decorators import authed_only, ratelimit
+from CTFd.utils.decorators import ratelimit
+from CTFd.utils.user import authed
 
 events = Blueprint("events", __name__)
 
 
 @events.route("/events")
-@authed_only
 @ratelimit(method="GET", limit=150, interval=60)
 def subscribe():
+    if not authed():
+        return ("", 204)
     @stream_with_context
     def gen():
         for event in current_app.events_manager.subscribe():
