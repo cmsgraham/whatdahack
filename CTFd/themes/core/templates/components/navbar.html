@@ -267,41 +267,25 @@
   display: inline-block; vertical-align: middle;
 }
 
-/* ── Resources dropdown (pure CSS) ────────────────────────────────────── */
-#ctf-resources-dd { position: relative; }
-#ctf-resources-dd .res-menu {
-  display: none;
-  position: absolute;
-  z-index: 1050;
-  top: 100%;
-  left: 0;
-  background: var(--nav-dropdown-bg);
-  border: 1px solid var(--nav-dropdown-border);
-  border-radius: 10px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+/* ── Resources dropdown ──────────────────────────────────────────────────── */
+.ctf-nav .ctf-dropdown-menu {
+  background: var(--nav-dropdown-bg) !important;
+  border: 1px solid var(--nav-dropdown-border) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18) !important;
   padding: .35rem;
-  min-width: 220px;
-  list-style: none;
-  margin: 0;
+  min-width: 210px;
 }
-#ctf-resources-dd:hover .res-menu,
-#ctf-resources-dd:focus-within .res-menu { display: block; }
-#ctf-resources-dd .res-menu a {
-  display: block;
+.ctf-nav .ctf-dropdown-menu .dropdown-item {
   border-radius: 6px;
   font-size: .82rem;
   padding: .44rem .8rem;
   color: var(--nav-text);
-  text-decoration: none;
   background: transparent;
   transition: background .12s, color .12s;
-  white-space: nowrap;
 }
-#ctf-resources-dd .res-menu a:hover { background: var(--nav-dropdown-hover); color: var(--nav-active-text); }
-#ctf-resources-dd .res-divider { border-top: 1px solid var(--nav-dropdown-border); margin: .3rem .45rem; }
-@media (max-width: 767.98px) {
-  #ctf-resources-dd .res-menu { position: static; box-shadow: none; border: 1px solid var(--nav-dropdown-border); margin-top: .25rem; }
-}
+.ctf-nav .ctf-dropdown-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
+.ctf-nav .ctf-dd-divider { border-color: var(--nav-dropdown-border); margin: .3rem .45rem; }
 
 /* ── Mobile collapsed menu ───────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
@@ -417,24 +401,26 @@
           </a>
         </li>
 
-        <li class="nav-item" id="ctf-resources-dd">
-          <a class="nav-link {% if request.path.startswith('/kali') or request.path.startswith('/resources') %}active{% endif %}"
-             href="#" tabindex="0">
-            <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %} <i class="fas fa-caret-down" style="font-size:.6em;opacity:.6"></i>
+        <!-- Resources dropdown -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle {% if request.path.startswith('/kali') or request.path.startswith('/resources') %}active{% endif %}"
+             href="#" id="nav-resources-dd" role="button"
+             data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %}
           </a>
-          <ul class="res-menu">
-            <li><a href="/kali">🐉 Kali Linux Guide</a></li>
-            <li class="res-divider"></li>
-            <li><a href="/resources/web">🌐 Web</a></li>
-            <li><a href="/resources/crypto">🔐 Crypto</a></li>
-            <li><a href="/resources/reverse-engineering">⚙️ Reverse Engineering</a></li>
-            <li><a href="/resources/forensics">🔍 Forensics</a></li>
-            <li><a href="/resources/pwn">💥 Pwn</a></li>
-            <li><a href="/resources/osint">📷 OSINT</a></li>
-            <li><a href="/resources/cloud">☁️ Cloud</a></li>
-            <li><a href="/resources/mobile">📱 Mobile</a></li>
-            <li><a href="/resources/hardware">🔧 Hardware</a></li>
-            <li><a href="/resources/misc">🎲 Misc</a></li>
+          <ul class="dropdown-menu ctf-dropdown-menu" aria-labelledby="nav-resources-dd">
+            <li><a class="dropdown-item" href="/kali"><span style="margin-right:.45rem;">🐉</span> Kali Linux Guide</a></li>
+            <li><hr class="dropdown-divider ctf-dd-divider"></li>
+            <li><a class="dropdown-item" href="/resources/web"><span style="margin-right:.45rem;">🌐</span> Web Security</a></li>
+            <li><a class="dropdown-item" href="/resources/crypto"><span style="margin-right:.45rem;">🔐</span> Cryptography</a></li>
+            <li><a class="dropdown-item" href="/resources/reverse-engineering"><span style="margin-right:.45rem;">⚙️</span> Reverse Engineering</a></li>
+            <li><a class="dropdown-item" href="/resources/forensics"><span style="margin-right:.45rem;">🔍</span> Forensics</a></li>
+            <li><a class="dropdown-item" href="/resources/pwn"><span style="margin-right:.45rem;">💥</span> Binary Exploitation</a></li>
+            <li><a class="dropdown-item" href="/resources/misc"><span style="margin-right:.45rem;">🎲</span> Miscellaneous</a></li>
+            <li><a class="dropdown-item" href="/resources/osint"><span style="margin-right:.45rem;">👁️</span> OSINT</a></li>
+            <li><a class="dropdown-item" href="/resources/cloud"><span style="margin-right:.45rem;">☁️</span> Cloud / DevOps</a></li>
+            <li><a class="dropdown-item" href="/resources/mobile"><span style="margin-right:.45rem;">📱</span> Mobile</a></li>
+            <li><a class="dropdown-item" href="/resources/hardware"><span style="margin-right:.45rem;">🔧</span> Hardware / IoT</a></li>
           </ul>
         </li>
       </ul>
