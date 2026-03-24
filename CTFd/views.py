@@ -400,7 +400,7 @@ def files(path):
     :return:
     """
     # Social feed images are stored on disk without a Files DB record
-    if path.startswith("social/"):
+    if path.startswith("social/") or path.startswith("community/"):
         upload_folder = app.config.get("UPLOAD_FOLDER", os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads"))
         fpath = safe_join(upload_folder, path)
         if fpath and os.path.isfile(fpath):

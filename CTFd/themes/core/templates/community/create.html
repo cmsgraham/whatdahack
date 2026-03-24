@@ -94,6 +94,36 @@ body { background: var(--ctf-bg-page); }
 
 /* ── Buttons ─────────────────────────────────────────── */
 .cc-btn-row { display: flex; gap: .6rem; margin-top: 1.2rem; }
+
+/* ── File upload ─────────────────────────────────────── */
+.cc-file-zone {
+  border: 2px dashed var(--ctf-border); border-radius: var(--ctf-radius);
+  padding: 1.2rem; text-align: center; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  color: var(--ctf-text-muted); font-size: .82rem;
+}
+.cc-file-zone:hover, .cc-file-zone.dragging {
+  border-color: var(--ctf-accent); background: rgba(var(--ctf-accent-rgb),.04);
+}
+.cc-file-zone i { font-size: 1.2rem; display: block; margin-bottom: .3rem; }
+.cc-file-attached {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem .7rem; border-radius: var(--ctf-radius);
+  background: var(--ctf-bg-elevated); border: 1px solid var(--ctf-border);
+  font-size: .82rem; color: var(--ctf-text-primary);
+}
+.cc-file-attached .cc-file-remove {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  color: var(--ctf-text-muted); font-size: .75rem; padding: .2rem .4rem;
+}
+.cc-file-attached .cc-file-remove:hover { color: #dc2626; }
+.cc-upload-progress {
+  margin-top: .4rem; height: 4px; border-radius: 2px;
+  background: var(--ctf-border); overflow: hidden;
+}
+.cc-upload-progress-bar {
+  height: 100%; background: var(--ctf-accent); transition: width .2s;
+}
 .cc-btn {
   padding: .6rem 1.3rem; border-radius: var(--ctf-radius);
   font-size: .85rem; font-weight: 600; cursor: pointer;
@@ -257,8 +287,43 @@ body { background: var(--ctf-bg-page); }
           </div>
 
           <div class="cc-field">
-            <label class="cc-label">Attachment URL <span style="font-weight:400;color:var(--ctf-text-muted);">(optional)</span></label>
-            <input class="cc-input" type="url" x-model="form.attachment_url" placeholder="https://example.com/challenge-files.zip">
+            <label class="cc-label">Attachment <span style="font-weight:400;color:var(--ctf-text-muted);">(optional — file or URL)</span></label>
+            <template x-if="!attachedFile && !form.attachment_url">
+              <div>
+                <div class="cc-file-zone"
+                     @click="$refs.fileInput.click()"
+                     @dragover.prevent="$event.currentTarget.classList.add('dragging')"
+                     @dragleave="$event.currentTarget.classList.remove('dragging')"
+                     @drop.prevent="handleDrop($event)">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  Click or drag a file here
+                  <div style="font-size:.7rem;margin-top:.2rem;opacity:.6;">Max 25 MB — zip, tar, pdf, png, pcap, etc.</div>
+                </div>
+                <input type="file" x-ref="fileInput" style="display:none" @change="pickFile($event)">
+                <div style="text-align:center;font-size:.75rem;color:var(--ctf-text-muted);margin:.4rem 0;">— or paste a URL —</div>
+                <input class="cc-input" type="url" x-model="form.attachment_url" placeholder="https://example.com/challenge-files.zip">
+              </div>
+            </template>
+            <template x-if="attachedFile">
+              <div>
+                <div class="cc-file-attached">
+                  <i class="fas fa-file"></i>
+                  <span x-text="attachedFile.name"></span>
+                  <span style="font-size:.7rem;color:var(--ctf-text-muted);" x-text="formatSize(attachedFile.size)"></span>
+                  <button type="button" class="cc-file-remove" @click="removeFile()"><i class="fas fa-times"></i></button>
+                </div>
+                <template x-if="uploading">
+                  <div class="cc-upload-progress"><div class="cc-upload-progress-bar" :style="'width:'+uploadPct+'%'"></div></div>
+                </template>
+              </div>
+            </template>
+            <template x-if="!attachedFile && form.attachment_url">
+              <div class="cc-file-attached">
+                <i class="fas fa-link"></i>
+                <span x-text="form.attachment_url" style="word-break:break-all;"></span>
+                <button type="button" class="cc-file-remove" @click="form.attachment_url=''"><i class="fas fa-times"></i></button>
+              </div>
+            </template>
           </div>
 
           <div class="cc-btn-row">
@@ -304,10 +369,10 @@ body { background: var(--ctf-bg-page); }
             </div>
           </div>
 
-          <div x-show="form.attachment_url" style="margin-top:.8rem;font-size:.82rem;">
+          <div x-show="form.attachment_url || uploadedUrl" style="margin-top:.8rem;font-size:.82rem;">
             <i class="fas fa-paperclip" style="opacity:.5;"></i>
-            <a :href="form.attachment_url" style="color:var(--ctf-accent);" target="_blank" rel="noopener"
-               x-text="form.attachment_url"></a>
+            <a :href="uploadedUrl || form.attachment_url" style="color:var(--ctf-accent);" target="_blank" rel="noopener"
+               x-text="attachedFile ? attachedFile.name : form.attachment_url"></a>
           </div>
         </div>
       </div>
@@ -339,6 +404,61 @@ function CommunityCreate() {
     submitting: false,
     errorMsg: '',
     successMsg: '',
+    attachedFile: null,
+    uploadedUrl: '',
+    uploading: false,
+    uploadPct: 0,
+
+    formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+      return (bytes/1024/1024).toFixed(1) + ' MB';
+    },
+
+    pickFile(e) {
+      const f = e.target.files[0];
+      if (f) { this.attachedFile = f; this.uploadedUrl = ''; this.form.attachment_url = ''; }
+    },
+
+    handleDrop(e) {
+      e.currentTarget.classList.remove('dragging');
+      const f = e.dataTransfer.files[0];
+      if (f) { this.attachedFile = f; this.uploadedUrl = ''; this.form.attachment_url = ''; }
+    },
+
+    removeFile() {
+      this.attachedFile = null;
+      this.uploadedUrl = '';
+      this.uploadPct = 0;
+      if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+    },
+
+    async uploadFile() {
+      if (!this.attachedFile) return true;
+      if (this.uploadedUrl) return true;
+      this.uploading = true;
+      this.uploadPct = 0;
+      try {
+        const fd = new FormData();
+        fd.append('file', this.attachedFile);
+        fd.append('nonce', init.csrfNonce);
+        const resp = await fetch('/community/api/upload', { method: 'POST', body: fd });
+        const json = await resp.json();
+        if (json.success) {
+          this.uploadedUrl = json.data.url;
+          this.uploadPct = 100;
+          return true;
+        } else {
+          this.errorMsg = (json.errors || ['Upload failed']).join('. ');
+          return false;
+        }
+      } catch (e) {
+        this.errorMsg = 'File upload failed. Please try again.';
+        return false;
+      } finally {
+        this.uploading = false;
+      }
+    },
 
     renderMd(text) {
       if (!text) return '';
@@ -371,6 +491,18 @@ function CommunityCreate() {
       }
 
       this.submitting = true;
+
+      // Upload file first if attached
+      if (this.attachedFile && !this.uploadedUrl) {
+        const ok = await this.uploadFile();
+        if (!ok) { this.submitting = false; return; }
+      }
+
+      const payload = { ...this.form, state };
+      if (this.uploadedUrl) {
+        payload.attachment_url = this.uploadedUrl;
+      }
+
       try {
         const resp = await fetch('/community/api/challenges', {
           method: 'POST',
@@ -378,7 +510,7 @@ function CommunityCreate() {
             'Content-Type': 'application/json',
             'CSRF-Token': init.csrfNonce,
           },
-          body: JSON.stringify({ ...this.form, state }),
+          body: JSON.stringify(payload),
         });
         const json = await resp.json();
         if (json.success) {

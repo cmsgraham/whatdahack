@@ -1,7 +1,10 @@
 import datetime
+import os
+import uuid
 
-from flask import Blueprint, abort, jsonify, render_template, request
+from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
 
 from CTFd.models import Awards, db
 from CTFd.models.community import (
@@ -13,7 +16,14 @@ from CTFd.models.community import (
 from CTFd.utils.decorators import authed_only
 from CTFd.utils.user import authed, get_current_user, is_admin
 
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "zip", "tar", "gz", "7z", "rar", "pdf", "txt", "py", "c", "cpp", "pcap", "pcapng"}
+MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
+
 community = Blueprint("community", __name__)
+
+
+def _allowed_file(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 VALID_CATEGORIES = (
     "web",
@@ -172,6 +182,38 @@ def api_list_challenges():
             },
         }
     )
+
+
+@community.route("/community/api/upload", methods=["POST"])
+@authed_only
+def api_upload_file():
+    """Upload a file attachment for a community challenge."""
+    f = request.files.get("file")
+    if not f or not f.filename:
+        return jsonify({"success": False, "errors": ["No file provided"]}), 400
+    if not _allowed_file(f.filename):
+        return jsonify({"success": False, "errors": [f"File type not allowed: {f.filename}"]}), 400
+
+    data = f.read()
+    if len(data) > MAX_FILE_SIZE:
+        return jsonify({"success": False, "errors": ["File too large (max 25 MB)"]}), 400
+    f.seek(0)
+
+    upload_folder = current_app.config.get("UPLOAD_FOLDER", "/var/uploads")
+    community_dir = os.path.join(upload_folder, "community")
+    os.makedirs(community_dir, exist_ok=True)
+
+    ext = f.filename.rsplit(".", 1)[1].lower()
+    original = secure_filename(f.filename.rsplit(".", 1)[0])[:40]
+    unique = uuid.uuid4().hex[:12]
+    safe_name = secure_filename(f"{original}_{unique}.{ext}")
+    filepath = os.path.join(community_dir, safe_name)
+
+    with open(filepath, "wb") as dst:
+        dst.write(data)
+
+    url = f"/files/community/{safe_name}"
+    return jsonify({"success": True, "data": {"url": url, "name": f.filename}})
 
 
 @community.route("/community/api/challenges", methods=["POST"])
