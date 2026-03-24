@@ -54,7 +54,11 @@
   padding-bottom: 0;
   min-height: 52px;
 }
-.ctf-nav .container { min-height: 52px; }
+.ctf-nav .container-fluid {
+  min-height: 52px;
+  padding-left: clamp(1rem, 2.5vw, 2.5rem);
+  padding-right: clamp(1rem, 2.5vw, 2.5rem);
+}
 
 /* Accent underline glow */
 .ctf-nav::after {
@@ -73,8 +77,9 @@
   align-items: center;
   gap: .45rem;
   padding: 0;
-  margin-right: 1.5rem;
+  margin-right: clamp(1rem, 2vw, 2rem);
   text-decoration: none;
+  flex-shrink: 0;
 }
 .ctf-nav .navbar-brand .ctf-brand-logo {
   height: 26px;
@@ -122,9 +127,14 @@
 
 /* ── Left nav links ──────────────────────────────────────────────────────── */
 .ctf-nav .ctf-nav-links {
-  gap: .1rem;
+  gap: .15rem;
   align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.ctf-nav .ctf-nav-links::-webkit-scrollbar { display: none; }
 .ctf-nav .ctf-nav-links .nav-item { position: relative; }
 .ctf-nav .ctf-nav-links .nav-link {
   font-size: .75rem;
@@ -287,11 +297,21 @@
   .ctf-nav .ctf-notif-badge { position: static; transform: none; display: inline; vertical-align: middle; }
   .ctf-nav .ctf-notif-wrap { display: inline-flex; align-items: center; gap: .3rem; }
 }
+
+/* ── Wide screens — spread links out more ────────────────────────────────── */
+@media (min-width: 1200px) {
+  .ctf-nav .ctf-nav-links { gap: .25rem; }
+  .ctf-nav .ctf-nav-links .nav-link { padding: .35rem .85rem; }
+}
+@media (min-width: 1600px) {
+  .ctf-nav .ctf-nav-links { gap: .35rem; }
+  .ctf-nav .ctf-nav-links .nav-link { padding: .35rem 1rem; }
+}
 </style>
 
 <!-- ── Navbar markup ──────────────────────────────────────────────────────── -->
 <nav class="navbar navbar-expand-md fixed-top ctf-nav">
-  <div class="container">
+  <div class="container-fluid">
 
     <!-- Brand -->
     <a href="{{ url_for('views.static_html', route='/') }}" class="navbar-brand">
