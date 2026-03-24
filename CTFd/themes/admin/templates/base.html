@@ -452,7 +452,7 @@ footer.footer a:hover{color:var(--adm-accent)!important;}
 				</ul>
 				<div class="d-flex align-items-center">
 					<button class="adm-icon-btn theme-switch" title="Toggle light/dark mode">
-						<i class="fas fa-moon"></i>
+						<i class="fas fa-circle-half-stroke"></i>
 						<span class="d-md-none ml-2">Toggle theme</span>
 					</button>
 					<span class="adm-util-sep d-none d-md-inline-block"></span>
@@ -515,8 +515,6 @@ footer.footer a:hover{color:var(--adm-accent)!important;}
 		}
 		function applyTheme(t){
 			document.documentElement.setAttribute('data-bs-theme',t);
-			var icon=document.querySelector('.theme-switch i.fas');
-			if(icon){icon.className='fas fa-'+(t==='dark'?'moon':'sun');}
 		}
 		window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){
 			if(!localStorage.getItem('theme'))applyTheme(getTheme());
