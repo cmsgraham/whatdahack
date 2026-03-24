@@ -23,6 +23,7 @@ class CommunityChallenge(db.Model):
     state = db.Column(db.String(20), nullable=False, default="draft", index=True)
     tags = db.Column(db.Text, default="")
     attachment_url = db.Column(db.Text, nullable=True)
+    banner_url = db.Column(db.Text, nullable=True)
 
     # Denormalized counters
     solve_count = db.Column(db.Integer, default=0)

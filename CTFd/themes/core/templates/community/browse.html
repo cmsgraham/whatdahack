@@ -87,17 +87,25 @@ body { background: var(--ctf-bg-page); }
   background: var(--ctf-bg-surface);
   border: 1px solid var(--ctf-border);
   border-radius: var(--ctf-radius-lg);
-  padding: 1.25rem;
+  padding: 0;
   display: flex;
   flex-direction: column;
   transition: border-color .15s, box-shadow .15s;
   cursor: pointer; text-decoration: none; color: inherit;
-  /* no position:relative, no fixed height */
+  overflow: hidden;
 }
 .cc-card:hover {
   border-color: rgba(var(--ctf-accent-rgb),.45);
   box-shadow: 0 4px 20px rgba(var(--ctf-accent-rgb),.08);
   text-decoration: none; color: inherit;
+}
+.cc-card-banner {
+  width: 100%; height: 140px; object-fit: cover; display: block;
+  border-bottom: 1px solid var(--ctf-border);
+}
+.cc-card-body {
+  padding: 1.25rem;
+  display: flex; flex-direction: column; flex: 1;
 }
 
 /* ── Card section: Header ─────────── */
@@ -298,6 +306,11 @@ body { background: var(--ctf-bg-page); }
       <template x-for="ch in challenges" :key="ch.id">
         <a :href="'/community/challenge/' + ch.id" class="cc-card">
 
+          <!-- Banner image -->
+          <img x-show="ch.banner_url" :src="ch.banner_url" alt="" class="cc-card-banner">
+
+          <div class="cc-card-body">
+
           <!-- SECTION: Header (category + difficulty + solved badge) -->
           <div class="cc-card-header">
             <span class="cc-cat" x-text="ch.category.toUpperCase()"></span>
@@ -346,6 +359,8 @@ body { background: var(--ctf-bg-page); }
               <span class="cc-tag" x-text="tag"></span>
             </template>
           </div>
+
+          </div><!-- /.cc-card-body -->
 
         </a>
       </template>

@@ -114,6 +114,7 @@ def _serialize_challenge(c, solved_ids=None, user_ratings=None):
         "thumbs_down": c.thumbs_down,
         "rating_percent": c.rating_percent,
         "tags": c.tag_list,
+        "banner_url": c.banner_url,
         "created_at": c.created_at.isoformat() if c.created_at else None,
         "solved": c.id in (solved_ids or set()),
         "user_rating": (user_ratings or {}).get(c.id),
@@ -246,6 +247,7 @@ def api_create_challenge():
     case_insensitive = bool(data.get("case_insensitive", False))
     tags = (data.get("tags") or "").strip()
     attachment_url = (data.get("attachment_url") or "").strip() or None
+    banner_url = (data.get("banner_url") or "").strip() or None
     state = data.get("state", "draft")
 
     errors = []
@@ -277,6 +279,7 @@ def api_create_challenge():
         case_insensitive=case_insensitive,
         tags=tags,
         attachment_url=attachment_url,
+        banner_url=banner_url,
         state=state,
     )
     db.session.add(ch)
@@ -335,6 +338,7 @@ def api_get_challenge(cid):
                 "author_id": ch.author_id,
                 "tags": ch.tag_list,
                 "attachment_url": ch.attachment_url,
+                "banner_url": ch.banner_url,
                 "solve_count": ch.solve_count,
                 "attempt_count": ch.attempt_count,
                 "success_rate": ch.success_rate,
@@ -392,6 +396,7 @@ def api_update_challenge(cid):
         "case_insensitive",
         "tags",
         "attachment_url",
+        "banner_url",
         "state",
     }
     for key, val in data.items():
@@ -433,6 +438,8 @@ def api_update_challenge(cid):
             ch.tags = (val or "").strip()
         elif key == "attachment_url":
             ch.attachment_url = (val or "").strip() or None
+        elif key == "banner_url":
+            ch.banner_url = (val or "").strip() or None
         elif key == "state":
             if val not in ("draft", "published", "archived"):
                 return jsonify({"success": False, "errors": ["Invalid state"]}), 400

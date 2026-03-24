@@ -239,6 +239,15 @@ body { background: var(--ctf-bg-page); }
 .cd-solver-name { font-weight: 600; color: var(--ctf-text-primary); }
 .cd-solver-time { margin-left: auto; font-size: .75rem; color: var(--ctf-text-muted); }
 .cd-first-blood-icon { color: #ef4444; font-size: .72rem; }
+
+/* ── Banner ───────────────────────────────────────────── */
+.cd-banner {
+  border-radius: var(--ctf-radius-lg); overflow: hidden;
+  border: 1px solid var(--ctf-border); margin-bottom: 1.2rem;
+}
+.cd-banner img {
+  width: 100%; max-height: 280px; object-fit: cover; display: block;
+}
 </style>
 {% endblock %}
 
@@ -257,6 +266,11 @@ body { background: var(--ctf-bg-page); }
     <template x-if="!loading && ch">
 
       <div>
+        <!-- Banner image -->
+        <div x-show="ch.banner_url" class="cd-banner">
+          <img :src="ch.banner_url" alt="Challenge banner">
+        </div>
+
         <!-- Header panel -->
         <div class="cd-header-panel">
           <div class="cd-badges">

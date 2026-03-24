@@ -93,6 +93,36 @@ body { background: var(--ctf-bg-page); }
 .cc-file-attached .cc-file-remove:hover { color: #dc2626; }
 .cc-upload-progress { margin-top: .4rem; height: 4px; border-radius: 2px; background: var(--ctf-border); overflow: hidden; }
 .cc-upload-progress-bar { height: 100%; background: var(--ctf-accent); transition: width .2s; }
+
+/* ── Banner upload ───────────────────────────────────── */
+.cc-banner-zone {
+  border: 2px dashed var(--ctf-border); border-radius: var(--ctf-radius);
+  padding: 1.5rem; text-align: center; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  color: var(--ctf-text-muted); font-size: .82rem;
+  position: relative; overflow: hidden;
+  min-height: 120px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.cc-banner-zone:hover, .cc-banner-zone.dragging {
+  border-color: var(--ctf-accent); background: rgba(var(--ctf-accent-rgb),.04);
+}
+.cc-banner-zone i { font-size: 1.4rem; margin-bottom: .4rem; }
+.cc-banner-preview {
+  position: relative; border-radius: var(--ctf-radius); overflow: hidden;
+  border: 1px solid var(--ctf-border);
+}
+.cc-banner-preview img {
+  width: 100%; max-height: 200px; object-fit: cover; display: block;
+}
+.cc-banner-preview .cc-banner-remove {
+  position: absolute; top: .4rem; right: .4rem;
+  background: rgba(0,0,0,.6); color: #fff; border: none;
+  border-radius: 50%; width: 28px; height: 28px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: .75rem; transition: background .15s;
+}
+.cc-banner-preview .cc-banner-remove:hover { background: rgba(220,38,38,.8); }
 .cc-btn {
   padding: .6rem 1.3rem; border-radius: var(--ctf-radius);
   font-size: .85rem; font-weight: 600; cursor: pointer;
@@ -197,6 +227,30 @@ body { background: var(--ctf-bg-page); }
                 <span class="cc-state-pill" :class="{'active': form.state === 'archived'}" @click="form.state = 'archived'">
                   <i class="fas fa-archive"></i> Archived
                 </span>
+              </div>
+
+              <div class="cc-field">
+                <label class="cc-label">Banner Image <span style="font-weight:400;color:var(--ctf-text-muted);">(optional)</span></label>
+                <template x-if="!bannerFile && !bannerPreviewUrl">
+                  <div>
+                    <div class="cc-banner-zone"
+                         @click="$refs.bannerInput.click()"
+                         @dragover.prevent="$event.currentTarget.classList.add('dragging')"
+                         @dragleave="$event.currentTarget.classList.remove('dragging')"
+                         @drop.prevent="handleBannerDrop($event)">
+                      <i class="fas fa-image"></i>
+                      <div>Click or drag an image here</div>
+                      <div style="font-size:.7rem;margin-top:.2rem;opacity:.6;">PNG, JPG, GIF, WebP — max 5 MB</div>
+                    </div>
+                    <input type="file" x-ref="bannerInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" @change="pickBanner($event)">
+                  </div>
+                </template>
+                <template x-if="bannerPreviewUrl">
+                  <div class="cc-banner-preview">
+                    <img :src="bannerPreviewUrl" alt="Banner preview">
+                    <button type="button" class="cc-banner-remove" @click="removeBanner()"><i class="fas fa-times"></i></button>
+                  </div>
+                </template>
               </div>
 
               <div class="cc-field">
@@ -319,6 +373,10 @@ body { background: var(--ctf-bg-page); }
             <div class="cc-panel" style="position:sticky;top:1rem;">
               <div class="cc-panel-title"><i class="fas fa-eye"></i> Live Preview</div>
 
+              <div x-show="bannerPreviewUrl" style="margin-bottom:.8rem;border-radius:var(--ctf-radius);overflow:hidden;border:1px solid var(--ctf-border);">
+                <img :src="bannerPreviewUrl" alt="Banner preview" style="width:100%;max-height:180px;object-fit:cover;display:block;">
+              </div>
+
               <div class="cc-preview-badges">
                 <span x-show="form.category" class="cc-badge-sm cc-badge-cat" x-text="form.category.toUpperCase()"></span>
                 <span x-show="form.difficulty" class="cc-badge-sm" :class="'cc-badge-' + form.difficulty" x-text="form.difficulty"></span>
@@ -365,7 +423,7 @@ function CommunityEdit() {
     form: {
       title: '', description: '', category: '', difficulty: '',
       points: 100, flag: '', case_insensitive: false, tags: '',
-      attachment_url: '', state: 'published',
+      attachment_url: '', banner_url: '', state: 'published',
     },
     showFlag: false,
     submitting: false,
@@ -375,6 +433,9 @@ function CommunityEdit() {
     uploadedUrl: '',
     uploading: false,
     uploadPct: 0,
+    bannerFile: null,
+    bannerPreviewUrl: '',
+    bannerUploadedUrl: '',
 
     async load() {
       try {
@@ -391,7 +452,11 @@ function CommunityEdit() {
           this.form.case_insensitive = d.case_insensitive || false;
           this.form.tags = (d.tags || []).join(', ');
           this.form.attachment_url = d.attachment_url || '';
+          this.form.banner_url = d.banner_url || '';
           this.form.state = d.state || 'published';
+          if (d.banner_url) {
+            this.bannerPreviewUrl = d.banner_url;
+          }
         }
       } catch (e) {
         this.errorMsg = 'Failed to load challenge data.';
@@ -419,6 +484,55 @@ function CommunityEdit() {
       this.uploadedUrl = '';
       this.uploadPct = 0;
       if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+    },
+
+    pickBanner(e) {
+      const f = e.target.files[0];
+      if (f && f.type.startsWith('image/')) {
+        this.bannerFile = f;
+        this.bannerPreviewUrl = URL.createObjectURL(f);
+        this.bannerUploadedUrl = '';
+      }
+    },
+
+    handleBannerDrop(e) {
+      e.currentTarget.classList.remove('dragging');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) {
+        this.bannerFile = f;
+        this.bannerPreviewUrl = URL.createObjectURL(f);
+        this.bannerUploadedUrl = '';
+      }
+    },
+
+    removeBanner() {
+      this.bannerFile = null;
+      this.bannerPreviewUrl = '';
+      this.bannerUploadedUrl = '';
+      this.form.banner_url = '';
+      if (this.$refs.bannerInput) this.$refs.bannerInput.value = '';
+    },
+
+    async uploadBanner() {
+      if (!this.bannerFile) return true;
+      if (this.bannerUploadedUrl) return true;
+      try {
+        const fd = new FormData();
+        fd.append('file', this.bannerFile);
+        fd.append('nonce', init.csrfNonce);
+        const resp = await fetch('/community/api/upload', { method: 'POST', body: fd });
+        const json = await resp.json();
+        if (json.success) {
+          this.bannerUploadedUrl = json.data.url;
+          return true;
+        } else {
+          this.errorMsg = 'Banner upload failed: ' + (json.errors || ['Unknown error']).join('. ');
+          return false;
+        }
+      } catch (e) {
+        this.errorMsg = 'Banner upload failed. Please try again.';
+        return false;
+      }
     },
 
     async uploadFile() {
@@ -479,8 +593,14 @@ function CommunityEdit() {
         if (!ok) { this.submitting = false; return; }
       }
 
+      if (this.bannerFile && !this.bannerUploadedUrl) {
+        const ok = await this.uploadBanner();
+        if (!ok) { this.submitting = false; return; }
+      }
+
       const payload = { ...this.form };
       if (this.uploadedUrl) payload.attachment_url = this.uploadedUrl;
+      if (this.bannerUploadedUrl) payload.banner_url = this.bannerUploadedUrl;
 
       try {
         const resp = await fetch('/community/api/challenges/' + this.challengeId, {
