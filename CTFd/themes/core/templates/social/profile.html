@@ -37,7 +37,31 @@ body{
 .navbar{position:sticky;top:0;z-index:100;}
 
 /* Layout */
-.profile-shell{max-width:600px;margin:0 auto;min-height:100vh;}
+.profile-shell{max-width:600px;margin:0 auto;min-height:100vh;padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));}
+
+/* Bottom Nav */
+.app-bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:90;
+  background:var(--app-surface);
+  border-top:1px solid var(--app-border);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+[data-bs-theme="dark"] .app-bottom-nav{background:rgba(22,24,28,.92);}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:.55rem 0 .35rem;gap:.15rem;cursor:pointer;
+  color:var(--app-muted);text-decoration:none;transition:color .12s;
+  border:none;background:none;font-family:inherit;
+}
+.bnav-item:hover,.bnav-item.active{color:var(--app-accent);}
+.bnav-item i{font-size:1.15rem;}
+.bnav-label{font-size:.6rem;font-weight:600;letter-spacing:.5px;}
+@media(min-width:640px){
+  .app-bottom-nav{display:none;}
+  .profile-shell{padding-bottom:0;}
+}
 
 /* Back bar */
 .profile-header{
@@ -448,6 +472,22 @@ body{
 
   <!-- Toast -->
   <div class="toast-msg" :class="{'show':toastVisible}" x-text="toastMsg"></div>
+
+  <!-- Bottom Nav Bar -->
+  <nav class="app-bottom-nav">
+    <a href="/feed" class="bnav-item">
+      <i class="fas fa-home"></i><span class="bnav-label">Feed</span>
+    </a>
+    <a href="/feed" class="bnav-item" style="padding-top:0;">
+      <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--app-accent),var(--app-accent2));display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.3rem;margin-top:-14px;box-shadow:0 4px 14px rgba(var(--app-accent-rgb),.35);"><i class="fas fa-plus"></i></div>
+    </a>
+    <a href="/feed" class="bnav-item">
+      <i class="fas fa-bell"></i><span class="bnav-label">Alerts</span>
+    </a>
+    <a :href="userId ? '/feed/user/' + userId : '/login'" class="bnav-item active">
+      <i class="fas fa-user"></i><span class="bnav-label">Profile</span>
+    </a>
+  </nav>
 
 </div>
 {% endblock %}
