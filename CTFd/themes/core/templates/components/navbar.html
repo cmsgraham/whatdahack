@@ -318,12 +318,8 @@
           alt="{{ Configs.ctf_name }}"
         >
       {% else %}
-        {% set brand_parts = Configs.ctf_name.split(' ', 1) %}
         <span class="ctf-brand-text">
-          <span class="ctf-brand-name">{{ brand_parts[0] }}</span>
-          {% if brand_parts|length > 1 %}
-            <span class="ctf-brand-sub">{{ brand_parts[1] }}</span>
-          {% endif %}
+          <span class="ctf-brand-name">{{ Configs.ctf_name }}</span>
         </span>
       {% endif %}
     </a>
