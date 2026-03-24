@@ -236,9 +236,20 @@ logger = logging.getLogger(__name__)
 
 BANNER_SIZE = "1792x1024"
 BANNER_DEFAULT_PROMPT = (
-    "Create a visually striking, professional banner illustration for a cybersecurity "
-    "CTF (Capture The Flag) challenge. The banner should feel modern, techy, and "
-    "slightly futuristic. Do NOT include any text or letters in the image."
+    "Create a clean, high-contrast banner image for a cybersecurity CTF challenge, "
+    "optimized for small web thumbnails. "
+    "Style: minimalist, bold, modern. Designed to be clearly visible at small sizes. "
+    "Avoid small details, tiny elements, or clutter. "
+    "Composition: one strong central focal point (e.g. AI brain, digital eye, lock, circuit). "
+    "Large, simplified shapes. Background should be subtle and not compete with the main subject. "
+    "Limit to 2-3 main elements only. "
+    "Visual clarity: high contrast between foreground and background. Strong lighting and glow "
+    "around the main subject. Avoid fine lines, tiny icons, or dense patterns. "
+    "Color: limited palette (2-4 colors max). Prefer dark background with bright highlights "
+    "(cyber/AI feel). "
+    "Environment: optional simplified city silhouette, blurred or abstracted. "
+    "Output: cinematic but clean, readable and impactful even when scaled down to a small card. "
+    "Focus on clarity over detail. Do NOT include any text or letters in the image."
 )
 
 
