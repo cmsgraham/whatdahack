@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from CTFd.models import db
 
@@ -25,6 +26,7 @@ class SocialPost(db.Model):
     )
     tags = db.Column(db.Text, default="")
     image_url = db.Column(db.Text, nullable=True)
+    images = db.Column(db.Text, nullable=True)  # JSON list of image URLs
     link_url = db.Column(db.Text, nullable=True)
 
     # Denormalized counters
@@ -68,6 +70,15 @@ class SocialPost(db.Model):
         if not self.tags:
             return []
         return [t.strip() for t in self.tags.split(",") if t.strip()]
+
+    @property
+    def image_list(self):
+        if not self.images:
+            return []
+        try:
+            return json.loads(self.images)
+        except (json.JSONDecodeError, TypeError):
+            return []
 
     def __repr__(self):
         return f"<SocialPost {self.id}>"
@@ -254,7 +265,7 @@ class SocialReport(db.Model):
 def init_social_tables(app):
     """Create social tables if they don't exist."""
     with app.app_context():
-        from sqlalchemy import inspect as sa_inspect
+        from sqlalchemy import inspect as sa_inspect, text
 
         inspector = sa_inspect(db.engine)
         existing = set(inspector.get_table_names())
@@ -269,3 +280,11 @@ def init_social_tables(app):
         tables_to_create = [t for t in tables_needed if t.name not in existing]
         if tables_to_create:
             db.metadata.create_all(db.engine, tables=tables_to_create)
+
+        # Auto-add images column if missing (migration for existing installs)
+        if "social_posts" in existing:
+            cols = {c["name"] for c in inspector.get_columns("social_posts")}
+            if "images" not in cols:
+                with db.engine.connect() as conn:
+                    conn.execute(text("ALTER TABLE social_posts ADD COLUMN images TEXT"))
+                    conn.commit()

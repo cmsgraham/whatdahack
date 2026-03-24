@@ -1,8 +1,12 @@
 import datetime
+import json
+import os
+import uuid
 
-from flask import Blueprint, abort, jsonify, render_template, request
+from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from sqlalchemy import case, desc, func
 from sqlalchemy.exc import IntegrityError
+from werkzeug.utils import secure_filename
 
 from CTFd.models import db
 from CTFd.models.social import (
@@ -19,6 +23,8 @@ from CTFd.utils.user import authed, get_current_user, is_admin
 social_feed = Blueprint("social_feed", __name__)
 
 VALID_POST_TYPES = ("text", "solve", "discussion", "question")
+ALLOWED_IMAGE_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
 
 
 # ─── helpers ────────────────────────────────────────────────────────
@@ -54,6 +60,7 @@ def _serialize_post(p, liked_ids=None, current_uid=None):
         "challenge_name": p.challenge_ref.title if p.challenge_ref else None,
         "tags": p.tag_list,
         "image_url": p.image_url,
+        "images": p.image_list,
         "link_url": p.link_url,
         "like_count": p.like_count,
         "comment_count": p.comment_count,
@@ -107,6 +114,53 @@ def user_profile(user_id):
 
     u = Users.query.get_or_404(user_id)
     return render_template("social/profile.html", profile_user_id=user_id)
+
+
+# ─── Image Upload ───────────────────────────────────────────────────
+
+
+def _allowed_image(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_IMAGE_EXT
+
+
+@social_feed.route("/feed/api/upload", methods=["POST"])
+@authed_only
+def api_upload_image():
+    """Upload one or more images for social posts. Returns list of URLs."""
+    files = request.files.getlist("images")
+    if not files or len(files) == 0:
+        return jsonify({"success": False, "errors": ["No files provided"]}), 400
+    if len(files) > 10:
+        return jsonify({"success": False, "errors": ["Maximum 10 images"]}), 400
+
+    upload_folder = current_app.config.get("UPLOAD_FOLDER", "/var/uploads")
+    social_dir = os.path.join(upload_folder, "social")
+    os.makedirs(social_dir, exist_ok=True)
+
+    urls = []
+    for f in files:
+        if not f or not f.filename:
+            continue
+        if not _allowed_image(f.filename):
+            return jsonify({"success": False, "errors": [f"Invalid file type: {f.filename}"]}), 400
+
+        # Read and check size
+        data = f.read()
+        if len(data) > MAX_IMAGE_SIZE:
+            return jsonify({"success": False, "errors": ["Image too large (max 5MB)"]}), 400
+        f.seek(0)
+
+        ext = f.filename.rsplit(".", 1)[1].lower()
+        unique = uuid.uuid4().hex[:16]
+        safe_name = secure_filename(f"{unique}.{ext}")
+        filepath = os.path.join(social_dir, safe_name)
+
+        with open(filepath, "wb") as dst:
+            dst.write(data)
+
+        urls.append(f"/files/social/{safe_name}")
+
+    return jsonify({"success": True, "data": {"urls": urls}})
 
 
 # ─── Feed API ───────────────────────────────────────────────────────
@@ -224,6 +278,19 @@ def api_create_post():
     image_url = (data.get("image_url") or "").strip() or None
     link_url = (data.get("link_url") or "").strip() or None
 
+    # Support multiple images as JSON list
+    images_list = data.get("images") or []
+    if isinstance(images_list, list):
+        # Validate each entry is a string
+        images_list = [str(u) for u in images_list if u][:10]
+    else:
+        images_list = []
+    images_json = json.dumps(images_list) if images_list else None
+
+    # Use first image as image_url fallback
+    if not image_url and images_list:
+        image_url = images_list[0]
+
     p = SocialPost(
         author_id=user.id,
         content=content,
@@ -231,6 +298,7 @@ def api_create_post():
         challenge_id=challenge_id,
         tags=tags,
         image_url=image_url,
+        images=images_json,
         link_url=link_url,
     )
     db.session.add(p)

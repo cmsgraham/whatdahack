@@ -3,526 +3,926 @@
 {% block stylesheets %}
 {{ super() }}
 <style>
-[x-cloak] { display: none !important; }
+[x-cloak]{display:none!important}
+*,*::before,*::after{box-sizing:border-box}
 
-:root, [data-bs-theme="light"] {
-  --sf-bg:            #f3f4f6;
-  --sf-surface:       #ffffff;
-  --sf-elevated:      #f8f9fa;
-  --sf-input:         #ffffff;
-  --sf-text:          #111827;
-  --sf-muted:         #6b7280;
-  --sf-border:        #d1d5db;
-  --sf-accent:        #6366f1;
-  --sf-accent-rgb:    99,102,241;
-  --sf-green:         #22c55e;
-  --sf-red:           #ef4444;
-  --sf-radius:        .55rem;
-  --sf-radius-lg:     .85rem;
+/* Design Tokens */
+:root,[data-bs-theme="light"]{
+  --app-bg:#f0f2f5;--app-surface:#fff;--app-elevated:#f8f9fa;
+  --app-input:#fff;--app-text:#0f1419;--app-text2:#536471;
+  --app-muted:#8b98a5;--app-border:rgba(0,0,0,.06);
+  --app-accent:#6366f1;--app-accent-rgb:99,102,241;
+  --app-accent2:#818cf8;--app-red:#ef4444;--app-red-rgb:239,68,68;
+  --app-green:#22c55e;--app-gold:#f59e0b;
+  --app-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --app-shadow-lg:0 10px 40px rgba(0,0,0,.08);
+  --app-r:16px;--app-r-sm:10px;--app-r-xs:6px;
 }
-[data-bs-theme="dark"] {
-  --sf-bg:            #0d1117;
-  --sf-surface:       #161b22;
-  --sf-elevated:      #1c2333;
-  --sf-input:         #0d1117;
-  --sf-text:          #e6edf3;
-  --sf-muted:         #8b949e;
-  --sf-border:        #30363d;
-  --sf-accent:        #818cf8;
-  --sf-accent-rgb:    129,140,248;
-  --sf-green:         #4ade80;
-  --sf-red:           #f87171;
+[data-bs-theme="dark"]{
+  --app-bg:#000;--app-surface:#16181c;--app-elevated:#1d1f23;
+  --app-input:#202327;--app-text:#e7e9ea;--app-text2:#71767b;
+  --app-muted:#536471;--app-border:rgba(255,255,255,.06);
+  --app-accent:#818cf8;--app-accent-rgb:129,140,248;
+  --app-accent2:#a5b4fc;--app-red:#f87171;--app-red-rgb:248,113,113;
+  --app-green:#4ade80;--app-gold:#fbbf24;
+  --app-shadow:0 1px 3px rgba(0,0,0,.3);
+  --app-shadow-lg:0 10px 40px rgba(0,0,0,.4);
 }
 
-body { background: var(--sf-bg); }
+body{
+  background:var(--app-bg)!important;margin:0;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  color:var(--app-text);
+}
+.navbar{position:sticky;top:0;z-index:100;}
 
-/* ── Layout ────────────────────────────────────────── */
-.sf-layout { max-width: 680px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-
-/* ── Tabs ──────────────────────────────────────────── */
-.sf-tabs {
-  display: flex; gap: .3rem; background: var(--sf-surface);
-  border: 1px solid var(--sf-border); border-radius: var(--sf-radius-lg);
-  padding: .3rem; margin-bottom: 1.2rem;
-}
-.sf-tab {
-  flex: 1; padding: .55rem; border-radius: var(--sf-radius);
-  text-align: center; font-size: .82rem; font-weight: 600;
-  cursor: pointer; transition: all .15s; border: none;
-  background: transparent; color: var(--sf-muted);
-}
-.sf-tab:hover { color: var(--sf-text); }
-.sf-tab.active { background: var(--sf-accent); color: #fff; }
-
-/* ── Composer ──────────────────────────────────────── */
-.sf-composer {
-  background: var(--sf-surface); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg); padding: 1rem;
-  margin-bottom: 1.2rem;
-}
-.sf-composer-top { display: flex; gap: .7rem; align-items: flex-start; }
-.sf-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: rgba(var(--sf-accent-rgb),.1); border: 1px solid rgba(var(--sf-accent-rgb),.2);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; overflow: hidden; color: var(--sf-accent); font-size: .8rem;
-}
-.sf-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-.sf-composer-input {
-  flex: 1; min-height: 60px; padding: .6rem .8rem; border-radius: var(--sf-radius);
-  border: 1px solid var(--sf-border); background: var(--sf-input);
-  color: var(--sf-text); font-size: .88rem; resize: none;
-  font-family: inherit; outline: none; transition: border-color .15s;
-}
-.sf-composer-input:focus { border-color: var(--sf-accent); }
-.sf-composer-input::placeholder { color: var(--sf-muted); }
-
-.sf-composer-bar {
-  display: flex; align-items: center; gap: .3rem; margin-top: .6rem;
-  padding-top: .6rem; border-top: 1px solid var(--sf-border);
-}
-.sf-type-btn {
-  padding: .3rem .6rem; border-radius: 99px; border: 1px solid var(--sf-border);
-  background: transparent; color: var(--sf-muted); cursor: pointer;
-  font-size: .72rem; font-weight: 600; transition: all .15s;
-  display: flex; align-items: center; gap: .25rem;
-}
-.sf-type-btn:hover { border-color: var(--sf-accent); color: var(--sf-accent); }
-.sf-type-btn.active { background: rgba(var(--sf-accent-rgb),.1); border-color: var(--sf-accent); color: var(--sf-accent); }
-.sf-post-btn {
-  margin-left: auto; padding: .45rem 1.1rem; border-radius: var(--sf-radius);
-  background: var(--sf-accent); color: #fff; border: none; cursor: pointer;
-  font-size: .82rem; font-weight: 600; transition: opacity .15s;
-}
-.sf-post-btn:hover { opacity: .88; }
-.sf-post-btn:disabled { opacity: .4; pointer-events: none; }
-
-.sf-composer-extras {
-  margin-top: .5rem; display: flex; flex-direction: column; gap: .4rem;
-}
-.sf-extra-input {
-  width: 100%; padding: .4rem .7rem; border-radius: var(--sf-radius);
-  border: 1px solid var(--sf-border); background: var(--sf-input);
-  color: var(--sf-text); font-size: .8rem; outline: none;
-}
-.sf-extra-input:focus { border-color: var(--sf-accent); }
-
-/* ── Post Card ─────────────────────────────────────── */
-.sf-post {
-  background: var(--sf-surface); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg); padding: 1.1rem;
-  margin-bottom: .8rem; transition: border-color .15s;
-}
-.sf-post:hover { border-color: rgba(var(--sf-accent-rgb),.3); }
-.sf-post-header { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; }
-.sf-post-author-info { flex: 1; min-width: 0; }
-.sf-post-author {
-  font-size: .88rem; font-weight: 700; color: var(--sf-text);
-  text-decoration: none; display: block;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.sf-post-author:hover { color: var(--sf-accent); }
-.sf-post-time { font-size: .72rem; color: var(--sf-muted); }
-.sf-post-type-badge {
-  font-size: .6rem; font-weight: 700; padding: .12rem .45rem;
-  border-radius: 99px; text-transform: uppercase; letter-spacing: .8px;
-}
-.sf-type--text { background: rgba(var(--sf-accent-rgb),.1); color: var(--sf-accent); }
-.sf-type--solve { background: rgba(34,197,94,.12); color: #16a34a; }
-.sf-type--discussion { background: rgba(245,158,11,.12); color: #d97706; }
-.sf-type--question { background: rgba(168,85,247,.12); color: #9333ea; }
-.sf-post-pinned { font-size: .6rem; color: var(--sf-accent); font-weight: 700; margin-left: .4rem; }
-
-/* Content */
-.sf-post-content {
-  font-size: .88rem; line-height: 1.65; color: var(--sf-text);
-  word-break: break-word;
-}
-.sf-post-content p { margin: 0 0 .4rem; }
-.sf-post-content pre {
-  background: var(--sf-elevated); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius); padding: .7rem; overflow-x: auto;
-  font-size: .78rem; margin: .5rem 0;
-}
-.sf-post-content code {
-  background: var(--sf-elevated); padding: .08rem .3rem; border-radius: 3px;
-  font-size: .82rem;
-}
-.sf-post-content pre code { background: none; padding: 0; }
-.sf-post-content a { color: var(--sf-accent); }
-.sf-post-content blockquote {
-  border-left: 3px solid var(--sf-accent); padding-left: .7rem;
-  color: var(--sf-muted); margin: .5rem 0;
-}
-.sf-post-content img { max-width: 100%; border-radius: var(--sf-radius); margin: .5rem 0; }
-
-/* Challenge link */
-.sf-challenge-link {
-  display: inline-flex; align-items: center; gap: .3rem;
-  padding: .3rem .65rem; border-radius: var(--sf-radius);
-  background: rgba(var(--sf-accent-rgb),.06); border: 1px solid rgba(var(--sf-accent-rgb),.15);
-  color: var(--sf-accent); font-size: .78rem; text-decoration: none;
-  margin-top: .5rem; transition: border-color .15s;
-}
-.sf-challenge-link:hover { border-color: var(--sf-accent); color: var(--sf-accent); text-decoration: none; }
-
-/* Image */
-.sf-post-image {
-  margin-top: .6rem; border-radius: var(--sf-radius);
-  max-width: 100%; max-height: 400px; object-fit: cover;
+/* App Shell */
+.app-shell{
+  max-width:600px;margin:0 auto;min-height:100vh;
+  padding-bottom:calc(70px + env(safe-area-inset-bottom,0px));
 }
 
-/* Tags */
-.sf-post-tags { display: flex; gap: .25rem; flex-wrap: wrap; margin-top: .5rem; }
-.sf-post-tag {
-  font-size: .6rem; padding: .1rem .4rem; border-radius: 99px;
-  background: rgba(var(--sf-accent-rgb),.06); color: var(--sf-accent);
+/* Sticky Header */
+.app-header{
+  position:sticky;top:56px;z-index:50;
+  border-bottom:1px solid var(--app-border);
+  padding:.6rem 1rem;
+  display:flex;align-items:center;gap:.6rem;
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+  background:rgba(255,255,255,.85);
+}
+[data-bs-theme="dark"] .app-header{background:rgba(22,24,28,.85);}
+.app-header-title{font-size:1.15rem;font-weight:800;flex:1;letter-spacing:-.02em;}
+.app-header-btn{
+  width:38px;height:38px;border-radius:50%;border:none;
+  background:var(--app-elevated);display:flex;align-items:center;justify-content:center;
+  color:var(--app-text);cursor:pointer;position:relative;transition:background .15s;
+  font-size:.95rem;
+}
+.app-header-btn:hover{background:rgba(var(--app-accent-rgb),.1);}
+.app-header-badge{
+  position:absolute;top:2px;right:2px;
+  min-width:16px;height:16px;padding:0 4px;
+  background:var(--app-red);color:#fff;border-radius:99px;
+  font-size:.55rem;font-weight:800;display:flex;align-items:center;justify-content:center;
+  line-height:1;
 }
 
-/* Actions bar */
-.sf-actions {
-  display: flex; gap: .1rem; margin-top: .7rem; padding-top: .6rem;
-  border-top: 1px solid var(--sf-border);
+/* Bottom Nav */
+.app-bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:90;
+  background:var(--app-surface);
+  border-top:1px solid var(--app-border);
+  display:flex;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
-.sf-action-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: .35rem;
-  padding: .45rem; border-radius: var(--sf-radius); background: transparent;
-  border: none; color: var(--sf-muted); font-size: .8rem; cursor: pointer;
-  transition: all .12s;
+[data-bs-theme="dark"] .app-bottom-nav{background:rgba(22,24,28,.92);}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  padding:.55rem 0 .35rem;gap:.15rem;cursor:pointer;
+  color:var(--app-muted);text-decoration:none;transition:color .12s;
+  border:none;background:none;font-family:inherit;
 }
-.sf-action-btn:hover { background: var(--sf-elevated); color: var(--sf-text); }
-.sf-action-btn.liked { color: var(--sf-red); }
-.sf-action-btn .count { font-weight: 600; }
+.bnav-item:hover,.bnav-item.active{color:var(--app-accent);}
+.bnav-item i{font-size:1.15rem;}
+.bnav-label{font-size:.6rem;font-weight:600;letter-spacing:.5px;}
+.bnav-create{
+  width:44px;height:44px;border-radius:50%;
+  background:linear-gradient(135deg,var(--app-accent),var(--app-accent2));
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;border:none;cursor:pointer;
+  margin-top:-14px;box-shadow:0 4px 14px rgba(var(--app-accent-rgb),.35);
+  transition:transform .15s,box-shadow .15s;
+}
+.bnav-create:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(var(--app-accent-rgb),.45);}
 
-/* Delete / report dropdown */
-.sf-post-menu {
-  position: relative; margin-left: auto;
+/* Feed Tabs */
+.feed-tabs{
+  display:flex;background:var(--app-surface);
+  border-bottom:1px solid var(--app-border);
+  position:sticky;top:112px;z-index:40;
 }
-.sf-post-menu-btn {
-  background: none; border: none; color: var(--sf-muted); cursor: pointer;
-  padding: .2rem .4rem; border-radius: var(--sf-radius); font-size: .85rem;
+.feed-tab{
+  flex:1;padding:.75rem .5rem;text-align:center;
+  font-size:.82rem;font-weight:600;color:var(--app-muted);
+  border:none;background:none;cursor:pointer;
+  position:relative;transition:color .15s;
 }
-.sf-post-menu-btn:hover { color: var(--sf-text); background: var(--sf-elevated); }
-.sf-post-menu-drop {
-  position: absolute; right: 0; top: 100%; z-index: 10;
-  background: var(--sf-surface); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius); box-shadow: 0 8px 24px rgba(0,0,0,.12);
-  min-width: 140px; padding: .3rem;
-}
-.sf-post-menu-item {
-  display: block; width: 100%; padding: .4rem .7rem; border: none;
-  background: transparent; color: var(--sf-text); font-size: .8rem;
-  cursor: pointer; border-radius: 4px; text-align: left;
-}
-.sf-post-menu-item:hover { background: var(--sf-elevated); }
-.sf-post-menu-item.danger { color: var(--sf-red); }
-
-/* ── Loading / Empty ───────────────────────────────── */
-.sf-loading { text-align: center; padding: 3rem; color: var(--sf-muted); }
-@keyframes sf-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
-.sf-loading i { animation: sf-pulse 1.2s infinite; font-size: 1.5rem; }
-.sf-empty { text-align: center; padding: 3rem; color: var(--sf-muted); }
-.sf-empty i { font-size: 2.5rem; opacity: .3; display: block; margin-bottom: .6rem; }
-
-/* ── Pagination ────────────────────────────────────── */
-.sf-load-more {
-  display: block; width: 100%; padding: .6rem; border-radius: var(--sf-radius);
-  background: var(--sf-surface); border: 1px solid var(--sf-border);
-  color: var(--sf-accent); font-size: .85rem; font-weight: 600;
-  cursor: pointer; text-align: center; transition: border-color .15s;
-}
-.sf-load-more:hover { border-color: var(--sf-accent); }
-
-/* ── Notification bell ─────────────────────────────── */
-.sf-notif-wrap { position: relative; }
-.sf-notif-btn {
-  padding: .45rem .7rem; border-radius: var(--sf-radius);
-  border: 1px solid var(--sf-border); background: var(--sf-surface);
-  color: var(--sf-muted); cursor: pointer; font-size: .9rem;
-  position: relative; transition: border-color .15s;
-}
-.sf-notif-btn:hover { border-color: var(--sf-accent); color: var(--sf-accent); }
-.sf-notif-badge {
-  position: absolute; top: -4px; right: -4px;
-  background: var(--sf-red); color: #fff; font-size: .55rem;
-  font-weight: 700; padding: .12rem .35rem; border-radius: 99px;
-  min-width: 16px; text-align: center; line-height: 1;
-}
-.sf-notif-panel {
-  position: absolute; right: 0; top: calc(100% + .4rem); z-index: 20;
-  width: 340px; max-height: 400px; overflow-y: auto;
-  background: var(--sf-surface); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg); box-shadow: 0 12px 40px rgba(0,0,0,.15);
-}
-.sf-notif-header {
-  padding: .65rem .85rem; border-bottom: 1px solid var(--sf-border);
-  display: flex; justify-content: space-between; align-items: center;
-}
-.sf-notif-title { font-size: .82rem; font-weight: 700; color: var(--sf-text); }
-.sf-notif-mark-read {
-  font-size: .72rem; color: var(--sf-accent); cursor: pointer;
-  background: none; border: none;
-}
-.sf-notif-item {
-  padding: .6rem .85rem; border-bottom: 1px solid var(--sf-border);
-  display: flex; gap: .5rem; align-items: flex-start;
-  transition: background .1s; cursor: pointer; text-decoration: none; color: inherit;
-}
-.sf-notif-item:hover { background: var(--sf-elevated); text-decoration: none; color: inherit; }
-.sf-notif-item.unread { background: rgba(var(--sf-accent-rgb),.04); }
-.sf-notif-text { font-size: .78rem; color: var(--sf-text); line-height: 1.35; }
-.sf-notif-text strong { font-weight: 700; }
-.sf-notif-time { font-size: .65rem; color: var(--sf-muted); margin-top: .15rem; }
-
-/* ── Sidebar (optional trending) ───────────────────── */
-.sf-sidebar-card {
-  background: var(--sf-surface); border: 1px solid var(--sf-border);
-  border-radius: var(--sf-radius-lg); padding: 1rem; margin-bottom: 1rem;
-}
-.sf-sidebar-title {
-  font-size: .72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1.5px; color: var(--sf-muted); margin-bottom: .7rem;
+.feed-tab:hover{color:var(--app-text);}
+.feed-tab.active{color:var(--app-accent);}
+.feed-tab.active::after{
+  content:'';position:absolute;bottom:0;left:20%;right:20%;
+  height:3px;border-radius:3px;background:var(--app-accent);
 }
 
-@media (max-width: 640px) {
-  .sf-tabs { flex-wrap: wrap; }
-  .sf-notif-panel { width: 280px; right: -60px; }
+/* Type pills */
+.type-pills{
+  display:flex;gap:6px;padding:.6rem 1rem;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;
 }
+.type-pills::-webkit-scrollbar{display:none;}
+.type-pill{
+  white-space:nowrap;padding:.35rem .75rem;border-radius:99px;
+  font-size:.72rem;font-weight:600;border:1px solid var(--app-border);
+  background:var(--app-surface);color:var(--app-muted);
+  cursor:pointer;transition:all .15s;flex-shrink:0;
+}
+.type-pill:hover{border-color:var(--app-accent);color:var(--app-accent);}
+.type-pill.active{
+  background:var(--app-accent);color:#fff;border-color:var(--app-accent);
+}
+
+/* Composer */
+.composer{
+  background:var(--app-surface);border-bottom:1px solid var(--app-border);
+  padding:1rem;
+}
+.composer-row{display:flex;gap:.65rem;align-items:flex-start;}
+.avatar{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;overflow:hidden;
+  background:linear-gradient(135deg,rgba(var(--app-accent-rgb),.15),rgba(var(--app-accent-rgb),.05));
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(var(--app-accent-rgb),.15);
+  color:var(--app-accent);font-size:.85rem;
+}
+.avatar img{width:100%;height:100%;object-fit:cover;}
+.avatar-sm{width:34px;height:34px;font-size:.75rem;border-width:1.5px;}
+.avatar-xs{width:26px;height:26px;font-size:.6rem;border-width:1px;}
+.composer-body{flex:1;min-width:0;}
+.composer-input{
+  width:100%;border:none;background:transparent;resize:none;
+  color:var(--app-text);font-size:.92rem;line-height:1.5;
+  outline:none;padding:0;min-height:24px;max-height:200px;
+  font-family:inherit;
+}
+.composer-input::placeholder{color:var(--app-muted);}
+
+/* Media preview in composer */
+.composer-media-grid{
+  display:grid;gap:4px;margin-top:.6rem;border-radius:var(--app-r-sm);overflow:hidden;
+}
+.composer-media-grid.g1{grid-template-columns:1fr;}
+.composer-media-grid.g2{grid-template-columns:1fr 1fr;}
+.composer-media-grid.g3{grid-template-columns:1fr 1fr;grid-template-rows:auto auto;}
+.composer-media-grid.g3 .cm-img:first-child{grid-row:1/3;}
+.composer-media-grid.g4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.cm-img{
+  position:relative;overflow:hidden;border-radius:2px;
+  aspect-ratio:auto;max-height:200px;
+}
+.cm-img img{width:100%;height:100%;object-fit:cover;display:block;}
+.cm-img-remove{
+  position:absolute;top:6px;right:6px;width:24px;height:24px;
+  border-radius:50%;background:rgba(0,0,0,.7);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:.65rem;border:none;transition:background .12s;
+}
+.cm-img-remove:hover{background:rgba(var(--app-red-rgb),.9);}
+
+/* Composer toolbar */
+.composer-tools{
+  display:flex;align-items:center;gap:.15rem;margin-top:.6rem;
+  padding-top:.5rem;border-top:1px solid var(--app-border);
+}
+.c-tool{
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:transparent;color:var(--app-accent);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.92rem;transition:background .12s;
+}
+.c-tool:hover{background:rgba(var(--app-accent-rgb),.08);}
+.c-tool.active{background:rgba(var(--app-accent-rgb),.12);}
+.c-tool input[type="file"]{display:none;}
+.c-type-sel{
+  display:flex;align-items:center;gap:2px;padding:3px 10px;
+  border-radius:99px;border:1px solid rgba(var(--app-accent-rgb),.25);
+  background:rgba(var(--app-accent-rgb),.05);
+  color:var(--app-accent);font-size:.68rem;font-weight:700;
+  cursor:pointer;margin-left:auto;transition:all .12s;
+}
+.c-type-sel:hover{background:rgba(var(--app-accent-rgb),.1);}
+.c-post-btn{
+  padding:.45rem 1.2rem;border-radius:99px;border:none;
+  background:var(--app-accent);color:#fff;font-size:.82rem;
+  font-weight:700;cursor:pointer;margin-left:.5rem;
+  transition:all .15s;
+}
+.c-post-btn:hover{opacity:.88;transform:scale(1.02);}
+.c-post-btn:disabled{opacity:.35;transform:none;cursor:default;}
+
+/* Link input */
+.composer-link-row{
+  display:flex;gap:.4rem;margin-top:.5rem;align-items:center;
+}
+.composer-link-input{
+  flex:1;padding:.4rem .6rem;border-radius:var(--app-r-xs);
+  border:1px solid var(--app-border);background:var(--app-input);
+  color:var(--app-text);font-size:.78rem;outline:none;
+}
+.composer-link-input:focus{border-color:var(--app-accent);}
+
+/* Post Card */
+.post-card{
+  background:var(--app-surface);
+  border-bottom:1px solid var(--app-border);
+  padding:1rem;transition:background .1s;
+  animation:fadeUp .3s ease;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.post-card:active{background:var(--app-elevated);}
+
+.post-head{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem;}
+.post-author-col{flex:1;min-width:0;}
+.post-author{
+  font-size:.88rem;font-weight:700;color:var(--app-text);
+  text-decoration:none;display:block;line-height:1.2;
+}
+.post-author:hover{color:var(--app-accent);}
+.post-meta{
+  font-size:.68rem;color:var(--app-muted);display:flex;align-items:center;gap:.3rem;
+}
+.post-type-dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.dot-text{background:var(--app-accent);}
+.dot-solve{background:var(--app-green);}
+.dot-discussion{background:var(--app-gold);}
+.dot-question{background:#a855f7;}
+.post-menu-btn{
+  background:none;border:none;color:var(--app-muted);cursor:pointer;
+  padding:6px;border-radius:50%;font-size:.85rem;transition:all .12s;
+}
+.post-menu-btn:hover{background:var(--app-elevated);color:var(--app-text);}
+
+/* Post content */
+.post-text{
+  font-size:.9rem;line-height:1.6;word-break:break-word;
+  margin-bottom:.4rem;
+}
+.post-text p{margin:0 0 .3rem;}
+.post-text a{color:var(--app-accent);}
+.post-text code{
+  background:var(--app-elevated);padding:.1rem .3rem;
+  border-radius:4px;font-size:.8rem;
+}
+.post-text pre{
+  background:var(--app-elevated);border:1px solid var(--app-border);
+  border-radius:var(--app-r-xs);padding:.6rem;overflow-x:auto;
+  font-size:.75rem;margin:.4rem 0;
+}
+.post-text pre code{background:none;padding:0;}
+.post-text blockquote{
+  border-left:3px solid var(--app-accent);padding-left:.6rem;
+  color:var(--app-text2);margin:.4rem 0;
+}
+
+/* Media Grid */
+.media-grid{
+  display:grid;gap:2px;border-radius:var(--app-r);overflow:hidden;
+  margin-top:.5rem;cursor:pointer;
+}
+.media-grid.mg1{grid-template-columns:1fr;}
+.media-grid.mg2{grid-template-columns:1fr 1fr;}
+.media-grid.mg3{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr;}
+.media-grid.mg3 .mg-item:first-child{grid-row:1/3;}
+.media-grid.mg4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;}
+.mg-item{
+  position:relative;overflow:hidden;background:var(--app-elevated);min-height:0;
+}
+.mg-item.single{max-height:450px;}
+.mg-item:not(.single){aspect-ratio:1;}
+.mg-item img{
+  width:100%;height:100%;object-fit:cover;display:block;transition:transform .2s;
+}
+.mg-item:hover img{transform:scale(1.02);}
+.mg-more{
+  position:absolute;inset:0;background:rgba(0,0,0,.5);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.3rem;font-weight:800;
+}
+
+.post-single-img{
+  border-radius:var(--app-r);overflow:hidden;margin-top:.5rem;
+  max-height:450px;cursor:pointer;
+}
+.post-single-img img{
+  width:100%;max-height:450px;object-fit:cover;display:block;transition:transform .2s;
+}
+.post-single-img:hover img{transform:scale(1.01);}
+
+.post-chal-pill{
+  display:inline-flex;align-items:center;gap:.3rem;
+  padding:.25rem .6rem;border-radius:99px;font-size:.72rem;
+  background:rgba(var(--app-accent-rgb),.06);
+  border:1px solid rgba(var(--app-accent-rgb),.12);
+  color:var(--app-accent);text-decoration:none;margin-top:.4rem;
+  transition:border-color .12s;
+}
+.post-chal-pill:hover{border-color:var(--app-accent);color:var(--app-accent);text-decoration:none;}
+.post-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:.35rem;}
+.post-tag{
+  font-size:.6rem;padding:2px 7px;border-radius:99px;
+  background:rgba(var(--app-accent-rgb),.05);color:var(--app-accent);font-weight:600;
+}
+
+/* Interaction Bar */
+.post-actions{display:flex;margin-top:.6rem;gap:0;}
+.pact{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:.35rem;
+  padding:.5rem;border-radius:var(--app-r-xs);
+  background:none;border:none;color:var(--app-muted);
+  font-size:.82rem;cursor:pointer;transition:all .12s;font-family:inherit;
+}
+.pact:hover{background:var(--app-elevated);color:var(--app-text);}
+.pact .count{font-size:.75rem;font-weight:600;}
+.pact.liked{color:var(--app-red);}
+.pact.liked i{animation:heartPop .35s ease;}
+@keyframes heartPop{
+  0%{transform:scale(1)}25%{transform:scale(1.3)}50%{transform:scale(.95)}100%{transform:scale(1)}
+}
+
+/* Post dropdown */
+.post-dropdown{
+  position:absolute;right:0;top:100%;z-index:15;
+  background:var(--app-surface);border:1px solid var(--app-border);
+  border-radius:var(--app-r-sm);box-shadow:var(--app-shadow-lg);
+  min-width:160px;padding:4px;overflow:hidden;
+}
+.pd-item{
+  display:flex;align-items:center;gap:.4rem;width:100%;
+  padding:.5rem .7rem;border:none;background:none;
+  color:var(--app-text);font-size:.82rem;cursor:pointer;
+  border-radius:var(--app-r-xs);transition:background .1s;text-align:left;
+}
+.pd-item:hover{background:var(--app-elevated);}
+.pd-item.danger{color:var(--app-red);}
+
+/* Comments Sheet */
+.sheet-backdrop{
+  position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);
+  opacity:0;transition:opacity .25s;
+}
+.sheet-backdrop.show{opacity:1;}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:201;
+  background:var(--app-surface);border-radius:var(--app-r) var(--app-r) 0 0;
+  max-height:85vh;display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,.15);
+}
+.sheet.show{transform:translateY(0);}
+.sheet-handle{
+  width:36px;height:4px;border-radius:4px;margin:8px auto;
+  background:var(--app-muted);opacity:.3;
+}
+.sheet-header{
+  padding:.5rem 1rem .6rem;border-bottom:1px solid var(--app-border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.sheet-title{font-size:.9rem;font-weight:700;}
+.sheet-close{
+  width:30px;height:30px;border-radius:50%;border:none;
+  background:var(--app-elevated);cursor:pointer;display:flex;
+  align-items:center;justify-content:center;font-size:.8rem;
+  color:var(--app-muted);
+}
+.sheet-body{flex:1;overflow-y:auto;padding:.5rem 1rem;-webkit-overflow-scrolling:touch;}
+.sheet-input-area{
+  padding:.6rem 1rem;border-top:1px solid var(--app-border);
+  display:flex;gap:.4rem;align-items:flex-end;
+  padding-bottom:calc(.6rem + env(safe-area-inset-bottom,0px));
+}
+.sheet-input{
+  flex:1;padding:.5rem .7rem;border-radius:20px;
+  border:1px solid var(--app-border);background:var(--app-input);
+  color:var(--app-text);font-size:.82rem;outline:none;
+  resize:none;min-height:38px;max-height:100px;font-family:inherit;
+}
+.sheet-input:focus{border-color:var(--app-accent);}
+.sheet-send{
+  width:36px;height:36px;border-radius:50%;border:none;
+  background:var(--app-accent);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.85rem;flex-shrink:0;transition:opacity .12s;
+}
+.sheet-send:disabled{opacity:.3;}
+
+/* Comment items */
+.comment-item{padding:.5rem 0;}
+.comment-item+.comment-item{border-top:1px solid var(--app-border);}
+.comment-head{display:flex;align-items:center;gap:.4rem;margin-bottom:.2rem;}
+.comment-author{font-size:.78rem;font-weight:700;color:var(--app-text);text-decoration:none;}
+.comment-author:hover{color:var(--app-accent);}
+.comment-time{font-size:.62rem;color:var(--app-muted);}
+.comment-body{font-size:.82rem;line-height:1.5;color:var(--app-text);word-break:break-word;}
+.comment-body p{margin:0 0 .2rem;}
+.comment-body code{background:var(--app-elevated);padding:.05rem .25rem;border-radius:3px;font-size:.75rem;}
+.comment-acts{display:flex;gap:.5rem;margin-top:.2rem;font-size:.68rem;}
+.comment-act{
+  background:none;border:none;color:var(--app-muted);cursor:pointer;
+  display:flex;align-items:center;gap:.2rem;padding:2px 4px;
+  border-radius:4px;transition:color .1s;
+}
+.comment-act:hover{color:var(--app-text);}
+.comment-act.liked{color:var(--app-red);}
+.comment-replies{margin-left:1.2rem;padding-left:.7rem;border-left:2px solid var(--app-border);}
+.reply-input-row{display:flex;gap:.3rem;margin-top:.4rem;align-items:center;}
+.reply-input{
+  flex:1;padding:.3rem .55rem;border-radius:16px;
+  border:1px solid var(--app-border);background:var(--app-input);
+  color:var(--app-text);font-size:.75rem;outline:none;
+}
+.reply-input:focus{border-color:var(--app-accent);}
+.reply-send{
+  width:28px;height:28px;border-radius:50%;border:none;
+  background:var(--app-accent);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:.7rem;
+}
+
+/* Lightbox */
+.lightbox{
+  position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.95);
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity .2s;cursor:zoom-out;
+}
+.lightbox.show{opacity:1;}
+.lightbox img{
+  max-width:95vw;max-height:90vh;object-fit:contain;border-radius:4px;
+  user-select:none;-webkit-user-select:none;
+}
+.lb-close{
+  position:absolute;top:16px;right:16px;
+  width:40px;height:40px;border-radius:50%;
+  background:rgba(255,255,255,.1);color:#fff;border:none;
+  cursor:pointer;font-size:1.1rem;display:flex;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+.lb-nav{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(255,255,255,.1);color:#fff;border:none;
+  cursor:pointer;font-size:1rem;display:flex;
+  align-items:center;justify-content:center;backdrop-filter:blur(4px);
+  transition:background .12s;
+}
+.lb-nav:hover{background:rgba(255,255,255,.2);}
+.lb-prev{left:12px;}
+.lb-next{right:12px;}
+.lb-counter{
+  position:absolute;bottom:20px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,.6);font-size:.75rem;font-weight:600;
+}
+
+/* Notifications Panel */
+.notif-panel{
+  position:fixed;top:0;right:0;bottom:0;z-index:150;
+  width:340px;max-width:90vw;background:var(--app-surface);
+  box-shadow:-8px 0 40px rgba(0,0,0,.15);
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+  display:flex;flex-direction:column;
+}
+.notif-panel.show{transform:translateX(0);}
+.notif-overlay{
+  position:fixed;inset:0;z-index:149;background:rgba(0,0,0,.4);
+  opacity:0;transition:opacity .25s;
+}
+.notif-overlay.show{opacity:1;}
+.notif-header{
+  padding:1rem;border-bottom:1px solid var(--app-border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.notif-title{font-size:1rem;font-weight:800;}
+.notif-mark{font-size:.75rem;color:var(--app-accent);background:none;border:none;cursor:pointer;}
+.notif-list{flex:1;overflow-y:auto;}
+.notif-item{
+  display:flex;gap:.5rem;padding:.7rem 1rem;
+  border-bottom:1px solid var(--app-border);
+  transition:background .1s;cursor:pointer;text-decoration:none;color:inherit;
+}
+.notif-item:hover{background:var(--app-elevated);text-decoration:none;color:inherit;}
+.notif-item.unread{background:rgba(var(--app-accent-rgb),.04);}
+.notif-text{font-size:.8rem;line-height:1.35;}
+.notif-text strong{font-weight:700;}
+.notif-time{font-size:.65rem;color:var(--app-muted);margin-top:.1rem;}
+
+/* Empty States */
+.empty-state{padding:3rem 2rem;text-align:center;}
+.empty-icon{
+  width:80px;height:80px;border-radius:50%;margin:0 auto .8rem;
+  background:linear-gradient(135deg,rgba(var(--app-accent-rgb),.08),rgba(var(--app-accent-rgb),.02));
+  display:flex;align-items:center;justify-content:center;
+  font-size:2rem;color:var(--app-accent);opacity:.5;
+}
+.empty-title{font-size:1rem;font-weight:700;margin-bottom:.3rem;}
+.empty-desc{font-size:.82rem;color:var(--app-muted);margin-bottom:1rem;line-height:1.5;}
+.empty-actions{display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;}
+.empty-btn{
+  padding:.45rem 1rem;border-radius:99px;font-size:.78rem;font-weight:600;
+  border:1px solid var(--app-accent);color:var(--app-accent);
+  background:transparent;cursor:pointer;transition:all .12s;text-decoration:none;
+}
+.empty-btn:hover{background:var(--app-accent);color:#fff;text-decoration:none;}
+.empty-btn.filled{background:var(--app-accent);color:#fff;border-color:var(--app-accent);}
+
+/* Loading */
+.feed-loader{text-align:center;padding:2rem;color:var(--app-muted);}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{
+  width:24px;height:24px;border:2.5px solid var(--app-border);
+  border-top-color:var(--app-accent);border-radius:50%;
+  animation:spin .7s linear infinite;margin:0 auto;
+}
+
+/* Responsive */
+@media(min-width:640px){
+  .app-bottom-nav{display:none;}
+  .app-shell{padding-bottom:0;}
+}
+@media(max-width:640px){
+  .notif-panel{width:100%;max-width:100%;}
+}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);}
 </style>
 {% endblock %}
 
 {% block content %}
-<div x-data="SocialFeed()" x-init="init()" x-cloak>
-  <div class="sf-layout">
+<div x-data="App()" x-init="init()" x-cloak>
 
-    <!-- Header row -->
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-      <div style="font-size:1.3rem;font-weight:800;color:var(--sf-text);">
-        <i class="fas fa-stream" style="opacity:.5;margin-right:.3rem;"></i> Feed
-      </div>
+  <!-- Sticky Header -->
+  <div class="app-header">
+    <div class="app-header-title">Feed</div>
+    <button class="app-header-btn" @click="showNotifs = true; loadNotifications()"
+            aria-label="Notifications">
+      <i class="fas fa-bell"></i>
+      <span x-show="unreadCount > 0" class="app-header-badge" x-text="unreadCount"></span>
+    </button>
+  </div>
 
-      <!-- Notifications -->
-      <div class="sf-notif-wrap" x-data="{ open: false }" @click.away="open = false">
-        <button class="sf-notif-btn" @click="open = !open; if(open) loadNotifications()">
-          <i class="fas fa-bell"></i>
-          <span x-show="unreadCount > 0" class="sf-notif-badge" x-text="unreadCount"></span>
-        </button>
-        <div x-show="open" class="sf-notif-panel" x-transition>
-          <div class="sf-notif-header">
-            <span class="sf-notif-title">Notifications</span>
-            <button class="sf-notif-mark-read" @click="markAllRead()">Mark all read</button>
-          </div>
-          <template x-if="notifications.length === 0">
-            <div style="padding:1.5rem;text-align:center;color:var(--sf-muted);font-size:.82rem;">
-              No notifications yet
-            </div>
-          </template>
-          <template x-for="n in notifications" :key="n.id">
-            <a :href="n.post_id ? '/feed/post/' + n.post_id : '#'"
-               class="sf-notif-item" :class="{'unread': !n.read}">
-              <div class="sf-avatar" style="width:28px;height:28px;font-size:.65rem;">
-                <template x-if="n.actor && n.actor.avatar">
-                  <img :src="n.actor.avatar" :alt="n.actor.name">
-                </template>
-                <template x-if="!n.actor || !n.actor.avatar">
-                  <i class="fas fa-user"></i>
-                </template>
-              </div>
-              <div>
-                <div class="sf-notif-text">
-                  <strong x-text="n.actor ? n.actor.name : 'Someone'"></strong>
-                  <span x-text="verbText(n.verb)"></span>
-                </div>
-                <div class="sf-notif-time" x-text="timeAgo(n.created_at)"></div>
-              </div>
-            </a>
-          </template>
-        </div>
-      </div>
-    </div>
+  <div class="app-shell">
 
-    <!-- Tabs: Global / Following / Trending -->
-    <div class="sf-tabs">
-      <button class="sf-tab" :class="{'active': mode === 'global'}"
-              @click="mode = 'global'; resetFeed()">
-        <i class="fas fa-globe"></i> Global
+    <!-- Feed Tabs -->
+    <div class="feed-tabs">
+      <button class="feed-tab" :class="{'active': mode==='global'}"
+              @click="mode='global';sort='newest';resetFeed()">
+        <i class="fas fa-globe" style="margin-right:3px;font-size:.75rem;"></i> For You
       </button>
-      <button class="sf-tab" :class="{'active': mode === 'following'}"
-              @click="mode = 'following'; resetFeed()">
-        <i class="fas fa-users"></i> Following
+      <button class="feed-tab" :class="{'active': mode==='following'}"
+              @click="mode='following';sort='newest';resetFeed()">
+        <i class="fas fa-user-friends" style="margin-right:3px;font-size:.75rem;"></i> Following
       </button>
-      <button class="sf-tab" :class="{'active': sort === 'trending'}"
-              @click="sort = sort === 'trending' ? 'newest' : 'trending'; resetFeed()">
-        <i class="fas fa-fire"></i> Trending
+      <button class="feed-tab" :class="{'active': sort==='trending'}"
+              @click="sort=sort==='trending'?'newest':'trending';resetFeed()">
+        <i class="fas fa-fire" style="margin-right:3px;font-size:.75rem;"></i> Trending
       </button>
     </div>
 
     <!-- Composer -->
-    <div class="sf-composer" x-show="userId">
-      <div class="sf-composer-top">
-        <div class="sf-avatar">
-          <template x-if="userAvatar">
-            <img :src="userAvatar" alt="You">
-          </template>
-          <template x-if="!userAvatar">
-            <i class="fas fa-user"></i>
-          </template>
+    <div class="composer" x-show="userId" x-transition>
+      <div class="composer-row">
+        <div class="avatar">
+          <template x-if="userAvatar"><img :src="userAvatar" alt=""></template>
+          <template x-if="!userAvatar"><i class="fas fa-user"></i></template>
         </div>
-        <textarea class="sf-composer-input" x-model="newPost.content"
-                  placeholder="Share something with the community..."
-                  @input="autoResize($event)"></textarea>
-      </div>
+        <div class="composer-body">
+          <textarea class="composer-input" x-model="np.content" rows="1"
+                    placeholder="What's on your mind?"
+                    @input="autoResize($event)"></textarea>
 
-      <!-- Extras toggle -->
-      <div x-show="showExtras" class="sf-composer-extras" x-transition>
-        <input class="sf-extra-input" type="text" x-model="newPost.tags"
-               placeholder="Tags (comma-separated)">
-        <input class="sf-extra-input" type="url" x-model="newPost.image_url"
-               placeholder="Image URL (optional)">
-        <input class="sf-extra-input" type="url" x-model="newPost.link_url"
-               placeholder="Link URL (optional)">
-        <input class="sf-extra-input" type="number" x-model.number="newPost.challenge_id"
-               placeholder="Challenge ID reference (optional)">
-      </div>
+          <!-- Media preview -->
+          <div x-show="np.images.length" class="composer-media-grid"
+               :class="'g' + Math.min(np.images.length, 4)" x-transition>
+            <template x-for="(img, idx) in np.images.slice(0,4)" :key="idx">
+              <div class="cm-img">
+                <img :src="img.preview" alt="">
+                <button class="cm-img-remove" @click="removeImage(idx)">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </template>
+          </div>
 
-      <div class="sf-composer-bar">
-        <button class="sf-type-btn" :class="{'active': newPost.post_type === 'text'}"
-                @click="newPost.post_type = 'text'">
-          <i class="fas fa-align-left"></i> Post
-        </button>
-        <button class="sf-type-btn" :class="{'active': newPost.post_type === 'discussion'}"
-                @click="newPost.post_type = 'discussion'">
-          <i class="fas fa-comments"></i> Discuss
-        </button>
-        <button class="sf-type-btn" :class="{'active': newPost.post_type === 'question'}"
-                @click="newPost.post_type = 'question'">
-          <i class="fas fa-question-circle"></i> Ask
-        </button>
-        <button class="sf-type-btn" @click="showExtras = !showExtras" title="More options">
-          <i class="fas fa-ellipsis-h"></i>
-        </button>
-        <button class="sf-post-btn" @click="submitPost()" :disabled="!newPost.content.trim() || posting">
-          <i class="fas fa-paper-plane" style="margin-right:.2rem;font-size:.7rem;"></i> Post
-        </button>
+          <!-- Link input -->
+          <div x-show="showLink" class="composer-link-row" x-transition>
+            <i class="fas fa-link" style="color:var(--app-muted);font-size:.75rem;"></i>
+            <input class="composer-link-input" type="url" x-model="np.link_url" placeholder="Paste a link...">
+            <button style="background:none;border:none;color:var(--app-muted);cursor:pointer;font-size:.75rem;"
+                    @click="showLink=false;np.link_url=''"><i class="fas fa-times"></i></button>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="composer-tools">
+            <label class="c-tool" title="Add images">
+              <i class="fas fa-image"></i>
+              <input type="file" accept="image/*" multiple @change="handleImageSelect($event)">
+            </label>
+            <button class="c-tool" :class="{'active':showLink}" @click="showLink=!showLink" title="Add link">
+              <i class="fas fa-link"></i>
+            </button>
+
+            <div class="c-type-sel" @click="cycleType()" :title="'Type: ' + np.post_type">
+              <span class="post-type-dot" :class="'dot-' + np.post_type"></span>
+              <span x-text="np.post_type" style="text-transform:capitalize;"></span>
+              <i class="fas fa-chevron-down" style="font-size:.5rem;margin-left:1px;"></i>
+            </div>
+
+            <button class="c-post-btn" @click="submitPost()"
+                    :disabled="(!np.content.trim() && !np.images.length) || posting">
+              <span x-show="!posting">Post</span>
+              <span x-show="posting"><i class="fas fa-circle-notch fa-spin"></i></span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Type filter pills -->
-    <div style="display:flex;gap:.3rem;margin-bottom:.8rem;flex-wrap:wrap;">
-      <button class="sf-type-btn" :class="{'active': filterType === ''}" @click="filterType = ''; resetFeed()">All</button>
-      <button class="sf-type-btn" :class="{'active': filterType === 'text'}" @click="filterType = 'text'; resetFeed()">
-        <i class="fas fa-align-left"></i> Posts
-      </button>
-      <button class="sf-type-btn" :class="{'active': filterType === 'solve'}" @click="filterType = 'solve'; resetFeed()">
-        <i class="fas fa-trophy"></i> Solves
-      </button>
-      <button class="sf-type-btn" :class="{'active': filterType === 'discussion'}" @click="filterType = 'discussion'; resetFeed()">
-        <i class="fas fa-comments"></i> Discussions
-      </button>
-      <button class="sf-type-btn" :class="{'active': filterType === 'question'}" @click="filterType = 'question'; resetFeed()">
-        <i class="fas fa-question-circle"></i> Questions
-      </button>
+    <!-- Type Filter Pills -->
+    <div class="type-pills">
+      <button class="type-pill" :class="{'active':filterType===''}" @click="filterType='';resetFeed()">All</button>
+      <button class="type-pill" :class="{'active':filterType==='text'}" @click="filterType='text';resetFeed()">
+        <i class="fas fa-pen" style="margin-right:3px;font-size:.65rem;"></i>Posts</button>
+      <button class="type-pill" :class="{'active':filterType==='solve'}" @click="filterType='solve';resetFeed()">
+        <i class="fas fa-trophy" style="margin-right:3px;font-size:.65rem;"></i>Solves</button>
+      <button class="type-pill" :class="{'active':filterType==='discussion'}" @click="filterType='discussion';resetFeed()">
+        <i class="fas fa-comments" style="margin-right:3px;font-size:.65rem;"></i>Discussions</button>
+      <button class="type-pill" :class="{'active':filterType==='question'}" @click="filterType='question';resetFeed()">
+        <i class="fas fa-question-circle" style="margin-right:3px;font-size:.65rem;"></i>Questions</button>
     </div>
 
     <!-- Loading -->
-    <div x-show="loading && posts.length === 0" class="sf-loading">
-      <i class="fas fa-circle-notch fa-spin"></i>
-      <p style="margin-top:.5rem;font-size:.82rem;">Loading feed...</p>
+    <div x-show="loading && posts.length===0" class="feed-loader">
+      <div class="spinner"></div>
     </div>
 
-    <!-- Empty -->
-    <div x-show="!loading && posts.length === 0" class="sf-empty">
-      <i class="fas fa-inbox"></i>
-      <p>No posts yet. Be the first to share something!</p>
+    <!-- Empty State -->
+    <div x-show="!loading && posts.length===0" class="empty-state">
+      <div class="empty-icon"><i class="fas fa-satellite-dish"></i></div>
+      <div class="empty-title" x-text="mode==='following' ? 'Your feed is quiet' : 'No posts yet'"></div>
+      <div class="empty-desc" x-text="mode==='following' ? 'Follow some people to see their posts here!' : 'Be the first to share something with the community.'"></div>
+      <div class="empty-actions">
+        <a href="/scoreboard" class="empty-btn"><i class="fas fa-users" style="margin-right:3px;"></i> Find People</a>
+        <button class="empty-btn filled" @click="document.querySelector('.composer-input').focus()">
+          <i class="fas fa-pen" style="margin-right:3px;"></i> Create a Post
+        </button>
+      </div>
     </div>
 
     <!-- Posts -->
     <template x-for="post in posts" :key="post.id">
-      <div class="sf-post">
+      <div class="post-card">
         <!-- Header -->
-        <div class="sf-post-header">
-          <a :href="'/feed/user/' + post.author.id" class="sf-avatar" style="text-decoration:none;">
-            <template x-if="post.author && post.author.avatar">
-              <img :src="post.author.avatar" :alt="post.author.name">
-            </template>
-            <template x-if="!post.author || !post.author.avatar">
-              <i class="fas fa-user"></i>
-            </template>
+        <div class="post-head">
+          <a :href="'/feed/user/' + post.author.id" class="avatar avatar-sm" style="text-decoration:none;">
+            <template x-if="post.author && post.author.avatar"><img :src="post.author.avatar" alt="" loading="lazy"></template>
+            <template x-if="!post.author || !post.author.avatar"><i class="fas fa-user"></i></template>
           </a>
-          <div class="sf-post-author-info">
-            <a :href="'/feed/user/' + post.author.id" class="sf-post-author" x-text="post.author.name"></a>
-            <div class="sf-post-time">
+          <div class="post-author-col">
+            <a :href="'/feed/user/' + post.author.id" class="post-author" x-text="post.author.name"></a>
+            <div class="post-meta">
+              <span class="post-type-dot" :class="'dot-' + post.post_type"></span>
+              <span x-text="post.post_type" style="text-transform:capitalize;"></span>
+              <span>&middot;</span>
               <span x-text="timeAgo(post.created_at)"></span>
-              <span x-show="post.pinned" class="sf-post-pinned"><i class="fas fa-thumbtack"></i> Pinned</span>
+              <template x-if="post.pinned">
+                <span style="color:var(--app-accent);"><i class="fas fa-thumbtack" style="font-size:.55rem;"></i></span>
+              </template>
             </div>
           </div>
-          <span class="sf-post-type-badge"
-                :class="'sf-type--' + post.post_type"
-                x-text="post.post_type"></span>
-
-          <!-- Menu -->
-          <div class="sf-post-menu" x-data="{ open: false }" @click.away="open = false">
-            <button class="sf-post-menu-btn" @click="open = !open">
-              <i class="fas fa-ellipsis-h"></i>
-            </button>
-            <div x-show="open" class="sf-post-menu-drop" x-transition>
-              <button x-show="post.is_author" class="sf-post-menu-item danger"
-                      @click="deletePost(post.id); open = false">
-                <i class="fas fa-trash"></i> Delete
+          <div style="position:relative;" x-data="{open:false}" @click.away="open=false">
+            <button class="post-menu-btn" @click="open=!open"><i class="fas fa-ellipsis-h"></i></button>
+            <div x-show="open" class="post-dropdown" x-transition>
+              <button x-show="post.is_author" class="pd-item danger" @click="deletePost(post.id);open=false">
+                <i class="fas fa-trash-alt"></i> Delete
               </button>
-              <button class="sf-post-menu-item" @click="reportPost(post.id); open = false">
+              <button class="pd-item" @click="reportPost(post.id);open=false">
                 <i class="fas fa-flag"></i> Report
+              </button>
+              <button class="pd-item" @click="sharePost(post);open=false">
+                <i class="fas fa-share-alt"></i> Copy Link
               </button>
             </div>
           </div>
         </div>
 
         <!-- Content -->
-        <div class="sf-post-content" x-html="renderMd(post.content)"></div>
+        <div class="post-text" x-html="renderMd(post.content)"></div>
 
-        <!-- Challenge reference -->
-        <a x-show="post.challenge_id" :href="'/community/challenge/' + post.challenge_id" class="sf-challenge-link">
-          <i class="fas fa-puzzle-piece"></i>
+        <!-- Media -->
+        <template x-if="postImages(post).length === 1">
+          <div class="post-single-img" @click="openLightbox(postImages(post), 0)">
+            <img :src="postImages(post)[0]" alt="" loading="lazy">
+          </div>
+        </template>
+        <template x-if="postImages(post).length > 1">
+          <div class="media-grid" :class="'mg' + Math.min(postImages(post).length, 4)">
+            <template x-for="(img, idx) in postImages(post).slice(0,4)" :key="idx">
+              <div class="mg-item" @click="openLightbox(postImages(post), idx)">
+                <img :src="img" alt="" loading="lazy">
+                <div x-show="idx===3 && postImages(post).length>4" class="mg-more"
+                     x-text="'+' + (postImages(post).length - 4)"></div>
+              </div>
+            </template>
+          </div>
+        </template>
+
+        <!-- Challenge ref -->
+        <a x-show="post.challenge_id" :href="'/community/challenge/' + post.challenge_id" class="post-chal-pill">
+          <i class="fas fa-puzzle-piece" style="font-size:.65rem;"></i>
           <span x-text="post.challenge_name || 'Challenge #' + post.challenge_id"></span>
         </a>
 
-        <!-- Image -->
-        <img x-show="post.image_url" :src="post.image_url" class="sf-post-image" alt="Post image"
-             onerror="this.style.display='none'">
-
         <!-- Tags -->
-        <div x-show="post.tags && post.tags.length" class="sf-post-tags">
+        <div x-show="post.tags && post.tags.length" class="post-tags">
           <template x-for="tag in post.tags" :key="tag">
-            <span class="sf-post-tag" x-text="'#' + tag"></span>
+            <span class="post-tag" x-text="'#' + tag"></span>
           </template>
         </div>
 
         <!-- Actions -->
-        <div class="sf-actions">
-          <button class="sf-action-btn" :class="{'liked': post.liked}" @click="toggleLike(post)">
+        <div class="post-actions">
+          <button class="pact" :class="{'liked': post.liked}" @click="toggleLike(post)">
             <i :class="post.liked ? 'fas fa-heart' : 'far fa-heart'"></i>
             <span class="count" x-text="post.like_count || ''"></span>
           </button>
-          <a :href="'/feed/post/' + post.id" class="sf-action-btn" style="text-decoration:none;">
+          <button class="pact" @click="openComments(post)">
             <i class="far fa-comment"></i>
             <span class="count" x-text="post.comment_count || ''"></span>
-          </a>
-          <button class="sf-action-btn" @click="sharePost(post)">
+          </button>
+          <button class="pact" @click="sharePost(post)">
             <i class="fas fa-share"></i>
           </button>
         </div>
       </div>
     </template>
 
-    <!-- Load More -->
-    <button x-show="hasMore && !loading" class="sf-load-more" @click="loadMore()">
-      Load more posts
-    </button>
-    <div x-show="loading && posts.length > 0" class="sf-loading" style="padding:1.5rem;">
-      <i class="fas fa-circle-notch fa-spin"></i>
+    <!-- Infinite Scroll Sentinel -->
+    <div x-ref="sentinel" style="height:1px;"></div>
+    <div x-show="loading && posts.length > 0" class="feed-loader">
+      <div class="spinner"></div>
+    </div>
+    <div x-show="!hasMore && posts.length > 0"
+         style="text-align:center;padding:1.5rem;color:var(--app-muted);font-size:.78rem;">
+      You've reached the end
     </div>
 
   </div>
+
+  <!-- Bottom Nav Bar -->
+  <nav class="app-bottom-nav">
+    <a href="/feed" class="bnav-item active">
+      <i class="fas fa-home"></i><span class="bnav-label">Feed</span>
+    </a>
+    <a href="/challenges" class="bnav-item">
+      <i class="fas fa-flag"></i><span class="bnav-label">Challenges</span>
+    </a>
+    <button class="bnav-item" @click="document.querySelector('.composer-input').focus()" style="padding-top:0;">
+      <div class="bnav-create"><i class="fas fa-plus"></i></div>
+    </button>
+    <button class="bnav-item" :class="{'active': showNotifs}"
+            @click="showNotifs=true;loadNotifications()">
+      <i class="fas fa-bell"></i><span class="bnav-label">Alerts</span>
+    </button>
+    <a :href="userId ? '/feed/user/' + userId : '/login'" class="bnav-item">
+      <i class="fas fa-user"></i><span class="bnav-label">Profile</span>
+    </a>
+  </nav>
+
+  <!-- Comments Sheet -->
+  <div x-show="commentSheet.open" class="sheet-backdrop" :class="{'show':commentSheet.open}"
+       @click="commentSheet.open=false" x-transition.opacity></div>
+  <div class="sheet" :class="{'show':commentSheet.open}">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <span class="sheet-title">Comments</span>
+      <button class="sheet-close" @click="commentSheet.open=false"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="sheet-body">
+      <div x-show="commentSheet.loading" class="feed-loader" style="padding:1rem;">
+        <div class="spinner"></div>
+      </div>
+      <div x-show="!commentSheet.loading && commentSheet.comments.length===0"
+           style="text-align:center;color:var(--app-muted);padding:2rem;font-size:.85rem;">
+        No comments yet. Start the conversation!
+      </div>
+      <template x-for="c in commentSheet.comments" :key="c.id">
+        <div class="comment-item">
+          <div class="comment-head">
+            <a :href="'/feed/user/'+c.author.id" class="avatar avatar-xs" style="text-decoration:none;">
+              <template x-if="c.author && c.author.avatar"><img :src="c.author.avatar" alt="" loading="lazy"></template>
+              <template x-if="!c.author || !c.author.avatar"><i class="fas fa-user"></i></template>
+            </a>
+            <a :href="'/feed/user/'+c.author.id" class="comment-author" x-text="c.author.name"></a>
+            <span class="comment-time" x-text="timeAgo(c.created_at)"></span>
+          </div>
+          <div class="comment-body" x-html="renderMd(c.content)"></div>
+          <div class="comment-acts">
+            <button class="comment-act" :class="{'liked':c.liked}" @click="toggleCommentLike(c)">
+              <i :class="c.liked?'fas fa-heart':'far fa-heart'"></i>
+              <span x-text="c.like_count||''"></span>
+            </button>
+            <button class="comment-act" @click="c._replying=!c._replying">
+              <i class="fas fa-reply"></i> Reply
+            </button>
+            <button x-show="c.is_author" class="comment-act" style="color:var(--app-red);"
+                    @click="deleteComment(c)"><i class="fas fa-trash-alt"></i></button>
+          </div>
+          <!-- Reply input -->
+          <div x-show="c._replying" class="reply-input-row" x-transition>
+            <input class="reply-input" x-model="c._replyText"
+                   :placeholder="'Reply to ' + c.author.name + '...'"
+                   @keydown.enter="submitReply(c)">
+            <button class="reply-send" @click="submitReply(c)" :disabled="!c._replyText || !c._replyText.trim()">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+          <!-- Threaded replies -->
+          <div x-show="c.replies && c.replies.length" class="comment-replies">
+            <template x-for="r in c.replies" :key="r.id">
+              <div class="comment-item" style="border:none;padding:.3rem 0;">
+                <div class="comment-head">
+                  <a :href="'/feed/user/'+r.author.id" class="avatar avatar-xs" style="text-decoration:none;">
+                    <template x-if="r.author && r.author.avatar"><img :src="r.author.avatar" alt=""></template>
+                    <template x-if="!r.author || !r.author.avatar"><i class="fas fa-user"></i></template>
+                  </a>
+                  <a :href="'/feed/user/'+r.author.id" class="comment-author" style="font-size:.72rem;" x-text="r.author.name"></a>
+                  <span class="comment-time" x-text="timeAgo(r.created_at)"></span>
+                </div>
+                <div class="comment-body" style="font-size:.78rem;" x-html="renderMd(r.content)"></div>
+                <div class="comment-acts">
+                  <button class="comment-act" :class="{'liked':r.liked}" @click="toggleCommentLike(r)">
+                    <i :class="r.liked?'fas fa-heart':'far fa-heart'"></i>
+                    <span x-text="r.like_count||''"></span>
+                  </button>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+    <div class="sheet-input-area" x-show="userId">
+      <textarea class="sheet-input" x-model="commentSheet.newText" rows="1"
+                placeholder="Write a comment..." @input="autoResize($event)"
+                @keydown.meta.enter="submitComment()"
+                @keydown.ctrl.enter="submitComment()"></textarea>
+      <button class="sheet-send" @click="submitComment()"
+              :disabled="!commentSheet.newText || !commentSheet.newText.trim() || commentSheet.submitting">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Notifications Slide Panel -->
+  <div x-show="showNotifs" class="notif-overlay" :class="{'show':showNotifs}"
+       @click="showNotifs=false" x-transition.opacity></div>
+  <div class="notif-panel" :class="{'show':showNotifs}">
+    <div class="notif-header">
+      <span class="notif-title">Notifications</span>
+      <button class="notif-mark" @click="markAllRead()">Mark all read</button>
+    </div>
+    <div class="notif-list">
+      <div x-show="notifications.length===0"
+           style="text-align:center;color:var(--app-muted);padding:2rem;font-size:.82rem;">
+        <i class="fas fa-bell-slash" style="font-size:1.5rem;opacity:.3;display:block;margin-bottom:.5rem;"></i>
+        No notifications yet
+      </div>
+      <template x-for="n in notifications" :key="n.id">
+        <a :href="n.post_id ? '/feed/post/' + n.post_id : '#'"
+           class="notif-item" :class="{'unread':!n.read}" @click="showNotifs=false">
+          <div class="avatar avatar-xs" style="flex-shrink:0;">
+            <template x-if="n.actor && n.actor.avatar"><img :src="n.actor.avatar" alt=""></template>
+            <template x-if="!n.actor || !n.actor.avatar"><i class="fas fa-user"></i></template>
+          </div>
+          <div>
+            <div class="notif-text">
+              <strong x-text="n.actor ? n.actor.name : 'Someone'"></strong>
+              <span x-text="verbText(n.verb)"></span>
+            </div>
+            <div class="notif-time" x-text="timeAgo(n.created_at)"></div>
+          </div>
+        </a>
+      </template>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div x-show="lb.open" class="lightbox" :class="{'show':lb.open}"
+       @click.self="lb.open=false" x-transition.opacity>
+    <button class="lb-close" @click="lb.open=false"><i class="fas fa-times"></i></button>
+    <template x-if="lb.images.length>1">
+      <button class="lb-nav lb-prev" @click.stop="lb.idx=(lb.idx-1+lb.images.length)%lb.images.length">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+    </template>
+    <img :src="lb.images[lb.idx]||''" alt="" @click.stop>
+    <template x-if="lb.images.length>1">
+      <button class="lb-nav lb-next" @click.stop="lb.idx=(lb.idx+1)%lb.images.length">
+        <i class="fas fa-chevron-right"></i>
+      </button>
+    </template>
+    <div x-show="lb.images.length>1" class="lb-counter"
+         x-text="(lb.idx+1)+' / '+lb.images.length"></div>
+  </div>
+
 </div>
 {% endblock %}
 
@@ -531,198 +931,252 @@ body { background: var(--sf-bg); }
 <script src="https://cdn.jsdelivr.net/npm/marked@14/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script>
-function SocialFeed() {
+function App(){
   return {
-    posts: [],
-    loading: true,
-    page: 1,
-    hasMore: false,
-    mode: 'global',
-    sort: 'newest',
-    filterType: '',
-    posting: false,
-    showExtras: false,
-    notifications: [],
-    unreadCount: 0,
-    userId: init.userId || null,
-    userName: init.userName || null,
-    userAvatar: null,
+    posts:[],loading:true,page:1,hasMore:false,
+    mode:'global',sort:'newest',filterType:'',
+    posting:false,showLink:false,showNotifs:false,
+    notifications:[],unreadCount:0,
+    userId:window.init.userId||null,userName:window.init.userName||null,userAvatar:null,
+    np:{content:'',post_type:'text',images:[],link_url:'',tags:'',challenge_id:null},
+    commentSheet:{open:false,postId:null,comments:[],loading:false,newText:'',submitting:false},
+    lb:{open:false,images:[],idx:0},
+    _observer:null,
 
-    newPost: {
-      content: '',
-      post_type: 'text',
-      tags: '',
-      image_url: '',
-      link_url: '',
-      challenge_id: null,
-    },
-
-    async init() {
+    async init(){
       await this.fetchPosts();
-      if (this.userId) {
+      if(this.userId){
         this.fetchUnreadCount();
-        // Load user avatar
-        try {
-          const r = await fetch('/feed/api/users/' + this.userId + '/profile');
-          const j = await r.json();
-          if (j.success) this.userAvatar = j.data.avatar;
-        } catch(e) {}
+        try{const r=await fetch('/feed/api/users/'+this.userId+'/profile');
+            const j=await r.json();if(j.success)this.userAvatar=j.data.avatar;}catch(e){}
       }
-    },
-
-    async fetchPosts() {
-      this.loading = true;
-      const params = new URLSearchParams({
-        page: this.page, per_page: 20, mode: this.mode, sort: this.sort,
+      this.$nextTick(()=>{
+        this._observer=new IntersectionObserver(entries=>{
+          if(entries[0].isIntersecting&&this.hasMore&&!this.loading){this.page++;this.fetchPosts();}
+        },{rootMargin:'200px'});
+        if(this.$refs.sentinel)this._observer.observe(this.$refs.sentinel);
       });
-      if (this.filterType) params.set('type', this.filterType);
-
-      try {
-        const resp = await fetch('/feed/api/posts?' + params);
-        const json = await resp.json();
-        if (json.success) {
-          if (this.page === 1) {
-            this.posts = json.data;
-          } else {
-            this.posts = [...this.posts, ...json.data];
-          }
-          this.hasMore = json.meta.pagination.has_next;
-        }
-      } catch(e) { console.error(e); }
-      this.loading = false;
-    },
-
-    resetFeed() { this.page = 1; this.posts = []; this.fetchPosts(); },
-    loadMore() { this.page++; this.fetchPosts(); },
-
-    async submitPost() {
-      if (!this.newPost.content.trim() || this.posting) return;
-      this.posting = true;
-      try {
-        const body = { ...this.newPost };
-        if (!body.challenge_id) delete body.challenge_id;
-        const resp = await fetch('/feed/api/posts', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
-          body: JSON.stringify(body),
-        });
-        const json = await resp.json();
-        if (json.success) {
-          this.newPost = { content: '', post_type: 'text', tags: '', image_url: '', link_url: '', challenge_id: null };
-          this.showExtras = false;
-          this.page = 1;
-          await this.fetchPosts();
-        }
-      } catch(e) { console.error(e); }
-      this.posting = false;
-    },
-
-    async toggleLike(post) {
-      try {
-        const resp = await fetch('/feed/api/posts/' + post.id + '/like', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
-        });
-        const json = await resp.json();
-        if (json.success) {
-          post.liked = json.data.liked;
-          post.like_count = json.data.like_count;
-        }
-      } catch(e) {}
-    },
-
-    async deletePost(id) {
-      if (!confirm('Delete this post?')) return;
-      try {
-        await fetch('/feed/api/posts/' + id, {
-          method: 'DELETE',
-          headers: { 'CSRF-Token': init.csrfNonce },
-        });
-        this.posts = this.posts.filter(p => p.id !== id);
-      } catch(e) {}
-    },
-
-    reportPost(id) {
-      const reason = prompt('Report reason:');
-      if (!reason) return;
-      fetch('/feed/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
-        body: JSON.stringify({ post_id: id, reason }),
+      document.addEventListener('keydown',e=>{
+        if(e.key==='Escape'){this.lb.open=false;this.commentSheet.open=false;this.showNotifs=false;}
       });
     },
 
-    sharePost(post) {
-      const url = window.location.origin + '/feed/post/' + post.id;
-      if (navigator.clipboard) {
-        navigator.clipboard.writeText(url);
-        alert('Link copied!');
-      }
-    },
-
-    // Notifications
-    async fetchUnreadCount() {
-      try {
-        const r = await fetch('/feed/api/notifications/count');
-        const j = await r.json();
-        if (j.success) this.unreadCount = j.data.count;
-      } catch(e) {}
-    },
-
-    async loadNotifications() {
-      try {
-        const r = await fetch('/feed/api/notifications');
-        const j = await r.json();
-        if (j.success) {
-          this.notifications = j.data;
-          this.unreadCount = j.meta.unread_count;
+    async fetchPosts(){
+      this.loading=true;
+      const p=new URLSearchParams({page:this.page,per_page:20,mode:this.mode,sort:this.sort});
+      if(this.filterType)p.set('type',this.filterType);
+      try{
+        const r=await fetch('/feed/api/posts?'+p);const j=await r.json();
+        if(j.success){
+          if(this.page===1)this.posts=j.data;else this.posts=[...this.posts,...j.data];
+          this.hasMore=j.meta.pagination.has_next;
         }
-      } catch(e) {}
+      }catch(e){console.error(e);}
+      this.loading=false;
     },
+    resetFeed(){this.page=1;this.posts=[];this.fetchPosts();},
 
-    async markAllRead() {
-      try {
-        await fetch('/feed/api/notifications/read', {
-          method: 'POST',
-          headers: { 'CSRF-Token': init.csrfNonce },
+    handleImageSelect(e){
+      const files=Array.from(e.target.files||[]);
+      if(this.np.images.length+files.length>10){alert('Maximum 10 images');return;}
+      files.forEach(f=>{
+        if(!f.type.startsWith('image/'))return;
+        if(f.size>5*1024*1024){alert('Image too large (max 5MB)');return;}
+        const preview=URL.createObjectURL(f);
+        this.np.images.push({file:f,preview});
+      });
+      e.target.value='';
+    },
+    removeImage(idx){
+      URL.revokeObjectURL(this.np.images[idx].preview);
+      this.np.images.splice(idx,1);
+    },
+    cycleType(){
+      const types=['text','discussion','question'];
+      const i=types.indexOf(this.np.post_type);
+      this.np.post_type=types[(i+1)%types.length];
+    },
+    async submitPost(){
+      if((!this.np.content.trim()&&!this.np.images.length)||this.posting)return;
+      this.posting=true;
+      try{
+        let imageUrls=[];
+        if(this.np.images.length){
+          const fd=new FormData();
+          this.np.images.forEach(img=>fd.append('images',img.file));
+          const ur=await fetch('/feed/api/upload',{method:'POST',headers:{'CSRF-Token':window.init.csrfNonce},body:fd});
+          const uj=await ur.json();
+          if(!uj.success){alert(uj.errors && uj.errors[0]||'Upload failed');this.posting=false;return;}
+          imageUrls=uj.data.urls;
+        }
+        const body={
+          content:this.np.content,post_type:this.np.post_type,
+          tags:this.np.tags,link_url:this.np.link_url||'',
+          images:imageUrls,
+        };
+        if(this.np.challenge_id)body.challenge_id=this.np.challenge_id;
+        const r=await fetch('/feed/api/posts',{
+          method:'POST',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce},
+          body:JSON.stringify(body),
         });
-        this.unreadCount = 0;
-        this.notifications = this.notifications.map(n => ({ ...n, read: true }));
-      } catch(e) {}
+        const j=await r.json();
+        if(j.success){
+          this.np.images.forEach(img=>URL.revokeObjectURL(img.preview));
+          this.np={content:'',post_type:'text',images:[],link_url:'',tags:'',challenge_id:null};
+          this.showLink=false;this.page=1;await this.fetchPosts();
+        }
+      }catch(e){console.error(e);}
+      this.posting=false;
     },
 
-    verbText(v) {
-      const map = {
-        liked_post: 'liked your post',
-        commented: 'commented on your post',
-        replied: 'replied to your comment',
-        followed: 'started following you',
-        liked_comment: 'liked your comment',
-      };
-      return map[v] || v;
+    async toggleLike(post){
+      const wasLiked=post.liked;
+      post.liked=!wasLiked;
+      post.like_count+=(wasLiked?-1:1);
+      try{
+        const r=await fetch('/feed/api/posts/'+post.id+'/like',{
+          method:'POST',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce}});
+        const j=await r.json();
+        if(j.success){post.liked=j.data.liked;post.like_count=j.data.like_count;}
+        else{post.liked=wasLiked;post.like_count+=(wasLiked?1:-1);}
+      }catch(e){post.liked=wasLiked;post.like_count+=(wasLiked?1:-1);}
     },
 
-    // Helpers
-    renderMd(text) {
-      if (!text) return '';
-      try { return DOMPurify.sanitize(marked.parse(text)); }
-      catch(e) { return DOMPurify.sanitize(text); }
+    async deletePost(id){
+      if(!confirm('Delete this post?'))return;
+      try{await fetch('/feed/api/posts/'+id,{method:'DELETE',headers:{'CSRF-Token':window.init.csrfNonce}});
+        this.posts=this.posts.filter(p=>p.id!==id);}catch(e){}
+    },
+    reportPost(id){
+      const reason=prompt('Report reason:');if(!reason)return;
+      fetch('/feed/api/report',{method:'POST',
+        headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce},
+        body:JSON.stringify({post_id:id,reason})});
+    },
+    sharePost(post){
+      const url=location.origin+'/feed/post/'+post.id;
+      if(navigator.clipboard){navigator.clipboard.writeText(url);}
+      const el=document.createElement('div');
+      el.textContent='Link copied!';
+      Object.assign(el.style,{position:'fixed',bottom:'90px',left:'50%',transform:'translateX(-50%)',
+        background:'var(--app-text)',color:'var(--app-bg)',padding:'.45rem 1rem',borderRadius:'99px',
+        fontSize:'.78rem',fontWeight:'600',zIndex:'500',opacity:'0',transition:'opacity .2s'});
+      document.body.appendChild(el);
+      requestAnimationFrame(function(){el.style.opacity='1';});
+      setTimeout(function(){el.style.opacity='0';setTimeout(function(){el.remove();},200);},1500);
     },
 
-    timeAgo(iso) {
-      if (!iso) return '';
-      const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-      if (diff < 60) return 'just now';
-      if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
-      if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
-      if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
-      return Math.floor(diff / 2592000) + 'mo ago';
+    async openComments(post){
+      this.commentSheet.postId=post.id;
+      this.commentSheet.open=true;
+      this.commentSheet.loading=true;
+      this.commentSheet.comments=[];
+      this.commentSheet.newText='';
+      try{
+        const r=await fetch('/feed/api/posts/'+post.id+'/comments');
+        const j=await r.json();
+        if(j.success)this.commentSheet.comments=j.data.map(function(c){return Object.assign({},c,{_replying:false,_replyText:''});});
+      }catch(e){}
+      this.commentSheet.loading=false;
+    },
+    async submitComment(){
+      const s=this.commentSheet;
+      if(!s.newText||!s.newText.trim()||s.submitting)return;
+      s.submitting=true;
+      try{
+        const r=await fetch('/feed/api/posts/'+s.postId+'/comments',{
+          method:'POST',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce},
+          body:JSON.stringify({content:s.newText})});
+        const j=await r.json();
+        if(j.success){
+          s.newText='';
+          const r2=await fetch('/feed/api/posts/'+s.postId+'/comments');
+          const j2=await r2.json();
+          if(j2.success)s.comments=j2.data.map(function(c){return Object.assign({},c,{_replying:false,_replyText:''});});
+          const post=this.posts.find(function(p){return p.id===s.postId;});
+          if(post)post.comment_count=(post.comment_count||0)+1;
+        }
+      }catch(e){}
+      s.submitting=false;
+    },
+    async submitReply(comment){
+      if(!comment._replyText||!comment._replyText.trim())return;
+      try{
+        const r=await fetch('/feed/api/posts/'+this.commentSheet.postId+'/comments',{
+          method:'POST',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce},
+          body:JSON.stringify({content:comment._replyText,parent_id:comment.id})});
+        const j=await r.json();
+        if(j.success){
+          comment._replyText='';comment._replying=false;
+          const r2=await fetch('/feed/api/posts/'+this.commentSheet.postId+'/comments');
+          const j2=await r2.json();
+          if(j2.success)this.commentSheet.comments=j2.data.map(function(c){return Object.assign({},c,{_replying:false,_replyText:''});});
+          const post=this.posts.find(function(p){return p.id===this.commentSheet.postId;}.bind(this));
+          if(post)post.comment_count=(post.comment_count||0)+1;
+        }
+      }catch(e){}
+    },
+    async toggleCommentLike(c){
+      const was=c.liked;c.liked=!was;c.like_count+=(was?-1:1);
+      try{
+        const r=await fetch('/feed/api/comments/'+c.id+'/like',{
+          method:'POST',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce}});
+        const j=await r.json();
+        if(j.success){c.liked=j.data.liked;c.like_count=j.data.like_count;}
+        else{c.liked=was;c.like_count+=(was?1:-1);}
+      }catch(e){c.liked=was;c.like_count+=(was?1:-1);}
+    },
+    async deleteComment(c){
+      if(!confirm('Delete?'))return;
+      try{await fetch('/feed/api/comments/'+c.id,{method:'DELETE',headers:{'CSRF-Token':window.init.csrfNonce}});
+        const r=await fetch('/feed/api/posts/'+this.commentSheet.postId+'/comments');
+        const j=await r.json();
+        if(j.success)this.commentSheet.comments=j.data.map(function(c){return Object.assign({},c,{_replying:false,_replyText:''});});
+        const post=this.posts.find(function(p){return p.id===this.commentSheet.postId;}.bind(this));
+        if(post)post.comment_count=Math.max(0,(post.comment_count||1)-1);
+      }catch(e){}
     },
 
-    autoResize(e) {
-      e.target.style.height = 'auto';
-      e.target.style.height = Math.min(e.target.scrollHeight, 300) + 'px';
+    async fetchUnreadCount(){
+      try{const r=await fetch('/feed/api/notifications/count');const j=await r.json();
+        if(j.success)this.unreadCount=j.data.count;}catch(e){}
     },
+    async loadNotifications(){
+      try{const r=await fetch('/feed/api/notifications');const j=await r.json();
+        if(j.success){this.notifications=j.data;this.unreadCount=j.meta.unread_count;}}catch(e){}
+    },
+    async markAllRead(){
+      try{await fetch('/feed/api/notifications/read',{method:'POST',headers:{'CSRF-Token':window.init.csrfNonce}});
+        this.unreadCount=0;this.notifications=this.notifications.map(function(n){return Object.assign({},n,{read:true});});}catch(e){}
+    },
+    verbText(v){
+      var m={liked_post:'liked your post',commented:'commented on your post',
+        replied:'replied to your comment',followed:'started following you',
+        liked_comment:'liked your comment'};
+      return m[v]||v;
+    },
+
+    openLightbox(images,idx){this.lb={open:true,images:images,idx:idx};},
+
+    postImages(post){
+      if(post.images&&post.images.length)return post.images;
+      if(post.image_url)return[post.image_url];
+      return[];
+    },
+    renderMd(text){
+      if(!text)return'';
+      try{return DOMPurify.sanitize(marked.parse(text));}
+      catch(e){return DOMPurify.sanitize(text);}
+    },
+    timeAgo(iso){
+      if(!iso)return'';
+      var d=(Date.now()-new Date(iso).getTime())/1000;
+      if(d<60)return'just now';if(d<3600)return Math.floor(d/60)+'m';
+      if(d<86400)return Math.floor(d/3600)+'h';
+      if(d<2592000)return Math.floor(d/86400)+'d';
+      return Math.floor(d/2592000)+'mo';
+    },
+    autoResize(e){e.target.style.height='auto';e.target.style.height=Math.min(e.target.scrollHeight,200)+'px';},
   };
 }
 </script>
