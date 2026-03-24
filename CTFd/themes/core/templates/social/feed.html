@@ -498,6 +498,7 @@ body{
   display:flex;justify-content:space-between;align-items:center;
 }
 .notif-title{font-size:1rem;font-weight:800;}
+.notif-back{background:none;border:none;cursor:pointer;color:var(--app-text);font-size:1rem;padding:0;line-height:1;}
 .notif-mark{font-size:.75rem;color:var(--app-accent);background:none;border:none;cursor:pointer;}
 .notif-list{flex:1;overflow-y:auto;}
 .notif-item{
@@ -883,6 +884,9 @@ body{
        @click="showNotifs=false" x-transition.opacity></div>
   <div class="notif-panel" :class="{'show':showNotifs}">
     <div class="notif-header">
+      <button class="notif-back" @click="showNotifs=false" aria-label="Back">
+        <i class="fas fa-arrow-left"></i>
+      </button>
       <span class="notif-title">Notifications</span>
       <button class="notif-mark" @click="markAllRead()">Mark all read</button>
     </div>
