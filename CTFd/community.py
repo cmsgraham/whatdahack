@@ -70,6 +70,16 @@ def create():
     return render_template("community/create.html")
 
 
+@community.route("/community/edit/<int:challenge_id>")
+@authed_only
+def edit(challenge_id):
+    ch = CommunityChallenge.query.get_or_404(challenge_id)
+    user = get_current_user()
+    if user.id != ch.author_id and not is_admin():
+        abort(403)
+    return render_template("community/edit.html", challenge_id=challenge_id)
+
+
 @community.route("/community/challenge/<int:challenge_id>")
 def detail(challenge_id):
     ch = CommunityChallenge.query.get_or_404(challenge_id)
@@ -349,6 +359,8 @@ def api_get_challenge(cid):
                 "user_solved": user_solved,
                 "user_rating": user_rating,
                 "is_author": is_author,
+                "flag": ch.flag if is_author else None,
+                "case_insensitive": ch.case_insensitive if is_author else None,
             },
         }
     )

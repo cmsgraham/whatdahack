@@ -318,9 +318,14 @@ body { background: var(--ctf-bg-page); }
 
         <!-- Author notice -->
         <div x-show="ch.is_author" class="cd-submit-panel" style="text-align:center;">
-          <div style="color:var(--ctf-text-muted);font-size:.85rem;">
+          <div style="color:var(--ctf-text-muted);font-size:.85rem;margin-bottom:.6rem;">
             <i class="fas fa-info-circle"></i> You created this challenge — you cannot submit flags for it.
           </div>
+          <a :href="'/community/edit/' + ch.id"
+             style="display:inline-flex;align-items:center;gap:.35rem;padding:.5rem 1.1rem;border-radius:var(--ctf-radius);background:var(--ctf-accent);color:#fff;font-size:.82rem;font-weight:600;text-decoration:none;transition:opacity .15s;"
+             onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            <i class="fas fa-pen"></i> Edit Challenge
+          </a>
         </div>
 
         <!-- Stats + Rating side by side -->

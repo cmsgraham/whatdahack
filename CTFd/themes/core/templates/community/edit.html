@@ -1,0 +1,506 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+[x-cloak] { display: none !important; }
+
+:root, [data-bs-theme="light"] {
+  --ctf-bg-page:       #f3f4f6;
+  --ctf-bg-surface:    #ffffff;
+  --ctf-bg-elevated:   #f8f9fa;
+  --ctf-bg-input:      #ffffff;
+  --ctf-text-primary:  #111827;
+  --ctf-text-muted:    #6b7280;
+  --ctf-border:        #d1d5db;
+  --ctf-accent:        #6366f1;
+  --ctf-accent-rgb:    99,102,241;
+  --ctf-radius:        .55rem;
+  --ctf-radius-lg:     .85rem;
+}
+[data-bs-theme="dark"] {
+  --ctf-bg-page:       #0d1117;
+  --ctf-bg-surface:    #161b22;
+  --ctf-bg-elevated:   #1c2333;
+  --ctf-bg-input:      #0d1117;
+  --ctf-text-primary:  #e6edf3;
+  --ctf-text-muted:    #8b949e;
+  --ctf-border:        #30363d;
+  --ctf-accent:        #818cf8;
+  --ctf-accent-rgb:    129,140,248;
+}
+
+body { background: var(--ctf-bg-page); }
+
+.cc-create-wrap { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+.cc-create-header { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.5rem; }
+.cc-back {
+  color: var(--ctf-text-muted); text-decoration: none; font-size: .85rem;
+  display: flex; align-items: center; gap: .3rem; transition: color .15s;
+}
+.cc-back:hover { color: var(--ctf-accent); }
+.cc-create-title { font-size: 1.4rem; font-weight: 800; color: var(--ctf-text-primary); }
+.cc-split { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+@media (max-width: 768px) { .cc-split { grid-template-columns: 1fr; } }
+.cc-panel {
+  background: var(--ctf-bg-surface); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius-lg); padding: 1.5rem;
+}
+.cc-panel-title {
+  font-size: .82rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--ctf-text-muted); margin-bottom: 1rem;
+}
+.cc-field { margin-bottom: 1rem; }
+.cc-label { display: block; font-size: .78rem; font-weight: 600; color: var(--ctf-text-primary); margin-bottom: .3rem; }
+.cc-hint { font-size: .7rem; color: var(--ctf-text-muted); margin-top: .15rem; }
+.cc-input, .cc-textarea, .cc-select-field {
+  width: 100%; padding: .55rem .75rem; border-radius: var(--ctf-radius);
+  border: 1px solid var(--ctf-border); background: var(--ctf-bg-input);
+  color: var(--ctf-text-primary); font-size: .85rem;
+  outline: none; transition: border-color .15s;
+}
+.cc-input:focus, .cc-textarea:focus, .cc-select-field:focus { border-color: var(--ctf-accent); }
+.cc-textarea { min-height: 200px; resize: vertical; font-family: 'SF Mono', Monaco, monospace; font-size: .82rem; }
+.cc-row { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.cc-flag-wrap { position: relative; }
+.cc-flag-wrap input { padding-right: 2.2rem; }
+.cc-flag-toggle {
+  position: absolute; right: .6rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--ctf-text-muted); font-size: .85rem; padding: 0;
+}
+.cc-check { display: flex; align-items: center; gap: .5rem; }
+.cc-check input { accent-color: var(--ctf-accent); }
+.cc-check label { font-size: .82rem; color: var(--ctf-text-primary); cursor: pointer; }
+.cc-btn-row { display: flex; gap: .6rem; margin-top: 1.2rem; }
+.cc-file-zone {
+  border: 2px dashed var(--ctf-border); border-radius: var(--ctf-radius);
+  padding: 1.2rem; text-align: center; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  color: var(--ctf-text-muted); font-size: .82rem;
+}
+.cc-file-zone:hover, .cc-file-zone.dragging { border-color: var(--ctf-accent); background: rgba(var(--ctf-accent-rgb),.04); }
+.cc-file-zone i { font-size: 1.2rem; display: block; margin-bottom: .3rem; }
+.cc-file-attached {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .5rem .7rem; border-radius: var(--ctf-radius);
+  background: var(--ctf-bg-elevated); border: 1px solid var(--ctf-border);
+  font-size: .82rem; color: var(--ctf-text-primary);
+}
+.cc-file-attached .cc-file-remove {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  color: var(--ctf-text-muted); font-size: .75rem; padding: .2rem .4rem;
+}
+.cc-file-attached .cc-file-remove:hover { color: #dc2626; }
+.cc-upload-progress { margin-top: .4rem; height: 4px; border-radius: 2px; background: var(--ctf-border); overflow: hidden; }
+.cc-upload-progress-bar { height: 100%; background: var(--ctf-accent); transition: width .2s; }
+.cc-btn {
+  padding: .6rem 1.3rem; border-radius: var(--ctf-radius);
+  font-size: .85rem; font-weight: 600; cursor: pointer;
+  border: none; transition: opacity .15s;
+  display: inline-flex; align-items: center; gap: .35rem;
+}
+.cc-btn:disabled { opacity: .5; pointer-events: none; }
+.cc-btn--primary { background: var(--ctf-accent); color: #fff; }
+.cc-btn--primary:hover { opacity: .88; }
+.cc-btn--secondary { background: transparent; color: var(--ctf-text-primary); border: 1px solid var(--ctf-border); }
+.cc-btn--secondary:hover { border-color: var(--ctf-accent); }
+.cc-btn--danger { background: rgba(239,68,68,.1); color: #dc2626; border: 1px solid rgba(239,68,68,.2); }
+.cc-btn--danger:hover { background: rgba(239,68,68,.18); }
+
+.cc-preview-content { font-size: .88rem; line-height: 1.65; color: var(--ctf-text-primary); min-height: 200px; }
+.cc-preview-content h1, .cc-preview-content h2, .cc-preview-content h3 { margin-top: 1rem; margin-bottom: .4rem; }
+.cc-preview-content h1 { font-size: 1.3rem; font-weight: 700; }
+.cc-preview-content h2 { font-size: 1.1rem; font-weight: 700; }
+.cc-preview-content h3 { font-size: .95rem; font-weight: 600; }
+.cc-preview-content pre {
+  background: var(--ctf-bg-elevated); border: 1px solid var(--ctf-border);
+  border-radius: var(--ctf-radius); padding: .8rem; overflow-x: auto; font-size: .8rem;
+}
+.cc-preview-content code { background: var(--ctf-bg-elevated); padding: .1rem .35rem; border-radius: 3px; font-size: .82rem; }
+.cc-preview-content pre code { background: none; padding: 0; }
+.cc-preview-content ul, .cc-preview-content ol { padding-left: 1.5rem; }
+.cc-preview-content blockquote { border-left: 3px solid var(--ctf-accent); padding-left: .8rem; color: var(--ctf-text-muted); margin: .8rem 0; }
+.cc-preview-content a { color: var(--ctf-accent); }
+.cc-preview-content img { max-width: 100%; border-radius: var(--ctf-radius); }
+.cc-preview-empty { color: var(--ctf-text-muted); font-size: .85rem; font-style: italic; padding: 2rem; text-align: center; }
+.cc-preview-badges { display: flex; gap: .5rem; margin-bottom: .8rem; flex-wrap: wrap; }
+.cc-badge-sm { font-size: .65rem; font-weight: 700; padding: .15rem .5rem; border-radius: 99px; text-transform: uppercase; letter-spacing: .5px; }
+.cc-badge-cat { background: rgba(var(--ctf-accent-rgb),.1); color: var(--ctf-accent); }
+.cc-badge-easy { background: rgba(34,197,94,.12); color: #16a34a; }
+.cc-badge-medium { background: rgba(245,158,11,.12); color: #d97706; }
+.cc-badge-hard { background: rgba(239,68,68,.12); color: #dc2626; }
+.cc-badge-insane { background: rgba(168,85,247,.12); color: #9333ea; }
+.cc-alert { padding: .7rem 1rem; border-radius: var(--ctf-radius); margin-bottom: 1rem; font-size: .82rem; }
+.cc-alert--error { background: rgba(239,68,68,.1); color: #dc2626; border: 1px solid rgba(239,68,68,.2); }
+.cc-alert--success { background: rgba(34,197,94,.1); color: #16a34a; border: 1px solid rgba(34,197,94,.2); }
+
+.cc-state-toggle { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.cc-state-pill {
+  padding: .35rem .75rem; border-radius: 99px; font-size: .75rem; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--ctf-border); background: var(--ctf-bg-elevated);
+  color: var(--ctf-text-muted); transition: all .15s;
+}
+.cc-state-pill.active { background: var(--ctf-accent); color: #fff; border-color: var(--ctf-accent); }
+.cc-state-pill:hover:not(.active) { border-color: var(--ctf-accent); }
+
+.cc-loading { text-align: center; padding: 4rem; color: var(--ctf-text-muted); }
+@keyframes cc-pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.cc-loading i { animation: cc-pulse 1.2s infinite; font-size: 2rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div x-data="CommunityEdit()" x-init="load()" x-cloak>
+  <div class="cc-create-wrap">
+
+    <div class="cc-create-header">
+      <a :href="'/community/challenge/' + challengeId" class="cc-back"><i class="fas fa-arrow-left"></i> Back to Challenge</a>
+      <div class="cc-create-title">Edit Challenge</div>
+    </div>
+
+    <!-- Loading -->
+    <div x-show="loadingData" class="cc-loading">
+      <i class="fas fa-circle-notch fa-spin"></i>
+      <p style="margin-top:.8rem;font-size:.85rem;">Loading...</p>
+    </div>
+
+    <template x-if="!loadingData">
+      <div>
+        <!-- Alerts -->
+        <template x-if="errorMsg">
+          <div class="cc-alert cc-alert--error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span x-text="errorMsg"></span>
+          </div>
+        </template>
+        <template x-if="successMsg">
+          <div class="cc-alert cc-alert--success">
+            <i class="fas fa-check-circle"></i>
+            <span x-text="successMsg"></span>
+          </div>
+        </template>
+
+        <div class="cc-split">
+          <!-- Left: Form -->
+          <div>
+            <div class="cc-panel">
+              <div class="cc-panel-title"><i class="fas fa-pen"></i> Edit Details</div>
+
+              <!-- State toggle -->
+              <div class="cc-state-toggle">
+                <span class="cc-state-pill" :class="{'active': form.state === 'published'}" @click="form.state = 'published'">
+                  <i class="fas fa-rocket"></i> Published
+                </span>
+                <span class="cc-state-pill" :class="{'active': form.state === 'draft'}" @click="form.state = 'draft'">
+                  <i class="fas fa-file-alt"></i> Draft
+                </span>
+                <span class="cc-state-pill" :class="{'active': form.state === 'archived'}" @click="form.state = 'archived'">
+                  <i class="fas fa-archive"></i> Archived
+                </span>
+              </div>
+
+              <div class="cc-field">
+                <label class="cc-label">Title</label>
+                <input class="cc-input" type="text" x-model="form.title" placeholder="e.g. SQL Injection 101" maxlength="200">
+              </div>
+
+              <div class="cc-field">
+                <label class="cc-label">Description <span style="font-weight:400;color:var(--ctf-text-muted);">(Markdown supported)</span></label>
+                <textarea class="cc-textarea" x-model="form.description" placeholder="Describe the challenge..."></textarea>
+              </div>
+
+              <div class="cc-row">
+                <div class="cc-field">
+                  <label class="cc-label">Category</label>
+                  <select class="cc-select-field" x-model="form.category">
+                    <option value="">Select category</option>
+                    <option value="web">Web</option>
+                    <option value="crypto">Crypto</option>
+                    <option value="pwn">Pwn</option>
+                    <option value="forensics">Forensics</option>
+                    <option value="reverse">Reverse Engineering</option>
+                    <option value="misc">Misc</option>
+                    <option value="osint">OSINT</option>
+                    <option value="steganography">Steganography</option>
+                  </select>
+                </div>
+                <div class="cc-field">
+                  <label class="cc-label">Difficulty</label>
+                  <select class="cc-select-field" x-model="form.difficulty">
+                    <option value="">Select difficulty</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="insane">Insane</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="cc-row">
+                <div class="cc-field">
+                  <label class="cc-label">Points</label>
+                  <input class="cc-input" type="number" x-model.number="form.points" min="1" max="10000">
+                </div>
+                <div class="cc-field">
+                  <label class="cc-label">Tags</label>
+                  <input class="cc-input" type="text" x-model="form.tags" placeholder="sql, injection, beginner">
+                  <div class="cc-hint">Comma-separated</div>
+                </div>
+              </div>
+
+              <div class="cc-field">
+                <label class="cc-label">Flag</label>
+                <div class="cc-flag-wrap">
+                  <input class="cc-input" :type="showFlag ? 'text' : 'password'" x-model="form.flag" placeholder="flag{...}">
+                  <button type="button" class="cc-flag-toggle" @click="showFlag = !showFlag">
+                    <i :class="showFlag ? 'fas fa-eye-slash' : 'fas fa-eye'"></i>
+                  </button>
+                </div>
+                <div class="cc-check" style="margin-top:.4rem;">
+                  <input type="checkbox" id="case-insensitive" x-model="form.case_insensitive">
+                  <label for="case-insensitive">Case insensitive</label>
+                </div>
+              </div>
+
+              <div class="cc-field">
+                <label class="cc-label">Attachment <span style="font-weight:400;color:var(--ctf-text-muted);">(optional)</span></label>
+                <template x-if="!attachedFile && !form.attachment_url">
+                  <div>
+                    <div class="cc-file-zone"
+                         @click="$refs.fileInput.click()"
+                         @dragover.prevent="$event.currentTarget.classList.add('dragging')"
+                         @dragleave="$event.currentTarget.classList.remove('dragging')"
+                         @drop.prevent="handleDrop($event)">
+                      <i class="fas fa-cloud-upload-alt"></i>
+                      Click or drag a file here
+                      <div style="font-size:.7rem;margin-top:.2rem;opacity:.6;">Max 25 MB</div>
+                    </div>
+                    <input type="file" x-ref="fileInput" style="display:none" @change="pickFile($event)">
+                    <div style="text-align:center;font-size:.75rem;color:var(--ctf-text-muted);margin:.4rem 0;">&mdash; or paste a URL &mdash;</div>
+                    <input class="cc-input" type="url" x-model="form.attachment_url" placeholder="https://example.com/files.zip">
+                  </div>
+                </template>
+                <template x-if="attachedFile">
+                  <div>
+                    <div class="cc-file-attached">
+                      <i class="fas fa-file"></i>
+                      <span x-text="attachedFile.name"></span>
+                      <span style="font-size:.7rem;color:var(--ctf-text-muted);" x-text="formatSize(attachedFile.size)"></span>
+                      <button type="button" class="cc-file-remove" @click="removeFile()"><i class="fas fa-times"></i></button>
+                    </div>
+                    <template x-if="uploading">
+                      <div class="cc-upload-progress"><div class="cc-upload-progress-bar" :style="'width:'+uploadPct+'%'"></div></div>
+                    </template>
+                  </div>
+                </template>
+                <template x-if="!attachedFile && form.attachment_url">
+                  <div class="cc-file-attached">
+                    <i class="fas fa-link"></i>
+                    <span x-text="form.attachment_url" style="word-break:break-all;"></span>
+                    <button type="button" class="cc-file-remove" @click="form.attachment_url=''"><i class="fas fa-times"></i></button>
+                  </div>
+                </template>
+              </div>
+
+              <div class="cc-btn-row">
+                <button class="cc-btn cc-btn--primary" @click="save()" :disabled="submitting">
+                  <i class="fas fa-save"></i> Save Changes
+                </button>
+                <a :href="'/community/challenge/' + challengeId" class="cc-btn cc-btn--secondary">
+                  <i class="fas fa-times"></i> Cancel
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Right: Live Preview -->
+          <div>
+            <div class="cc-panel" style="position:sticky;top:1rem;">
+              <div class="cc-panel-title"><i class="fas fa-eye"></i> Live Preview</div>
+
+              <div class="cc-preview-badges">
+                <span x-show="form.category" class="cc-badge-sm cc-badge-cat" x-text="form.category.toUpperCase()"></span>
+                <span x-show="form.difficulty" class="cc-badge-sm" :class="'cc-badge-' + form.difficulty" x-text="form.difficulty"></span>
+                <span x-show="form.points" style="font-size:.78rem;font-weight:700;color:var(--ctf-accent);" x-text="form.points + ' pts'"></span>
+              </div>
+
+              <div x-show="form.title" style="font-size:1.15rem;font-weight:700;color:var(--ctf-text-primary);margin-bottom:.6rem;" x-text="form.title"></div>
+
+              <div x-show="form.description" class="cc-preview-content" x-html="renderMd(form.description)"></div>
+              <div x-show="!form.description" class="cc-preview-empty">Start typing to see the preview...</div>
+
+              <div x-show="form.tags" style="margin-top:.8rem;">
+                <div style="display:flex;gap:.3rem;flex-wrap:wrap;">
+                  <template x-for="tag in form.tags.split(',').map(t => t.trim()).filter(t => t)" :key="tag">
+                    <span style="font-size:.65rem;padding:.12rem .45rem;border-radius:99px;background:rgba(var(--ctf-accent-rgb),.08);color:var(--ctf-accent);" x-text="tag"></span>
+                  </template>
+                </div>
+              </div>
+
+              <div x-show="form.attachment_url || uploadedUrl" style="margin-top:.8rem;font-size:.82rem;">
+                <i class="fas fa-paperclip" style="opacity:.5;"></i>
+                <a :href="uploadedUrl || form.attachment_url" style="color:var(--ctf-accent);" target="_blank" rel="noopener"
+                   x-text="attachedFile ? attachedFile.name : form.attachment_url"></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/marked@14/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<script>
+function CommunityEdit() {
+  return {
+    challengeId: {{ challenge_id }},
+    loadingData: true,
+    form: {
+      title: '', description: '', category: '', difficulty: '',
+      points: 100, flag: '', case_insensitive: false, tags: '',
+      attachment_url: '', state: 'published',
+    },
+    showFlag: false,
+    submitting: false,
+    errorMsg: '',
+    successMsg: '',
+    attachedFile: null,
+    uploadedUrl: '',
+    uploading: false,
+    uploadPct: 0,
+
+    async load() {
+      try {
+        const resp = await fetch('/community/api/challenges/' + this.challengeId);
+        const json = await resp.json();
+        if (json.success) {
+          const d = json.data;
+          this.form.title = d.title || '';
+          this.form.description = d.description || '';
+          this.form.category = d.category || '';
+          this.form.difficulty = d.difficulty || '';
+          this.form.points = d.points || 100;
+          this.form.flag = d.flag || '';
+          this.form.case_insensitive = d.case_insensitive || false;
+          this.form.tags = (d.tags || []).join(', ');
+          this.form.attachment_url = d.attachment_url || '';
+          this.form.state = d.state || 'published';
+        }
+      } catch (e) {
+        this.errorMsg = 'Failed to load challenge data.';
+      }
+      this.loadingData = false;
+    },
+
+    formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+      return (bytes/1024/1024).toFixed(1) + ' MB';
+    },
+
+    pickFile(e) {
+      const f = e.target.files[0];
+      if (f) { this.attachedFile = f; this.uploadedUrl = ''; this.form.attachment_url = ''; }
+    },
+    handleDrop(e) {
+      e.currentTarget.classList.remove('dragging');
+      const f = e.dataTransfer.files[0];
+      if (f) { this.attachedFile = f; this.uploadedUrl = ''; this.form.attachment_url = ''; }
+    },
+    removeFile() {
+      this.attachedFile = null;
+      this.uploadedUrl = '';
+      this.uploadPct = 0;
+      if (this.$refs.fileInput) this.$refs.fileInput.value = '';
+    },
+
+    async uploadFile() {
+      if (!this.attachedFile) return true;
+      if (this.uploadedUrl) return true;
+      this.uploading = true;
+      this.uploadPct = 0;
+      try {
+        const fd = new FormData();
+        fd.append('file', this.attachedFile);
+        fd.append('nonce', init.csrfNonce);
+        const resp = await fetch('/community/api/upload', { method: 'POST', body: fd });
+        const json = await resp.json();
+        if (json.success) {
+          this.uploadedUrl = json.data.url;
+          this.uploadPct = 100;
+          return true;
+        } else {
+          this.errorMsg = (json.errors || ['Upload failed']).join('. ');
+          return false;
+        }
+      } catch (e) {
+        this.errorMsg = 'File upload failed.';
+        return false;
+      } finally {
+        this.uploading = false;
+      }
+    },
+
+    renderMd(text) {
+      if (!text) return '';
+      try { return DOMPurify.sanitize(marked.parse(text)); }
+      catch (e) { return DOMPurify.sanitize(text); }
+    },
+
+    validate() {
+      const errors = [];
+      if (!this.form.title.trim()) errors.push('Title is required');
+      if (!this.form.description.trim()) errors.push('Description is required');
+      if (!this.form.category) errors.push('Category is required');
+      if (!this.form.difficulty) errors.push('Difficulty is required');
+      if (!this.form.flag.trim()) errors.push('Flag is required');
+      if (this.form.points < 1 || this.form.points > 10000) errors.push('Points must be 1\u201310,000');
+      return errors;
+    },
+
+    async save() {
+      this.errorMsg = '';
+      this.successMsg = '';
+
+      const errors = this.validate();
+      if (errors.length) { this.errorMsg = errors.join('. '); return; }
+
+      this.submitting = true;
+
+      if (this.attachedFile && !this.uploadedUrl) {
+        const ok = await this.uploadFile();
+        if (!ok) { this.submitting = false; return; }
+      }
+
+      const payload = { ...this.form };
+      if (this.uploadedUrl) payload.attachment_url = this.uploadedUrl;
+
+      try {
+        const resp = await fetch('/community/api/challenges/' + this.challengeId, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'CSRF-Token': init.csrfNonce },
+          body: JSON.stringify(payload),
+        });
+        const json = await resp.json();
+        if (json.success) {
+          this.successMsg = 'Changes saved! Redirecting...';
+          setTimeout(() => { window.location.href = '/community/challenge/' + this.challengeId; }, 1000);
+        } else {
+          this.errorMsg = (json.errors || ['Something went wrong']).join('. ');
+        }
+      } catch (e) {
+        this.errorMsg = 'Network error. Please try again.';
+      }
+      this.submitting = false;
+    },
+  };
+}
+</script>
+{% endblock %}
