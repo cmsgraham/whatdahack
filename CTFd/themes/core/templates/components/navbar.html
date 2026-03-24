@@ -267,7 +267,35 @@
   display: inline-block; vertical-align: middle;
 }
 
-/* ── Resources link ──────────────────────────────────────────────────── */
+/* ── Resources dropdown ──────────────────────────────────────────────────── */
+#ctf-resources-dd { position: relative; }
+#ctf-resources-dd .dropdown-menu {
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+  background: var(--nav-dropdown-bg);
+  border: 1px solid var(--nav-dropdown-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.18);
+  padding: .35rem;
+  min-width: 220px;
+}
+#ctf-resources-dd .dropdown-menu.show { display: block; }
+#ctf-resources-dd .dropdown-item {
+  border-radius: 6px;
+  font-size: .82rem;
+  padding: .44rem .8rem;
+  color: var(--nav-text);
+  background: transparent;
+  transition: background .12s, color .12s;
+}
+#ctf-resources-dd .dropdown-item:hover { background: var(--nav-dropdown-hover); color: var(--nav-active-text); }
+#ctf-resources-dd .dd-divider { border-top: 1px solid var(--nav-dropdown-border); margin: .3rem .45rem; }
+@media (max-width: 767.98px) {
+  #ctf-resources-dd .dropdown-menu { position: static; box-shadow: none; border: 1px solid var(--nav-dropdown-border); margin-top: .25rem; }
+}
 
 /* ── Mobile collapsed menu ───────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
@@ -383,11 +411,25 @@
           </a>
         </li>
 
-        <li class="nav-item">
-          <a class="nav-link {% if request.path == '/kali' %}active{% endif %}"
-             href="/kali">
-            <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %}
+        <li class="nav-item" id="ctf-resources-dd">
+          <a class="nav-link {% if request.path.startswith('/kali') or request.path.startswith('/resources') %}active{% endif %}"
+             href="#" role="button" id="ctf-resources-toggle">
+            <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %} <i class="fas fa-caret-down" style="font-size:.6em;opacity:.6"></i>
           </a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="/kali">🐉 Kali Linux Guide</a></li>
+            <li class="dd-divider"></li>
+            <li><a class="dropdown-item" href="/resources/web">🌐 Web</a></li>
+            <li><a class="dropdown-item" href="/resources/crypto">🔐 Crypto</a></li>
+            <li><a class="dropdown-item" href="/resources/reverse-engineering">⚙️ Reverse Engineering</a></li>
+            <li><a class="dropdown-item" href="/resources/forensics">🔍 Forensics</a></li>
+            <li><a class="dropdown-item" href="/resources/pwn">💥 Pwn</a></li>
+            <li><a class="dropdown-item" href="/resources/osint">📷 OSINT</a></li>
+            <li><a class="dropdown-item" href="/resources/cloud">☁️ Cloud</a></li>
+            <li><a class="dropdown-item" href="/resources/mobile">📱 Mobile</a></li>
+            <li><a class="dropdown-item" href="/resources/hardware">🔧 Hardware</a></li>
+            <li><a class="dropdown-item" href="/resources/misc">🎲 Misc</a></li>
+          </ul>
         </li>
       </ul>
 
@@ -530,3 +572,19 @@
     </div>
   </div>
 </nav>
+<script>
+(function(){
+  var toggle = document.getElementById('ctf-resources-toggle');
+  var dd = document.getElementById('ctf-resources-dd');
+  if (!toggle || !dd) return;
+  var menu = dd.querySelector('.dropdown-menu');
+  toggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    menu.classList.toggle('show');
+  });
+  document.addEventListener('click', function(e) {
+    if (!dd.contains(e.target)) menu.classList.remove('show');
+  });
+})();
+</script>
