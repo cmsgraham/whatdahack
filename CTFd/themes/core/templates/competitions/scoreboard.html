@@ -14,31 +14,31 @@
 <style>
 /* ── Competition scoreboard banner ─────────────────────────────────────── */
 .comp-sb-banner {
-  background: linear-gradient(135deg, var(--ctf-header-bg1, #e5e7eb) 0%, var(--ctf-header-bg2, #d1d5db) 100%);
-  border-bottom: 1px solid var(--ctf-border, #d1d5db);
+  background: linear-gradient(135deg, var(--lb-hdr-from) 0%, var(--lb-hdr-to) 100%);
+  border-bottom: 1px solid var(--lb-border);
   padding: 2.2rem 0 1.8rem;
   position: relative;
   overflow: hidden;
 }
 .comp-sb-banner::before {
   content: ''; position: absolute; inset: 0;
-  background: radial-gradient(ellipse at 50% -30%, rgba(var(--ctf-accent-rgb, 5,150,105), .07) 0%, transparent 60%);
+  background: radial-gradient(ellipse at 50% -30%, rgba(var(--lb-acc-rgb), .07) 0%, transparent 60%);
   pointer-events: none;
 }
 .comp-sb-banner .breadcrumb {
   background: transparent; padding: 0; margin-bottom: .5rem;
   font-size: .73rem; letter-spacing: .4px;
 }
-.comp-sb-banner .breadcrumb-item + .breadcrumb-item::before { color: var(--ctf-text-muted, #6b7280); }
-.comp-sb-banner .breadcrumb-item a { color: var(--ctf-accent, #059669); text-decoration: none; }
+.comp-sb-banner .breadcrumb-item + .breadcrumb-item::before { color: var(--lb-muted); }
+.comp-sb-banner .breadcrumb-item a { color: var(--lb-accent); text-decoration: none; }
 .comp-sb-banner .breadcrumb-item a:hover { text-decoration: underline; }
-.comp-sb-banner .breadcrumb-item.active { color: var(--ctf-text-muted, #6b7280); }
+.comp-sb-banner .breadcrumb-item.active { color: var(--lb-muted); }
 .comp-sb-banner h1 {
   font-size: 1.8rem; font-weight: 800;
-  color: var(--ctf-text-primary, #111827);
+  color: var(--lb-text);
   letter-spacing: -.4px; margin-bottom: .35rem;
 }
-.comp-sb-banner h1 .accent { color: var(--ctf-accent, #059669); }
+.comp-sb-banner h1 .accent { color: var(--lb-accent); }
 .comp-sb-banner .comp-context-links {
   display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .6rem;
 }
@@ -46,17 +46,17 @@
   display: inline-flex; align-items: center; gap: .3rem;
   font-size: .73rem; font-weight: 600; letter-spacing: .5px;
   text-transform: uppercase;
-  color: var(--ctf-accent, #059669);
+  color: var(--lb-accent);
   text-decoration: none;
   padding: .22rem .6rem;
-  border: 1px solid rgba(var(--ctf-accent-rgb, 5,150,105), .35);
+  border: 1px solid rgba(var(--lb-acc-rgb), .35);
   border-radius: 6px;
   transition: background .15s;
 }
-.comp-context-link:hover { background: rgba(var(--ctf-accent-rgb, 5,150,105), .08); }
+.comp-context-link:hover { background: rgba(var(--lb-acc-rgb), .08); }
 .comp-context-link.is-active {
-  background: rgba(var(--ctf-accent-rgb, 5,150,105), .12);
-  border-color: rgba(var(--ctf-accent-rgb, 5,150,105), .5);
+  background: rgba(var(--lb-acc-rgb), .12);
+  border-color: rgba(var(--lb-acc-rgb), .5);
 }
 /* Hide the base scoreboard page header (we replaced it) */
 .ctf-page-header { display: none !important; }
