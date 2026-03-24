@@ -1,0 +1,5 @@
+DKIM_DOMAIN = whatdahack.com
+DKIM_SELECTOR = mail
+DKIM_PRIVATE_KEY = /etc/dkim/mail.private
+DKIM_CANON = relaxed
+disable_ipv6 = true

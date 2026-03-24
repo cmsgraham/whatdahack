@@ -87,6 +87,7 @@ services:
     volumes:
       - ./conf/exim4/dkim.private:/etc/dkim/mail.private:ro
       - ./conf/exim4/exim4.conf.localmacros:/etc/exim4/_docker_additional_macros:ro
+      - ./conf/exim4/aliases:/etc/aliases:ro
     networks:
       default:
 
