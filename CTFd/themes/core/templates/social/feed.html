@@ -88,15 +88,18 @@ body{
 .bnav-item:hover,.bnav-item.active{color:var(--app-accent);}
 .bnav-item i{font-size:1.15rem;}
 .bnav-label{font-size:.6rem;font-weight:600;letter-spacing:.5px;}
+.bnav-spacer{flex:1;}
 .bnav-item--create{
-  padding:0!important;gap:0!important;justify-content:center;
+  position:absolute;left:50%;transform:translateX(-50%);
+  bottom:calc(6px + env(safe-area-inset-bottom,0px));
+  padding:0;z-index:1;
 }
 .bnav-create{
-  width:44px;height:44px;border-radius:50%;
+  width:48px;height:48px;border-radius:50%;
   background:linear-gradient(135deg,var(--app-accent),var(--app-accent2));
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:1.3rem;border:none;cursor:pointer;
-  margin-top:-10px;box-shadow:0 4px 14px rgba(var(--app-accent-rgb),.35);
+  box-shadow:0 4px 14px rgba(var(--app-accent-rgb),.35);
   transition:transform .15s,box-shadow .15s;
 }
 .bnav-create:hover{transform:scale(1.08);box-shadow:0 6px 20px rgba(var(--app-accent-rgb),.45);}
@@ -774,16 +777,20 @@ body{
     <a href="/feed" class="bnav-item active">
       <i class="fas fa-home"></i><span class="bnav-label">Feed</span>
     </a>
-    <button class="bnav-item bnav-item--create" @click="document.querySelector('.composer-input').focus()">
-      <div class="bnav-create"><i class="fas fa-plus"></i></div>
-    </button>
     <button class="bnav-item" :class="{'active': showNotifs}"
             @click="showNotifs=true;loadNotifications()">
       <i class="fas fa-bell"></i><span class="bnav-label">Alerts</span>
     </button>
+    <div class="bnav-spacer"></div>
+    <a href="/scoreboard" class="bnav-item">
+      <i class="fas fa-trophy"></i><span class="bnav-label">Score</span>
+    </a>
     <a :href="userId ? '/feed/user/' + userId : '/login'" class="bnav-item">
       <i class="fas fa-user"></i><span class="bnav-label">Profile</span>
     </a>
+    <button class="bnav-item--create" @click="document.querySelector('.composer-input').focus()">
+      <div class="bnav-create"><i class="fas fa-plus"></i></div>
+    </button>
   </nav>
 
   <!-- Comments Sheet -->
