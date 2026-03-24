@@ -18,6 +18,7 @@ services:
       - MAIL_USE_TLS=false
       - MAIL_USE_SSL=false
       - MAILFROM_ADDR=noreply@whatdahack.com
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
       - .data/CTFd/logs:/var/log/CTFd
       - .data/CTFd/uploads:/var/uploads

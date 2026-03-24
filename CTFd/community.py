@@ -1,4 +1,6 @@
+import base64
 import datetime
+import logging
 import os
 import uuid
 
@@ -228,6 +230,87 @@ def api_upload_file():
 
     url = f"/files/community/{safe_name}"
     return jsonify({"success": True, "data": {"url": url, "name": f.filename}})
+
+
+logger = logging.getLogger(__name__)
+
+BANNER_SIZE = "1792x1024"
+BANNER_DEFAULT_PROMPT = (
+    "Create a visually striking, professional banner illustration for a cybersecurity "
+    "CTF (Capture The Flag) challenge. The banner should feel modern, techy, and "
+    "slightly futuristic. Do NOT include any text or letters in the image."
+)
+
+
+@community.route("/community/api/generate-banner", methods=["POST"])
+@authed_only
+def api_generate_banner():
+    """Generate a banner image for a community challenge using OpenAI DALL-E 3."""
+    import openai
+
+    api_key = os.environ.get("OPENAI_API_KEY", "")
+    if not api_key:
+        return jsonify({"success": False, "errors": ["AI image generation is not configured"]}), 503
+
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "errors": ["No data provided"]}), 400
+
+    title = (data.get("title") or "").strip()
+    category = (data.get("category") or "").strip()
+    difficulty = (data.get("difficulty") or "").strip()
+    description = (data.get("description") or "").strip()[:300]
+    custom_prompt = (data.get("custom_prompt") or "").strip()[:500]
+
+    # Build the prompt from challenge content
+    context_parts = []
+    if title:
+        context_parts.append(f'Challenge title: "{title}"')
+    if category:
+        context_parts.append(f"Category: {category}")
+    if difficulty:
+        context_parts.append(f"Difficulty: {difficulty}")
+    if description:
+        context_parts.append(f"Brief description: {description}")
+
+    prompt = BANNER_DEFAULT_PROMPT
+    if context_parts:
+        prompt += " " + ". ".join(context_parts) + "."
+    if custom_prompt:
+        prompt += " Additional creative direction: " + custom_prompt
+
+    logger.info("AI banner generation requested by user=%s", get_current_user().id)
+
+    try:
+        client = openai.OpenAI(api_key=api_key)
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size=BANNER_SIZE,
+            n=1,
+            response_format="b64_json",
+            quality="hd",
+        )
+        image_bytes = base64.b64decode(response.data[0].b64_json)
+    except openai.APIError as exc:
+        logger.error("OpenAI API error: %s", exc)
+        return jsonify({"success": False, "errors": [f"AI generation failed: {exc.message}"]}), 502
+    except Exception as exc:
+        logger.error("OpenAI call failed: %s", exc)
+        return jsonify({"success": False, "errors": ["Failed to generate image"]}), 502
+
+    # Save to upload folder
+    upload_folder = current_app.config.get("UPLOAD_FOLDER", "/var/uploads")
+    community_dir = os.path.join(upload_folder, "community")
+    os.makedirs(community_dir, exist_ok=True)
+
+    safe_name = secure_filename(f"ai_banner_{uuid.uuid4().hex[:12]}.png")
+    filepath = os.path.join(community_dir, safe_name)
+    with open(filepath, "wb") as dst:
+        dst.write(image_bytes)
+
+    url = f"/files/community/{safe_name}"
+    return jsonify({"success": True, "data": {"url": url}})
 
 
 @community.route("/community/api/challenges", methods=["POST"])

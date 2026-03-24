@@ -123,6 +123,39 @@ body { background: var(--ctf-bg-page); }
   cursor: pointer; font-size: .75rem; transition: background .15s;
 }
 .cc-banner-preview .cc-banner-remove:hover { background: rgba(220,38,38,.8); }
+
+/* ── AI Banner Generation ──────────────────────────── */
+.cc-ai-divider {
+  display: flex; align-items: center; gap: .7rem;
+  margin: .6rem 0; font-size: .75rem; color: var(--ctf-text-muted);
+}
+.cc-ai-divider::before, .cc-ai-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--ctf-border);
+}
+.cc-ai-row {
+  display: flex; gap: .5rem; align-items: flex-end;
+}
+.cc-ai-row .cc-input { flex: 1; }
+.cc-ai-btn {
+  padding: .55rem 1rem; border-radius: var(--ctf-radius);
+  font-size: .8rem; font-weight: 600; cursor: pointer;
+  border: 1px solid var(--ctf-accent); background: transparent;
+  color: var(--ctf-accent); transition: all .15s;
+  display: inline-flex; align-items: center; gap: .35rem;
+  white-space: nowrap;
+}
+.cc-ai-btn:hover { background: var(--ctf-accent); color: #fff; }
+.cc-ai-btn:disabled { opacity: .5; pointer-events: none; }
+.cc-ai-spinner {
+  display: inline-block; width: 14px; height: 14px;
+  border: 2px solid currentColor; border-top-color: transparent;
+  border-radius: 50%; animation: cc-spin 0.7s linear infinite;
+}
+@keyframes cc-spin { to { transform: rotate(360deg); } }
+.cc-ai-hint {
+  font-size: .7rem; color: var(--ctf-text-muted); margin-top: .25rem;
+}
+
 .cc-btn {
   padding: .6rem 1.3rem; border-radius: var(--ctf-radius);
   font-size: .85rem; font-weight: 600; cursor: pointer;
@@ -243,6 +276,18 @@ body { background: var(--ctf-bg-page); }
                       <div style="font-size:.7rem;margin-top:.2rem;opacity:.6;">PNG, JPG, GIF, WebP — max 5 MB</div>
                     </div>
                     <input type="file" x-ref="bannerInput" accept="image/png,image/jpeg,image/gif,image/webp" style="display:none" @change="pickBanner($event)">
+
+                    <div class="cc-ai-divider">or generate with AI</div>
+                    <div class="cc-ai-row">
+                      <input class="cc-input" type="text" x-model="aiPrompt"
+                             placeholder="Optional: describe what you want (e.g. dark hacker theme with binary rain)"
+                             maxlength="500" :disabled="generatingBanner">
+                      <button type="button" class="cc-ai-btn" @click="generateBanner()" :disabled="generatingBanner">
+                        <template x-if="!generatingBanner"><span><i class="fas fa-magic"></i> Generate</span></template>
+                        <template x-if="generatingBanner"><span><span class="cc-ai-spinner"></span> Generating…</span></template>
+                      </button>
+                    </div>
+                    <div class="cc-ai-hint">The AI will use your challenge details (title, category, difficulty) to create a themed banner. Your prompt adds extra creative direction.</div>
                   </div>
                 </template>
                 <template x-if="bannerPreviewUrl">
@@ -436,6 +481,8 @@ function CommunityEdit() {
     bannerFile: null,
     bannerPreviewUrl: '',
     bannerUploadedUrl: '',
+    aiPrompt: '',
+    generatingBanner: false,
 
     async load() {
       try {
@@ -511,6 +558,38 @@ function CommunityEdit() {
       this.bannerUploadedUrl = '';
       this.form.banner_url = '';
       if (this.$refs.bannerInput) this.$refs.bannerInput.value = '';
+    },
+
+    async generateBanner() {
+      this.errorMsg = '';
+      this.generatingBanner = true;
+      try {
+        const resp = await fetch('/community/api/generate-banner', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'CSRF-Token': init.csrfNonce,
+          },
+          body: JSON.stringify({
+            title: this.form.title,
+            category: this.form.category,
+            difficulty: this.form.difficulty,
+            description: this.form.description,
+            custom_prompt: this.aiPrompt,
+          }),
+        });
+        const json = await resp.json();
+        if (json.success) {
+          this.bannerPreviewUrl = json.data.url;
+          this.bannerUploadedUrl = json.data.url;
+          this.bannerFile = null;
+        } else {
+          this.errorMsg = (json.errors || ['AI generation failed']).join('. ');
+        }
+      } catch (e) {
+        this.errorMsg = 'AI banner generation failed. Please try again.';
+      }
+      this.generatingBanner = false;
     },
 
     async uploadBanner() {
