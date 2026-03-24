@@ -1004,7 +1004,8 @@ function App(){
         if(this.np.images.length){
           const fd=new FormData();
           this.np.images.forEach(img=>fd.append('images',img.file));
-          const ur=await fetch('/feed/api/upload',{method:'POST',headers:{'CSRF-Token':window.init.csrfNonce},body:fd});
+          fd.append('nonce',window.init.csrfNonce);
+          const ur=await fetch('/feed/api/upload',{method:'POST',body:fd});
           const uj=await ur.json();
           if(!uj.success){alert(uj.errors && uj.errors[0]||'Upload failed');this.posting=false;return;}
           imageUrls=uj.data.urls;
