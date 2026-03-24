@@ -1154,7 +1154,7 @@ function App(){
         if(j.success){this.notifications=j.data;this.unreadCount=j.meta.unread_count;}}catch(e){}
     },
     async markAllRead(){
-      try{await fetch('/feed/api/notifications/read',{method:'POST',headers:{'CSRF-Token':window.init.csrfNonce}});
+      try{await fetch('/feed/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json','CSRF-Token':window.init.csrfNonce}});
         this.unreadCount=0;this.notifications=this.notifications.map(function(n){return Object.assign({},n,{read:true});});}catch(e){}
     },
     verbText(v){
