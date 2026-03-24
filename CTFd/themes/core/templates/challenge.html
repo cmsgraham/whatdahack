@@ -51,6 +51,13 @@
         <!-- ── Challenge Tab ────────────────────────────────────────────── -->
         <div role="tabpanel" class="tab-pane fade show active" id="challenge">
 
+          <!-- Banner image -->
+          {% if challenge.image %}
+          <div style="margin:-1.5rem -1.5rem 1.25rem;overflow:hidden;border-radius:0;">
+            <img src="{{ challenge.image }}" alt="{{ challenge.name }}" style="width:100%;max-height:220px;object-fit:cover;display:block;">
+          </div>
+          {% endif %}
+
           <!-- Hero: title + meta -->
           <div class="cm-hero">
             <h2 class="cm-title">{{ challenge.name }}</h2>
