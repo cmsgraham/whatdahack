@@ -16,7 +16,7 @@ from CTFd.models.community import (
 from CTFd.utils.decorators import authed_only
 from CTFd.utils.user import authed, get_current_user, is_admin
 
-ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "zip", "tar", "gz", "7z", "rar", "pdf", "txt", "py", "c", "cpp", "pcap", "pcapng"}
+ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp", "zip", "tar", "gz", "7z", "rar", "pdf", "txt", "py", "c", "cpp", "pcap", "pcapng", "html", "htm", "js", "css", "json", "xml", "csv", "md", "sh", "rb", "java", "rs", "go", "sql", "dockerfile", "yaml", "yml", "toml", "ini", "conf", "log", "eml", "bmp", "svg"}
 MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
 
 community = Blueprint("community", __name__)
