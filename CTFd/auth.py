@@ -110,6 +110,13 @@ def confirm(data=None):
             )
 
     # GET — show the code entry page
+    # Auto-send a code if the user is logged in, unverified, and has no active code
+    if current_user.authed():
+        user = Users.query.filter_by(id=session["id"]).first()
+        if user and not user.verified:
+            # Only send if no code is already pending (avoid spamming on refresh)
+            if cache.get(f"confirm_email_addr_{user.email}") is None:
+                email.verify_email_address(user.email)
     return render_template("confirm.html")
 
 
