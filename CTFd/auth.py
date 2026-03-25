@@ -50,58 +50,55 @@ def confirm(data=None):
                 ],
             )
 
-    # User is confirming email account
+    # Old link-based confirmation — gracefully redirect to code flow
     if data and request.method == "GET":
-        try:
-            user_email = verify_email_confirm_token(data)
-        except (UserConfirmTokenInvalidException):
-            return render_template(
-                "confirm.html",
-                errors=["Your confirmation link is invalid, please generate a new one"],
-            )
-
-        user = Users.query.filter_by(email=user_email).first_or_404()
-        if user.verified:
-            return redirect(url_for("views.settings"))
-
-        if (
-            get_app_config("EMAIL_CONFIRMATION_REQUIRE_INTERACTION")
-            and request.args.get("interaction") is None
-        ):
-            button = """<button style="margin-top: 3rem; padding: 1rem;" onclick="
-                let u = new window.URL(window.location.href);
-                u.searchParams.set('interaction', '1');
-                window.location.href = u;">Click Here to Confirm Email</button>"""
-            return render_template("page.html", content=button)
-
-        user.verified = True
-        log(
-            "registrations",
-            format="[{date}] {ip} - successful confirmation for {name}",
-            name=user.name,
+        return render_template(
+            "confirm.html",
+            errors=["Confirmation links are no longer used. Please enter the 6-digit code sent to your email address."],
         )
-        db.session.commit()
-        remove_email_confirm_token(data)
-        clear_user_session(user_id=user.id)
-        # Only send this registration notification if we are preventing access to registered users only
-        if get_config("verify_emails"):
-            email.successful_registration_notification(user.email)
-        db.session.close()
-        if current_user.authed():
-            return redirect(url_for("challenges.listing"))
-        return redirect(url_for("auth.login"))
 
-    # User is trying to start or restart the confirmation flow
-    if current_user.authed() is False:
-        return redirect(url_for("auth.login"))
+    if request.method == "POST":
+        code = request.form.get("code", "").strip()
 
-    user = Users.query.filter_by(id=session["id"]).first_or_404()
-    if user.verified:
-        return redirect(url_for("views.settings"))
+        if code:
+            # Verify the submitted code — no login required, code IS the credential
+            try:
+                user_email = verify_email_confirm_token(code)
+            except UserConfirmTokenInvalidException:
+                return render_template(
+                    "confirm.html",
+                    errors=["Invalid or expired code. Please request a new one."],
+                )
 
-    if data is None:
-        if request.method == "POST":
-            # User wants to resend their confirmation email
+            user = Users.query.filter_by(email=user_email).first_or_404()
+            if user.verified:
+                return redirect(url_for("views.settings"))
+
+            user.verified = True
+            log(
+                "registrations",
+                format="[{date}] {ip} - successful confirmation for {name}",
+                name=user.name,
+            )
+            db.session.commit()
+            remove_email_confirm_token(code)
+            clear_user_session(user_id=user.id)
+            if get_config("verify_emails"):
+                email.successful_registration_notification(user.email)
+            db.session.close()
+            if current_user.authed():
+                return redirect(url_for("challenges.listing"))
+            return redirect(url_for("auth.login"))
+
+        else:
+            # Resend code — requires being logged in
+            if current_user.authed() is False:
+                return redirect(url_for("auth.login"))
+
+            user = Users.query.filter_by(id=session["id"]).first_or_404()
+            if user.verified:
+                return redirect(url_for("views.settings"))
+
             email.verify_email_address(user.email)
             log(
                 "registrations",
@@ -109,18 +106,25 @@ def confirm(data=None):
                 name=user.name,
             )
             return render_template(
-                "confirm.html", infos=[f"Confirmation email sent to {user.email}!"]
+                "confirm.html", infos=[f"New confirmation code sent to {user.email}!"]
             )
-        elif request.method == "GET":
-            # User has been directed to the confirm page
-            return render_template("confirm.html")
+
+    # GET — show the code entry page
+    return render_template("confirm.html")
 
 
 @auth.route("/reset_password", methods=["POST", "GET"])
 @auth.route("/reset_password/<data>", methods=["POST", "GET"])
 @ratelimit(method="POST", limit=10, interval=60)
 def reset_password(data=None):
-    if config.can_send_mail() is False and data is None:
+    # Old link-based reset — redirect to code flow with a message
+    if data is not None:
+        return render_template(
+            "reset_password.html",
+            errors=["Reset links are no longer used. Please request a new code below."],
+        )
+
+    if config.can_send_mail() is False:
         return render_template(
             "reset_password.html",
             errors=[
@@ -130,50 +134,73 @@ def reset_password(data=None):
             ],
         )
 
-    if data is not None:
-        try:
-            email_address = verify_reset_password_token(data)
-        except (UserResetPasswordTokenInvalidException):
+    if request.method == "POST":
+        # Step 1 — request code by email
+        if "email" in request.form and "code" not in request.form:
+            email_address = request.form["email"].strip()
+            user = Users.query.filter_by(email=email_address).first()
+
+            # Always show the same message to avoid user enumeration
+            if not user or user.oauth_id:
+                return render_template(
+                    "reset_password.html",
+                    infos=[_l("If that account exists you will receive an email, please check your inbox")],
+                )
+
+            limit = cache.inc(f"reset_password_attempt_user_{user.id}")
+            cache.expire(f"reset_password_attempt_user_{user.id}", 180)
+            if limit > 5:
+                return render_template(
+                    "reset_password.html",
+                    errors=[_l("Too many password reset attempts. Please try again later.")],
+                )
+
+            email.forgot_password(email_address)
             return render_template(
                 "reset_password.html",
-                errors=["Your reset link is invalid, please generate a new one"],
+                mode="code",
+                infos=[_l("If that account exists you will receive an email, please check your inbox")],
             )
 
-        if request.method == "GET":
-            return render_template("reset_password.html", mode="set")
-        if request.method == "POST":
+        # Step 2 — submit code + new password
+        if "code" in request.form:
+            code = request.form.get("code", "").strip()
             password = request.form.get("password", "").strip()
+
+            try:
+                email_address = verify_reset_password_token(code)
+            except UserResetPasswordTokenInvalidException:
+                return render_template(
+                    "reset_password.html",
+                    mode="code",
+                    errors=["Invalid or expired code. Please request a new one."],
+                )
+
             user = Users.query.filter_by(email=email_address).first_or_404()
+
             if user.oauth_id:
                 return render_template(
                     "reset_password.html",
-                    infos=[
-                        "Your account was registered via an authentication provider and does not have an associated password. Please login via your authentication provider."
-                    ],
+                    infos=["Your account was registered via an authentication provider and does not have an associated password. Please login via your authentication provider."],
                 )
 
-            pass_short = len(password) == 0
-            if pass_short:
+            if len(password) == 0:
                 return render_template(
-                    "reset_password.html", errors=[_l("Please pick a longer password")]
+                    "reset_password.html", mode="code", errors=[_l("Please pick a longer password")]
                 )
 
             password_min_length = int(get_config("password_min_length", default=0))
-            pass_min = len(password) < password_min_length
-            if pass_min:
+            if len(password) < password_min_length:
                 return render_template(
                     "reset_password.html",
-                    errors=[
-                        _l(
-                            f"Password must be at least {password_min_length} characters"
-                        )
-                    ],
+                    mode="code",
+                    errors=[_l(f"Password must be at least {password_min_length} characters")],
                 )
 
             user.password = password
             user.change_password = False
             db.session.commit()
-            remove_reset_password_token(data)
+            remove_reset_password_token(code)
             clear_user_session(user_id=user.id)
             log(
                 "logins",
@@ -184,52 +211,6 @@ def reset_password(data=None):
             email.password_change_alert(user.email)
             return redirect(url_for("auth.login"))
 
-    if request.method == "POST":
-        email_address = request.form["email"].strip()
-        user = Users.query.filter_by(email=email_address).first()
-
-        get_errors()
-
-        if not user:
-            return render_template(
-                "reset_password.html",
-                infos=[
-                    _l(
-                        "If that account exists you will receive an email, please check your inbox"
-                    )
-                ],
-            )
-
-        if user.oauth_id:
-            return render_template(
-                "reset_password.html",
-                infos=[
-                    _l(
-                        "The email address associated with this account was registered via an authentication provider and does not have an associated password. Please login via your authentication provider."
-                    )
-                ],
-            )
-
-        # Preferably this would be in a pipeline or multi but the benefit is minor
-        limit = cache.inc(f"reset_password_attempt_user_{user.id}")
-        cache.expire(f"reset_password_attempt_user_{user.id}", 180)
-        if limit > 5:
-            return render_template(
-                "reset_password.html",
-                errors=[
-                    _l("Too many password reset attempts. Please try again later.")
-                ],
-            )
-        email.forgot_password(email_address)
-
-        return render_template(
-            "reset_password.html",
-            infos=[
-                _l(
-                    "If that account exists you will receive an email, please check your inbox"
-                )
-            ],
-        )
     return render_template("reset_password.html")
 
 

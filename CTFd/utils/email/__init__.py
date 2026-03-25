@@ -1,5 +1,3 @@
-from flask import url_for
-
 from CTFd.constants.email import (
     DEFAULT_PASSWORD_CHANGE_ALERT_BODY,
     DEFAULT_PASSWORD_CHANGE_ALERT_SUBJECT,
@@ -39,7 +37,6 @@ def password_change_alert(email):
         get_config("password_change_alert_body") or DEFAULT_PASSWORD_CHANGE_ALERT_BODY,
         ctf_name=get_config("ctf_name"),
         ctf_description=get_config("ctf_description"),
-        url=url_for("auth.reset_password", _external=True),
     )
 
     subject = safe_format(
@@ -51,15 +48,12 @@ def password_change_alert(email):
 
 
 def forgot_password(email):
+    code = generate_password_reset_token(email)
     text = safe_format(
         get_config("password_reset_body") or DEFAULT_PASSWORD_RESET_BODY,
         ctf_name=get_config("ctf_name"),
         ctf_description=get_config("ctf_description"),
-        url=url_for(
-            "auth.reset_password",
-            data=generate_password_reset_token(email),
-            _external=True,
-        ),
+        code=code,
     )
 
     subject = safe_format(
@@ -70,16 +64,12 @@ def forgot_password(email):
 
 
 def verify_email_address(addr):
+    code = generate_email_confirm_token(addr)
     text = safe_format(
         get_config("verification_email_body") or DEFAULT_VERIFICATION_EMAIL_BODY,
         ctf_name=get_config("ctf_name"),
         ctf_description=get_config("ctf_description"),
-        url=url_for(
-            "auth.confirm",
-            data=generate_email_confirm_token(addr),
-            _external=True,
-            _method="GET",
-        ),
+        code=code,
     )
 
     subject = safe_format(
@@ -95,7 +85,6 @@ def successful_registration_notification(addr):
         or DEFAULT_SUCCESSFUL_REGISTRATION_EMAIL_BODY,
         ctf_name=get_config("ctf_name"),
         ctf_description=get_config("ctf_description"),
-        url=url_for("views.static_html", _external=True),
     )
 
     subject = safe_format(
@@ -111,7 +100,6 @@ def user_created_notification(addr, name, password):
         get_config("user_creation_email_body") or DEFAULT_USER_CREATION_EMAIL_BODY,
         ctf_name=get_config("ctf_name"),
         ctf_description=get_config("ctf_description"),
-        url=url_for("views.static_html", _external=True),
         name=name,
         password=password,
     )

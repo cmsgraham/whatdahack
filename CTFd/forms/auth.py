@@ -74,6 +74,15 @@ class ConfirmForm(BaseForm):
     submit = SubmitField(_l("Send Confirmation Email"))
 
 
+class ConfirmCodeForm(BaseForm):
+    code = StringField(
+        _l("Confirmation Code"),
+        validators=[InputRequired()],
+        render_kw={"autofocus": True, "placeholder": "000000", "maxlength": "6", "inputmode": "numeric", "pattern": "[0-9]{6}"},
+    )
+    submit = SubmitField(_l("Verify Account"))
+
+
 class ResetPasswordRequestForm(BaseForm):
     email = EmailField(
         _l("Email"), validators=[InputRequired()], render_kw={"autofocus": True}
@@ -86,3 +95,15 @@ class ResetPasswordForm(BaseForm):
         _l("Password"), validators=[InputRequired()], render_kw={"autofocus": True}
     )
     submit = SubmitField(_l("Submit"))
+
+
+class ResetPasswordCodeForm(BaseForm):
+    code = StringField(
+        _l("Reset Code"),
+        validators=[InputRequired()],
+        render_kw={"placeholder": "000000", "maxlength": "6", "inputmode": "numeric", "pattern": "[0-9]{6}"},
+    )
+    password = PasswordField(
+        _l("New Password"), validators=[InputRequired()], render_kw={"autofocus": True}
+    )
+    submit = SubmitField(_l("Reset Password"))
