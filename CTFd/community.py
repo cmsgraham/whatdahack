@@ -278,6 +278,100 @@ BANNER_DEFAULT_PROMPT = (
     "Focus on clarity over detail. Do NOT include any text or letters in the image."
 )
 
+# ── Random variation pools ────────────────────────────────────────────────────
+_BANNER_COLOR_PALETTES = [
+    "deep navy and electric cyan with magenta accents",
+    "pitch black and neon green with white accents",
+    "dark charcoal and vivid orange with gold highlights",
+    "midnight purple and acid yellow with silver accents",
+    "dark teal and hot pink with white glow",
+    "obsidian black and crimson red with dim amber",
+    "dark slate and ice blue with violet glow",
+    "near-black and phosphor green with faint amber",
+    "dark indigo and coral with turquoise highlights",
+    "gunmetal grey and electric violet with cyan sparks",
+]
+
+_BANNER_LIGHTING_MOODS = [
+    "dramatic rim lighting from the left, deep lens flare",
+    "cool top-down light with a soft neon glow from below",
+    "warm side-lighting casting long sharp shadows",
+    "diffuse bioluminescent glow as if underwater",
+    "harsh spotlight from above with scattered particle light",
+    "low-angle backlight creating a silhouette halo effect",
+    "flickering monitor glow lighting, slightly cold and unstable",
+    "volumetric light rays piercing through digital fog",
+    "aurora-like gradient glow across the whole scene",
+    "single concentrated beam of light from off-camera, dark surround",
+]
+
+_BANNER_FOCAL_SUBJECTS = {
+    "web":         ["a cracked browser window with glowing fragments",
+                    "a spider web made of network cables",
+                    "an open padlock dissolving into code",
+                    "a floating HTTP request packet mid-flight"],
+    "crypto":      ["a golden key made of prime numbers",
+                    "an abstract cipher wheel with light streaks",
+                    "binary digits forming a vault door",
+                    "a glowing mathematical lattice"],
+    "forensics":   ["a magnifying glass over glowing hex bytes",
+                    "a fragmented hard drive reconstructing itself",
+                    "fingerprint composed of data streams",
+                    "a timeline of file artifacts glowing on a dark surface"],
+    "pwn":         ["a cracked binary executable with energy escaping",
+                    "a robotic arm forcing open a locked box",
+                    "a stack frame mid-overflow, visualised as collapsing towers",
+                    "a shellcode fragment hovering like a weapon"],
+    "rev":         ["a gear mechanism made of disassembled code",
+                    "a holographic blueprint of a compiled binary",
+                    "a decompiler output glowing like scripture",
+                    "an engine taken apart with each part labelled in hex"],
+    "misc":        ["an abstract digital vortex pulling in random data",
+                    "a jigsaw puzzle of glowing screen fragments",
+                    "a floating question mark built from circuit traces",
+                    "a collection of small cyber artefacts orbiting a core"],
+    "osint":       ["a satellite dish scanning glowing social nodes",
+                    "a world map with glowing connection lines converging",
+                    "a pair of digital binoculars looking through data",
+                    "a dossier file with redacted text glowing red"],
+    "default":     ["a glowing digital eye",
+                    "an abstract lock and circuit board",
+                    "a neural network node cluster",
+                    "a fractured server rack emitting light",
+                    "an enigmatic geometric shape made of laser lines"],
+}
+
+_BANNER_ENVIRONMENTS = [
+    "with a blurred city skyline silhouette in the far background",
+    "against a subtle hexagonal grid pattern fading into darkness",
+    "with faint floating binary streams in the background",
+    "against a deep space backdrop with data constellations",
+    "with a barely visible circuit board texture in the background",
+    "surrounded by abstract geometric planes receding into darkness",
+    "against a foggy server room blurred into abstraction",
+    "with faint topographic contour lines dissolving in the background",
+]
+
+
+def _build_banner_variation(category: str) -> str:
+    """Return a short random variation string to append to the banner prompt."""
+    import random
+    palette   = random.choice(_BANNER_COLOR_PALETTES)
+    lighting  = random.choice(_BANNER_LIGHTING_MOODS)
+    environment = random.choice(_BANNER_ENVIRONMENTS)
+
+    # Pick a category-specific focal subject when possible
+    cat_key = (category or "").lower().strip()
+    subjects = _BANNER_FOCAL_SUBJECTS.get(cat_key, _BANNER_FOCAL_SUBJECTS["default"])
+    subject = random.choice(subjects)
+
+    return (
+        f"Color palette: {palette}. "
+        f"Focal subject: {subject}. "
+        f"Lighting: {lighting}. "
+        f"Environment: {environment}. "
+    )
+
 
 @community.route("/community/api/generate-banner", methods=["POST"])
 @authed_only
@@ -315,6 +409,8 @@ def api_generate_banner():
     flag_hint = _extract_flag_hint(flag_raw)
 
     prompt = BANNER_DEFAULT_PROMPT
+    # Inject random variation so each generation looks distinct
+    prompt += " " + _build_banner_variation(category)
     if context_parts:
         prompt += " " + ". ".join(context_parts) + "."
     if flag_hint:
