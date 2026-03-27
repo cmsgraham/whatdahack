@@ -127,9 +127,11 @@
 
 /* ── Left nav links ──────────────────────────────────────────────────────── */
 .ctf-nav .ctf-nav-links {
-  gap: .15rem;
+  gap: .1rem;
   align-items: center;
   flex-wrap: nowrap;
+  min-width: 0;
+  overflow: visible;
 }
 .ctf-nav .ctf-nav-links .nav-item { position: relative; }
 .ctf-nav .ctf-nav-links .nav-link {
@@ -157,7 +159,29 @@
 .ctf-nav .ctf-nav-utils {
   display: flex;
   align-items: center;
-  gap: .15rem;
+  gap: .1rem;
+  flex-shrink: 0;
+}
+
+/* ── link-label: text in left nav items ─────────────────────────────────── */
+/* Visible by default; hidden at lg (992-1199px) to icon-only mode */
+.ctf-nav .ctf-nav-links .link-label { /* inherits inline */ }
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .ctf-nav .ctf-nav-links .link-label { display: none !important; }
+  .ctf-nav .ctf-nav-links .nav-link { padding: .3rem .44rem !important; gap: 0 !important; }
+  .ctf-nav .ctf-nav-links { gap: .05rem; }
+}
+
+/* ── util-label: text in right-nav buttons ───────────────────────────────── */
+/* Hidden at all desktop sizes — tooltips take over; shown in mobile collapsed */
+@media (min-width: 992px) {
+  .ctf-nav .util-label { display: none !important; }
+}
+
+/* ── Score pill in nav ───────────────────────────────────────────────────── */
+/* Hidden at lg/xl (space-limited), shown at xxl+ and in mobile collapsed */
+@media (min-width: 992px) and (max-width: 1399.98px) {
+  .ctf-nav .ctf-score-pill-nav { display: none !important; }
 }
 
 /* Icon-style action button (notifications, settings, theme, etc.) */
@@ -283,30 +307,39 @@
 .ctf-nav .ctf-dropdown-menu .dropdown-item:hover { background: var(--nav-dropdown-hover) !important; color: var(--nav-active-text); }
 .ctf-nav .ctf-dd-divider { border-color: var(--nav-dropdown-border); margin: .3rem .45rem; }
 
-/* ── Mobile collapsed menu ───────────────────────────────────────────────── */
-@media (max-width: 767.98px) {
-  .ctf-nav .ctf-nav-utils { flex-direction: column; align-items: flex-start; padding-bottom: .5rem; }
+/* ── Mobile collapsed menu (<992px) ─────────────────────────────────────── */
+@media (max-width: 991.98px) {
+  .ctf-nav .navbar-collapse {
+    border-top: 1px solid var(--nav-divider);
+    padding: .4rem 0 .6rem;
+    max-height: calc(100dvh - 54px);
+    overflow-y: auto;
+  }
+  .ctf-nav .ctf-nav-utils { flex-direction: column; align-items: flex-start; padding-bottom: .4rem; width: 100%; }
   .ctf-nav .ctf-icon-btn { width: 100%; justify-content: flex-start; padding: .48rem .7rem; border-radius: 7px; font-size: .82rem; }
   .ctf-nav .ctf-util-sep { display: none; }
-  .ctf-nav .ctf-nav-links .nav-link { font-size: .82rem; padding: .48rem .7rem; width: 100%; }
+  .ctf-nav .ctf-nav-links .nav-link { font-size: .82rem; padding: .46rem .7rem; width: 100%; }
+  .ctf-nav .ctf-nav-links .link-label { display: inline !important; }
+  .ctf-nav .util-label { display: inline !important; }
+  .ctf-nav .ctf-score-pill-nav { display: flex !important; padding: .3rem .5rem; }
   .ctf-nav .ctf-lang-menu { position: static !important; transform: none; box-shadow: none !important; border: 1px solid var(--nav-dropdown-border) !important; margin-top: .25rem; }
   .ctf-nav .ctf-notif-badge { position: static; transform: none; display: inline; vertical-align: middle; }
   .ctf-nav .ctf-notif-wrap { display: inline-flex; align-items: center; gap: .3rem; }
 }
 
-/* ── Wide screens — spread links out more ────────────────────────────────── */
+/* ── Large desktops (≥1200px) — full labels in left nav ─────────────────── */
 @media (min-width: 1200px) {
-  .ctf-nav .ctf-nav-links { gap: .25rem; }
-  .ctf-nav .ctf-nav-links .nav-link { padding: .35rem .85rem; }
+  .ctf-nav .ctf-nav-links { gap: .2rem; }
+  .ctf-nav .ctf-nav-links .nav-link { padding: .35rem .72rem; }
 }
-@media (min-width: 1600px) {
-  .ctf-nav .ctf-nav-links { gap: .35rem; }
-  .ctf-nav .ctf-nav-links .nav-link { padding: .35rem 1rem; }
+@media (min-width: 1400px) {
+  .ctf-nav .ctf-nav-links { gap: .28rem; }
+  .ctf-nav .ctf-nav-links .nav-link { padding: .35rem .88rem; }
 }
 </style>
 
 <!-- ── Navbar markup ──────────────────────────────────────────────────────── -->
-<nav class="navbar navbar-expand-md fixed-top ctf-nav">
+<nav class="navbar navbar-expand-lg fixed-top ctf-nav">
   <div class="container-fluid">
 
     <!-- Brand -->
@@ -339,50 +372,61 @@
       <ul class="navbar-nav me-auto ctf-nav-links">
         {% for page in Plugins.user_menu_pages %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}>
-              {{ page.title }}
+            <a class="nav-link" href="{{ page.route }}" {% if page.link_target %}target="{{ page.link_target }}"{% endif %}
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{{ page.title }}">
+              <span class="link-label">{{ page.title }}</span>
             </a>
           </li>
         {% endfor %}
 
         {% if Configs.account_visibility != 'admins' and Configs.user_mode == 'teams' %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('teams.listing') }}">
-              <i class="fas fa-layer-group"></i>{% trans %}Teams{% endtrans %}
+            <a class="nav-link" href="{{ url_for('teams.listing') }}"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Teams{% endtrans %}">
+              <i class="fas fa-layer-group"></i><span class="link-label"> {% trans %}Teams{% endtrans %}</span>
             </a>
           </li>
         {% endif %}
 
         {% if Configs.account_visibility != 'admins' and Configs.score_visibility != 'admins' %}
           <li class="nav-item">
-            <a class="nav-link {% if request.endpoint == 'competitions.leaderboard' %}active{% endif %}" href="{{ url_for('competitions.leaderboard') }}">
-              <i class="fas fa-trophy"></i>{% trans %}Leaderboard{% endtrans %}
+            <a class="nav-link {% if request.endpoint == 'competitions.leaderboard' %}active{% endif %}"
+               href="{{ url_for('competitions.leaderboard') }}"
+               data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Leaderboard{% endtrans %}">
+              <i class="fas fa-trophy"></i><span class="link-label"> {% trans %}Leaderboard{% endtrans %}</span>
             </a>
           </li>
         {% endif %}
 
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('challenges.listing') }}">
-            <i class="fas fa-flag"></i>{% trans %}Challenges{% endtrans %}
+          <a class="nav-link {% if request.endpoint == 'challenges.listing' %}active{% endif %}"
+             href="{{ url_for('challenges.listing') }}"
+             data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Challenges{% endtrans %}">
+            <i class="fas fa-flag"></i><span class="link-label"> {% trans %}Challenges{% endtrans %}</span>
           </a>
         </li>
 
-        <li class="nav-item">          <a class="nav-link {% if request.blueprint == 'community' %}active{% endif %}"
-             href="/community">
-            <i class="fas fa-puzzle-piece"></i> Community
+        <li class="nav-item">
+          <a class="nav-link {% if request.blueprint == 'community' %}active{% endif %}"
+             href="/community"
+             data-bs-toggle="tooltip" data-bs-placement="bottom" title="Community">
+            <i class="fas fa-puzzle-piece"></i><span class="link-label"> Community</span>
           </a>
         </li>
 
         <li class="nav-item">
           <a class="nav-link {% if request.blueprint == 'social_feed' %}active{% endif %}"
-             href="/feed">
-            <i class="fas fa-stream"></i> Feed
+             href="/feed"
+             data-bs-toggle="tooltip" data-bs-placement="bottom" title="Feed">
+            <i class="fas fa-stream"></i><span class="link-label"> Feed</span>
           </a>
         </li>
 
-        <li class="nav-item">          <a class="nav-link {% if request.blueprint == 'competitions' %}active{% endif %}"
-             href="{{ url_for('competitions.listing') }}">
-            <i class="fas fa-layer-group"></i>{% trans %}Competitions{% endtrans %}
+        <li class="nav-item">
+          <a class="nav-link {% if request.blueprint == 'competitions' %}active{% endif %}"
+             href="{{ url_for('competitions.listing') }}"
+             data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Competitions{% endtrans %}">
+            <i class="fas fa-layer-group"></i><span class="link-label"> {% trans %}Competitions{% endtrans %}</span>
           </a>
         </li>
 
@@ -391,7 +435,7 @@
           <a class="nav-link dropdown-toggle {% if request.path.startswith('/kali') or request.path.startswith('/resources') %}active{% endif %}"
              href="#" id="nav-resources-dd" role="button"
              data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="fas fa-book-open"></i>{% trans %}Resources{% endtrans %}
+            <i class="fas fa-book-open"></i><span class="link-label"> {% trans %}Resources{% endtrans %}</span>
           </a>
           <ul class="dropdown-menu ctf-dropdown-menu" aria-labelledby="nav-resources-dd">
             <li><a class="dropdown-item" href="/kali"><span style="margin-right:.45rem;">🐉</span> Kali Linux Guide</a></li>
@@ -410,7 +454,7 @@
         </li>
       </ul>
 
-      <hr class="d-md-none ctf-nav-divider">
+      <hr class="d-lg-none ctf-nav-divider">
 
       <!-- Right utility row -->
       <ul class="navbar-nav ctf-nav-utils">
@@ -421,10 +465,10 @@
               <a class="ctf-icon-btn ctf-icon-btn--admin" href="{{ url_for('admin.view') }}"
                  data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Admin Panel{% endtrans %}">
                 <i class="fas fa-wrench"></i>
-                <span class="d-inline d-md-none d-lg-inline">{% trans %}Admin{% endtrans %}</span>
+                <span class="util-label">{% trans %}Admin{% endtrans %}</span>
               </a>
             </li>
-            <li class="ctf-util-sep d-none d-md-flex"></li>
+            <li class="ctf-util-sep d-none d-lg-flex"></li>
           {% endif %}
 
           <li class="nav-item">
@@ -435,7 +479,7 @@
                 <span x-data x-show="$store.unread_count > 0" x-text="$store.unread_count"
                       class="ctf-notif-badge badge-notification"></span>
               </span>
-              <span class="d-inline d-md-none d-lg-inline">{% trans %}Notifications{% endtrans %}</span>
+              <span class="util-label">{% trans %}Notifications{% endtrans %}</span>
             </a>
           </li>
 
@@ -444,7 +488,7 @@
               <a class="ctf-icon-btn" href="{{ url_for('teams.private') }}"
                  data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Team{% endtrans %}">
                 <i class="fas fa-users"></i>
-                <span class="d-inline d-md-none d-lg-inline">{% trans %}Team{% endtrans %}</span>
+                <span class="util-label">{% trans %}Team{% endtrans %}</span>
               </a>
             </li>
           {% endif %}
@@ -457,13 +501,13 @@
               {% else %}
                 <i class="fas fa-user-circle"></i>
               {% endif %}
-              <span class="d-inline d-md-none d-lg-inline">{% trans %}Profile{% endtrans %}</span>
+              <span class="util-label">{% trans %}Profile{% endtrans %}</span>
             </a>
           </li>
 
           {%- set _score = User.score -%}
           {% if _score is not none %}
-          <li class="nav-item d-none d-md-flex align-items-center" style="padding:0 .25rem;">
+          <li class="nav-item ctf-score-pill-nav" style="display:flex;align-items:center;padding:0 .25rem;">
             <span class="ctf-score-pill">
               <i class="fas fa-star" style="font-size:.55rem;"></i>
               {{ _score }} pts
@@ -475,17 +519,17 @@
             <a class="ctf-icon-btn" href="{{ url_for('views.settings') }}"
                data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Settings{% endtrans %}">
               <i class="fas fa-cog"></i>
-              <span class="d-inline d-md-none d-lg-inline d-none">{% trans %}Settings{% endtrans %}</span>
+              <span class="util-label">{% trans %}Settings{% endtrans %}</span>
             </a>
           </li>
 
-          <li class="ctf-util-sep d-none d-md-flex"></li>
+          <li class="ctf-util-sep d-none d-lg-flex"></li>
 
           <li class="nav-item">
             <a class="ctf-icon-btn ctf-icon-btn--logout" href="{{ url_for('auth.logout') }}"
                data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Logout{% endtrans %}">
               <i class="fas fa-sign-out-alt"></i>
-              <span class="d-inline d-md-none">{% trans %}Logout{% endtrans %}</span>
+              <span class="util-label">{% trans %}Logout{% endtrans %}</span>
             </a>
           </li>
 
@@ -495,7 +539,7 @@
             <li class="nav-item">
               <a class="ctf-icon-btn" href="{{ url_for('auth.register') }}">
                 <i class="fas fa-user-plus"></i>
-                {% trans %}Register{% endtrans %}
+                <span class="util-label">{% trans %}Register{% endtrans %}</span>
               </a>
             </li>
           {% endif %}
@@ -503,22 +547,21 @@
           <li class="nav-item">
             <a class="ctf-icon-btn" href="{{ url_for('auth.login') }}">
               <i class="fas fa-sign-in-alt"></i>
-              {% trans %}Login{% endtrans %}
+              <span class="util-label">{% trans %}Login{% endtrans %}</span>
             </a>
           </li>
 
         {% endif %}
 
-        <li class="ctf-util-sep d-none d-md-flex"></li>
+        <li class="ctf-util-sep d-none d-lg-flex"></li>
 
         <!-- Language dropdown -->
         <li class="nav-item dropdown ctf-lang-dropdown">
           <button class="ctf-icon-btn dropdown-toggle" type="button"
                   data-bs-toggle="dropdown" aria-expanded="false"
-                  data-bs-toggle="tooltip" data-bs-placement="bottom"
                   title="{% trans %}Change language{% endtrans %}">
             <i class="fas fa-language"></i>
-            <span class="d-inline d-md-none">{% trans %}Language{% endtrans %}</span>
+            <span class="util-label">{% trans %}Language{% endtrans %}</span>
           </button>
           <form x-data="LanguageForm">
             <ul class="dropdown-menu dropdown-menu-end ctf-lang-menu">
@@ -541,7 +584,7 @@
                   data-bs-toggle="tooltip" data-bs-placement="bottom"
                   title="{% trans %}Toggle theme{% endtrans %}">
             <i class="fas fa-moon"></i>
-            <span class="d-inline d-md-none">{% trans %}Toggle theme{% endtrans %}</span>
+            <span class="util-label">{% trans %}Toggle theme{% endtrans %}</span>
           </button>
         </li>
       </ul>
