@@ -80,6 +80,21 @@
 	<input type="hidden" name="type" value="standard">
 	{% endblock %}
 
+	{% block practice %}
+	<div class="form-group">
+		<label>
+			Practice Challenge<br>
+			<small class="form-text text-muted">
+				Practice challenges appear on the Practice tab and do not affect the scoreboard.
+			</small>
+		</label>
+		<select class="form-control custom-select" name="practice">
+			<option value="false" selected>No — standard challenge</option>
+			<option value="true">Yes — introductory, no points on scoreboard</option>
+		</select>
+	</div>
+	{% endblock %}
+
 	{% block submit %}
 	<div class="form-group">
 		<button class="btn btn-primary float-right create-challenge-submit" type="submit">Create</button>

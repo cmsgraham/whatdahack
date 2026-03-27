@@ -25,6 +25,7 @@ ChallengeFields = [
     "requirements",
     "position",
     "image",
+    "practice",
 ]
 Challenge = namedtuple(
     "Challenge",
@@ -83,6 +84,7 @@ def get_all_challenges(admin=False, field=None, q=None, competition_id=None, **q
             requirements=c.requirements,
             position=c.position,
             image=c.image,
+            practice=bool(c.practice),
         )
         results.append(ct)
     return results

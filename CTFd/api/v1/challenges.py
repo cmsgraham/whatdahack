@@ -128,6 +128,7 @@ class ChallengeList(Resource):
             "category": (str, None),
             "type": (str, None),
             "state": (str, None),
+            "practice": (bool, None),
             "q": (str, None),
             "field": (
                 RawEnum(
@@ -268,6 +269,7 @@ class ChallengeList(Resource):
                     "template": challenge_type.templates["view"],
                     "script": challenge_type.scripts["view"],
                     "image": challenge.image,
+                    "practice": bool(challenge.practice),
                 }
             )
 

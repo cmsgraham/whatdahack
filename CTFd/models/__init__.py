@@ -129,6 +129,7 @@ class Challenges(db.Model):
     position = db.Column(db.Integer, nullable=False, default=0)
     function = db.Column(db.String(32), default="static")
     image = db.Column(db.Text)
+    practice = db.Column(db.Boolean, nullable=False, default=False)
 
     requirements = db.Column(db.JSON)
     competition_id = db.Column(

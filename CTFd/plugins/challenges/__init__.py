@@ -70,6 +70,16 @@ class BaseChallenge(object):
         """
         data = request.form or request.get_json()
 
+        # Coerce 'practice' from a form string ("true"/"false") to a proper bool
+        if isinstance(data, dict):
+            if "practice" in data:
+                data["practice"] = data["practice"] in (True, "true", "True", "1", 1)
+        else:
+            # ImmutableMultiDict — convert to a normal dict so we can set practice
+            data = dict(data)
+            if "practice" in data:
+                data["practice"] = data["practice"] in (True, "true", "True", "1", 1)
+
         challenge = cls.challenge_model(**data)
 
         if challenge.function in DECAY_FUNCTIONS:
@@ -118,6 +128,7 @@ class BaseChallenge(object):
             "decay": challenge.decay if challenge.function != "static" else None,
             "minimum": challenge.minimum if challenge.function != "static" else None,
             "function": challenge.function,
+            "practice": bool(challenge.practice),
             "type": challenge.type,
             "type_data": {
                 "id": cls.id,
@@ -147,6 +158,9 @@ class BaseChallenge(object):
                 except (ValueError, TypeError):
                     db.session.rollback()
                     raise ChallengeUpdateException(f"Invalid input for '{attr}'")
+            # Coerce practice from form string to bool
+            if attr == "practice":
+                value = value in (True, "true", "True", "1", 1)
             setattr(challenge, attr, value)
 
         for attr in ("initial", "minimum", "decay"):

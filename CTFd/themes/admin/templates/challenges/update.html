@@ -362,6 +362,21 @@
 	</div>
 	{% endblock %}
 
+	{% block practice %}
+	<div class="form-group">
+		<label>
+			Practice Challenge<br>
+			<small class="form-text text-muted">
+				Practice challenges appear on the Practice tab and do not affect the scoreboard.
+			</small>
+		</label>
+		<select class="form-control custom-select" name="practice">
+			<option value="false" {% if not challenge.practice %}selected{% endif %}>No — standard challenge</option>
+			<option value="true" {% if challenge.practice %}selected{% endif %}>Yes — introductory, no points on scoreboard</option>
+		</select>
+	</div>
+	{% endblock %}
+
 	{% block competition %}
 	{% if competitions %}
 	<div class="form-group">

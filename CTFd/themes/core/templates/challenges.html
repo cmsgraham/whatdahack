@@ -637,6 +637,74 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
 .cm-solution-panel code { background: var(--cm-surface-2); border-radius: 4px; padding: .1rem .3rem; font-size: .83em; }
 .cm-solution-panel a { color: var(--cm-accent); }
 
+/* ── Page tabs ───────────────────────────────────────────────────────────── */
+.ctf-page-tabs {
+  display: flex;
+  gap: .3rem;
+  margin: 1.5rem 0 0;
+  border-bottom: 1px solid var(--ctf-divider);
+  padding-bottom: 0;
+}
+.ctf-page-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .55rem 1.1rem;
+  font-size: .78rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: var(--ctf-text-muted);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color .15s, border-color .15s;
+  margin-bottom: -1px;
+  position: relative;
+}
+.ctf-page-tab:hover { color: var(--ctf-text-primary); }
+.ctf-page-tab.is-active {
+  color: var(--ctf-accent);
+  border-bottom-color: var(--ctf-accent);
+}
+.ctf-tab-badge {
+  font-size: .62rem;
+  background: var(--ctf-badge-bg);
+  border: 1px solid var(--ctf-border);
+  color: var(--ctf-badge-color);
+  border-radius: 10px;
+  padding: .1rem .42rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ctf-page-tab.is-active .ctf-tab-badge {
+  background: rgba(var(--ctf-accent-rgb), .1);
+  border-color: rgba(var(--ctf-accent-rgb), .3);
+  color: var(--ctf-accent);
+}
+/* ── Practice card overrides ─────────────────────────────────────────────── */
+.challenge-card--practice .challenge-card__banner {
+  background: linear-gradient(
+    135deg,
+    hsl(calc(var(--hue) * 1deg), 35%, calc(var(--ctf-banner-lum-lo) + 6%)) 0%,
+    hsl(calc(var(--hue) * 1deg + 30deg), 30%, calc(var(--ctf-banner-lum-hi) + 4%)) 100%
+  );
+}
+.cc-practice-label {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--ctf-text-muted);
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+.cc-practice-label i { font-size: .65rem; color: #6366f1; }
+[data-bs-theme="dark"] .cc-practice-label i { color: #a5b4fc; }
+
 /* Responsive */
 @media (max-width: 576px) {
   .challenge-filters { flex-direction: column; }
@@ -662,8 +730,30 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
     </div>
   </div>
 
-  <!-- Outer scope: filter state (Alpine v3 scope inheritance makes these visible inside ChallengeBoard) -->
-  <div x-data="{ filterCat: 'all', filterDiff: 'all', sortBy: 'default', searchQ: '' }">
+  <!-- Outer scope: filter state + active tab -->
+  <div x-data="{ filterCat: 'all', filterDiff: 'all', sortBy: 'default', searchQ: '', activeTab: 'challenges' }">
+
+    <!-- Page tabs -->
+    <div class="ctf-page-tabs" x-cloak>
+      <!-- tab buttons rendered once ChallengeBoard has loaded — but we use separate x-data scope below so we
+           use a simple approach: always show tabs, count is shown after load -->
+      <button
+        class="ctf-page-tab"
+        :class="activeTab === 'challenges' && 'is-active'"
+        @click="activeTab = 'challenges'; filterCat = 'all'; filterDiff = 'all'; sortBy = 'default'; searchQ = ''"
+      >
+        <i class="fas fa-flag"></i>
+        Challenges
+      </button>
+      <button
+        class="ctf-page-tab"
+        :class="activeTab === 'practice' && 'is-active'"
+        @click="activeTab = 'practice'; filterCat = 'all'; filterDiff = 'all'; sortBy = 'default'; searchQ = ''"
+      >
+        <i class="fas fa-book-open"></i>
+        Practice
+      </button>
+    </div>
 
     <!-- ChallengeBoard: all original logic untouched -->
     <div
@@ -697,7 +787,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
         <!-- Category filter -->
         <select class="cf-select" x-model="filterCat">
           <option value="all">All Categories</option>
-          <template x-for="cat in getCategories()" :key="cat">
+          <template x-for="cat in getCategories().filter(cat => getChallenges(cat).some(c => activeTab === 'challenges' ? !c.practice : c.practice))" :key="cat">
             <option :value="cat" x-text="cat"></option>
           </template>
         </select>
@@ -737,6 +827,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
             getCategories()
               .filter(cat => filterCat === 'all' || filterCat === cat)
               .reduce((n, cat) => n + getChallenges(cat)
+                .filter(ch => activeTab === 'challenges' ? !ch.practice : ch.practice)
                 .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                 .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                 .length, 0)
@@ -755,7 +846,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
 
       <!-- Challenge grid -->
       <div x-show="loaded" x-cloak>
-        <template x-for="(category, idx) in getCategories()" :key="idx">
+        <template x-for="(category, idx) in getCategories().filter(cat => getChallenges(cat).some(c => activeTab === 'challenges' ? !c.practice : c.practice))" :key="idx">
 
           <!-- Section: visible only when category matches filter AND has results -->
           <div
@@ -763,6 +854,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
             x-show="
               (filterCat === 'all' || filterCat === category) &&
               getChallenges(category)
+                .filter(ch => activeTab === 'challenges' ? !ch.practice : ch.practice)
                 .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                 .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                 .length > 0
@@ -775,6 +867,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
               <h3 x-text="category"></h3>
               <span class="csh-count" x-text="
                 getChallenges(category)
+                  .filter(ch => activeTab === 'challenges' ? !ch.practice : ch.practice)
                   .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                   .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                   .length + ' challenges'
@@ -786,6 +879,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
             <div class="row g-3 challenges-row">
               <template x-for="c in
                 getChallenges(category)
+                  .filter(ch => activeTab === 'challenges' ? !ch.practice : ch.practice)
                   .filter(ch => filterDiff === 'all' || (ch.difficulty || '').toLowerCase() === filterDiff)
                   .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                   .slice()
@@ -799,7 +893,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
                 <div class="col-lg-4 col-md-6">
                   <div
                     class="challenge-card"
-                    :class="c.solved_by_me ? 'challenge-card--solved' : ''"
+                    :class="(c.solved_by_me ? 'challenge-card--solved ' : '') + (c.practice ? 'challenge-card--practice' : '')"
                     :style="`--hue: ${(idx * 47 + 190) % 360}`"
                     @click="loadChallenge(c.id)"
                     role="button"
@@ -844,11 +938,18 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
 
                     <!-- Footer -->
                     <div class="challenge-card__footer">
-                      <span class="cc-pts">
-                        <i class="fas fa-star"></i>
-                        <span x-text="c.value"></span>
-                        <small>pts</small>
-                      </span>
+                      <template x-if="c.practice">
+                        <span class="cc-practice-label">
+                          <i class="fas fa-book-open"></i> Practice
+                        </span>
+                      </template>
+                      <template x-if="!c.practice">
+                        <span class="cc-pts">
+                          <i class="fas fa-star"></i>
+                          <span x-text="c.value"></span>
+                          <small>pts</small>
+                        </span>
+                      </template>
                       <template x-if="c.solved_by_me">
                         <span class="cc-solved-icon" title="Solved">
                           <i class="fas fa-check-circle"></i>
@@ -874,6 +975,7 @@ details[open] .cm-hint-chevron { transform: rotate(90deg); }
               .filter(cat => filterCat === 'all' || filterCat === cat)
               .every(cat =>
                 getChallenges(cat)
+                  .filter(ch => activeTab === 'challenges' ? !ch.practice : ch.practice)
                   .filter(ch => filterDiff === 'all' || ch.tags.some(t => t.value.toLowerCase() === filterDiff))
                   .filter(ch => searchQ === '' || ch.name.toLowerCase().includes(searchQ.toLowerCase()))
                   .length === 0
