@@ -49,6 +49,11 @@
 						<i class="fa fa-user-lock action-icon"></i>Registration Code
 					</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link rounded-0 py-1" href="#accounts" role="tab" data-toggle="tab">
+						<i class="fa fa-user-shield action-icon"></i>Accounts
+					</a>
+				</li>
 
 				<!-- Challenges -->
 				<small class="section-title">Challenges</small>
@@ -146,7 +151,7 @@
 
 				<!-- Users -->
 
-				<div role="tabpanel" class="tab-pane" id="accounts"></div>
+				{% include "admin/configs/accounts.html" %}
 
 				<div role="tabpanel" class="tab-pane" id="usermode"></div>
 
