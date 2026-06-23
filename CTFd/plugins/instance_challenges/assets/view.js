@@ -7,6 +7,10 @@ CTFd.plugin.run((_CTFd) => {
         clearInterval(window._wdhTimer);
         window._wdhTimer = null;
     }
+    if (window._wdhPoll) {
+        clearTimeout(window._wdhPoll);
+        window._wdhPoll = null;
+    }
 
     const panel = document.getElementById("wdh-instance-panel");
     if (!panel) {
@@ -140,7 +144,17 @@ CTFd.plugin.run((_CTFd) => {
             clearInterval(window._wdhTimer);
             window._wdhTimer = null;
         }
-        if (d && (d.status === "running" || d.status === "created" || d.status === "restarting")) {
+        if (window._wdhPoll) {
+            clearTimeout(window._wdhPoll);
+            window._wdhPoll = null;
+        }
+        if (d && (d.status === "starting" || d.status === "created")) {
+            // Container is up but the SSH/console port is not accepting yet.
+            setBusy("Starting your instance… waiting for it to come online");
+            window._wdhPoll = setTimeout(refresh, 3000);
+            return;
+        }
+        if (d && (d.status === "running" || d.status === "restarting")) {
             renderRunning(d);
         } else {
             body.innerHTML =

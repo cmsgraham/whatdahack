@@ -323,13 +323,15 @@ def _public_instance(info, *, password=None, connect_mode=None):
     return {
         "id": info.get("id"),
         "status": info.get("status"),
+        "ready": info.get("ready", False),
         "ssh_host": info.get("ssh_host"),
         "ssh_port": info.get("ssh_port"),
         "ssh_user": info.get("ssh_user", "player"),
         "ssh_password": password if password is not None else info.get("ssh_password"),
+        "console_url": info.get("console_url"),
         "expires_at": info.get("expires_at"),
         "created_at": info.get("created_at"),
-        "connect_mode": connect_mode,
+        "connect_mode": connect_mode or info.get("connect_mode"),
     }
 
 
@@ -402,6 +404,7 @@ def _register_player_routes(app):
             "challenge_id": challenge_id,
             "owner_id": owner_id,
             "image": chal.instance_image,
+            "connect_mode": chal.connect_mode or "ssh",
         }
         if chal.ttl_minutes:
             payload["ttl_minutes"] = chal.ttl_minutes
