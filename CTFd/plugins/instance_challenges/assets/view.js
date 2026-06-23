@@ -8,13 +8,38 @@ CTFd._internal.challenge.renderer = null;
 CTFd._internal.challenge.preRender = function () {};
 CTFd._internal.challenge.render = null;
 CTFd._internal.challenge.postRender = function () {
+    var data = CTFd._internal.challenge.data || {};
+    // Only instance challenges render the #wdh-instance-panel; skip others so we
+    // don't poll the DOM needlessly.
+    if (data.type !== "instance") {
+        return;
+    }
+    // The active "core" theme injects the challenge HTML reactively (Vue/Alpine),
+    // but calls postRender() as soon as this script's onload fires. When the
+    // script is cached the panel may not be in the DOM yet, so a plain
+    // initInstancePanel() would hit `if (!panel) return;` and the spinner would
+    // stay on "Checking instance…" forever. Wait for the panel to appear first.
+    waitForInstancePanel(0);
+};
+
+function waitForInstancePanel(attempt) {
+    var panel = document.getElementById("wdh-instance-panel");
+    if (!panel) {
+        if (attempt < 50) {
+            // ~5s total at 100ms intervals — plenty for the reactive render.
+            setTimeout(function () {
+                waitForInstancePanel(attempt + 1);
+            }, 100);
+        }
+        return;
+    }
     try {
         initInstancePanel();
     } catch (e) {
         // Never let panel errors break the core challenge modal.
         console.error("instance panel init failed", e);
     }
-};
+}
 CTFd._internal.challenge.submit = function (preview) {
     var challenge_id = parseInt(CTFd.lib.$("#challenge-id").val());
     var submission = CTFd.lib.$("#challenge-input").val();
