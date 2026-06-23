@@ -1,0 +1,68 @@
+{#
+  ══════════════════════════════════════════════════════════════════════════
+  Akamai Brand Token Layer  —  single source of truth for platform colors
+  ──────────────────────────────────────────────────────────────────────────
+  Included once globally from base.html. Every page/module should reference
+  these tokens (var(--ak-*)) instead of hard-coding its own palette so the
+  whole platform stays visually consistent with the home page + branding.
+
+  Brand reference:
+    Akamai Navy    #002F6C   rgb(0,47,108)     PANTONE 294C
+    Akamai Blue    #00A4EB   rgb(0,164,235)    PANTONE 299C
+    Akamai Orange  #FF8B00   rgb(255,139,0)    PANTONE 144C
+    Akamai White   #FFFFFF   rgb(255,255,255)
+
+  Semantic tokens:
+    --ak-accent          readable interactive color for text/links/numbers
+    --ak-accent-vibrant  exact brand blue for fills, glows, borders, dark UI
+    --ak-accent-2        orange — calls-to-action / important highlights
+    --ak-hero-from/to    navy gradient endpoints for page-header heroes
+  ══════════════════════════════════════════════════════════════════════════
+#}
+<style>
+:root,
+[data-bs-theme="light"] {
+  /* ── Raw brand palette ───────────────────────────────────────────────── */
+  --ak-navy:            #002F6C;
+  --ak-navy-rgb:        0, 47, 108;
+  --ak-blue:            #00A4EB;
+  --ak-blue-rgb:        0, 164, 235;
+  --ak-orange:          #FF8B00;
+  --ak-orange-rgb:      255, 139, 0;
+  --ak-white:           #FFFFFF;
+
+  /* ── Semantic (light surfaces) ───────────────────────────────────────── */
+  --ak-accent:          #0061A8;          /* readable Akamai-family blue on white */
+  --ak-accent-rgb:      0, 97, 168;
+  --ak-accent-vibrant:  #00A4EB;          /* exact brand blue */
+  --ak-accent-vibrant-rgb: 0, 164, 235;
+  --ak-accent-2:        #FF8B00;          /* orange CTA */
+  --ak-accent-2-rgb:    255, 139, 0;
+
+  /* ── Page-header hero (navy) ─────────────────────────────────────────── */
+  --ak-hero-from:       #002F6C;
+  --ak-hero-to:         #001B40;
+}
+
+[data-bs-theme="dark"] {
+  --ak-navy:            #002F6C;
+  --ak-navy-rgb:        0, 47, 108;
+  --ak-blue:            #00A4EB;
+  --ak-blue-rgb:        0, 164, 235;
+  --ak-orange:          #FF8B00;
+  --ak-orange-rgb:      255, 139, 0;
+  --ak-white:           #FFFFFF;
+
+  /* ── Semantic (dark surfaces) ────────────────────────────────────────── */
+  --ak-accent:          #36B5F0;          /* lightened brand blue for dark readability */
+  --ak-accent-rgb:      54, 181, 240;
+  --ak-accent-vibrant:  #00A4EB;
+  --ak-accent-vibrant-rgb: 0, 164, 235;
+  --ak-accent-2:        #FF9E2C;          /* slightly warmer orange on dark */
+  --ak-accent-2-rgb:    255, 158, 44;
+
+  /* ── Page-header hero (deep navy) ────────────────────────────────────── */
+  --ak-hero-from:       #04122B;
+  --ak-hero-to:         #02080F;
+}
+</style>

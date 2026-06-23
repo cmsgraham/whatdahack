@@ -12,6 +12,8 @@
     {{ Assets.css("assets/scss/main.scss") }}
   {% endblock %}
 
+  {% include "components/brand.html" %}
+
   {{ Plugins.styles }}
 
   {{ Assets.js("assets/js/color_mode_switcher.js", type=None) }}

@@ -16,16 +16,16 @@
 <style>
 /* ── Page header tokens ────────────────────────────────────────────────── */
 :root, [data-bs-theme="light"] {
-  --ph-hdr-from:   #1e293b;
-  --ph-hdr-to:     #0f172a;
-  --ph-accent:     #059669;
-  --ph-acc-rgb:    5, 150, 105;
+  --ph-hdr-from:   var(--ak-hero-from, #002F6C);
+  --ph-hdr-to:     var(--ak-hero-to, #001B40);
+  --ph-accent:     var(--ak-accent-vibrant, #00A4EB);
+  --ph-acc-rgb:    var(--ak-accent-vibrant-rgb, 0, 164, 235);
 }
 [data-bs-theme="dark"] {
-  --ph-hdr-from:   #070a10;
-  --ph-hdr-to:     #040609;
-  --ph-accent:     #10b981;
-  --ph-acc-rgb:    16, 185, 129;
+  --ph-hdr-from:   var(--ak-hero-from, #04122B);
+  --ph-hdr-to:     var(--ak-hero-to, #02080F);
+  --ph-accent:     var(--ak-accent-vibrant, #00A4EB);
+  --ph-acc-rgb:    var(--ak-accent-vibrant-rgb, 0, 164, 235);
 }
 
 /* ── Hero section ──────────────────────────────────────────────────────── */
