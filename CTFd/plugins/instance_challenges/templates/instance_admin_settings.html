@@ -78,10 +78,19 @@
 				credentials: "same-origin",
 				headers: {
 					"Accept": "application/json",
+					"Content-Type": "application/json",
 					"CSRF-Token": init.csrfNonce
-				}
+				},
+				body: "{}"
 			})
-				.then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+				.then(function (r) {
+					return r.text().then(function (text) {
+						var j;
+						try { j = JSON.parse(text); }
+						catch (err) { j = { success: false, message: "HTTP " + r.status + " (non-JSON response)" }; }
+						return { ok: r.ok, j: j };
+					});
+				})
 				.then(function (res) {
 					if (res.j && res.j.success) {
 						result.textContent = "✓ Connected: " + (res.j.message || "");
