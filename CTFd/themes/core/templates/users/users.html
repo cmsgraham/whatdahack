@@ -14,15 +14,15 @@
   --ctf-text-muted:     #6b7280;
   --ctf-border:         #d1d5db;
   --ctf-border-subtle:  #e5e7eb;
-  --ctf-accent:         #059669;
-  --ctf-accent-rgb:     5, 150, 105;
-  --ctf-accent-glow:    rgba(5,150,105,.15);
+  --ctf-accent:         var(--ak-accent, #0061A8);
+  --ctf-accent-rgb:     var(--ak-accent-rgb, 0, 97, 168);
+  --ctf-accent-glow:    rgba(var(--ak-accent-vibrant-rgb, 0,164,235),.15);
   --ctf-header-bg1:     #e5e7eb;
   --ctf-header-bg2:     #d1d5db;
   --ctf-badge-bg:       rgba(0,0,0,.06);
   --ctf-badge-color:    #374151;
   --ctf-divider:        #e5e7eb;
-  --ctf-shadow-hover:   0 8px 24px rgba(0,0,0,.1), 0 0 0 1px rgba(5,150,105,.15);
+  --ctf-shadow-hover:   0 8px 24px rgba(0,0,0,.1), 0 0 0 1px rgba(var(--ak-accent-vibrant-rgb, 0,164,235),.15);
 }
 /* ── Design tokens — dark ────────────────────────────────────────────────── */
 [data-bs-theme="dark"] {
@@ -34,15 +34,15 @@
   --ctf-text-muted:     #8b949e;
   --ctf-border:         #30363d;
   --ctf-border-subtle:  #21262d;
-  --ctf-accent:         #00ff88;
-  --ctf-accent-rgb:     0, 255, 136;
-  --ctf-accent-glow:    rgba(0,255,136,.12);
+  --ctf-accent:         var(--ak-accent, #36B5F0);
+  --ctf-accent-rgb:     var(--ak-accent-rgb, 54, 181, 240);
+  --ctf-accent-glow:    rgba(var(--ak-accent-vibrant-rgb, 0,164,235),.12);
   --ctf-header-bg1:     #0d1117;
   --ctf-header-bg2:     #161b22;
   --ctf-badge-bg:       #21262d;
   --ctf-badge-color:    #8b949e;
   --ctf-divider:        #21262d;
-  --ctf-shadow-hover:   0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(0,255,136,.12);
+  --ctf-shadow-hover:   0 8px 24px rgba(0,0,0,.4), 0 0 0 1px rgba(var(--ak-accent-vibrant-rgb, 0,164,235),.12);
 }
 
 .jumbotron { display: none !important; }
