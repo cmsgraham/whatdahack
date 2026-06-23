@@ -1,0 +1,101 @@
+{% extends "admin/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+	<div class="container">
+		<h1>Instances</h1>
+		<small class="text-muted">Ephemeral per-user challenge instances</small>
+	</div>
+</div>
+<div class="container">
+	<div class="row">
+		<div class="col-md-8 offset-md-2">
+
+			<form method="POST" autocomplete="off">
+				<input type="hidden" name="nonce" value="{{ Session.nonce }}">
+
+				<h4>Instance Manager</h4>
+				<p class="text-muted">
+					The broker API running on the runner host. Reachable only over the
+					private WireGuard tunnel.
+				</p>
+
+				<div class="form-group">
+					<label for="manager_url">Manager URL</label>
+					<input type="text" class="form-control" id="manager_url" name="manager_url"
+						value="{{ manager_url }}" placeholder="http://10.66.0.2:9000">
+				</div>
+
+				<div class="form-group">
+					<label for="manager_token">Manager Token</label>
+					<input type="password" class="form-control" id="manager_token" name="manager_token"
+						value="{{ manager_token }}" placeholder="Bearer token" autocomplete="new-password">
+					<small class="form-text text-muted">Stored server-side; sent as a Bearer token to the Manager.</small>
+				</div>
+
+				<div class="form-group">
+					<label for="ssh_host">Public SSH Host</label>
+					<input type="text" class="form-control" id="ssh_host" name="ssh_host"
+						value="{{ ssh_host }}" placeholder="challenges.whatdahack.com">
+					<small class="form-text text-muted">Hostname shown to players for SSH (e.g. <code>challenges.whatdahack.com</code>).</small>
+				</div>
+
+				<hr>
+
+				<h4>Image Allow-list</h4>
+				<p class="text-muted">
+					One image per line. Only these images can be selected when creating an
+					instance challenge. Lines starting with <code>#</code> are ignored.
+				</p>
+				<div class="form-group">
+					<textarea class="form-control" name="allowed_images" rows="8"
+						placeholder="whatdahack/web-pwn:latest&#10;whatdahack/crypto-101:latest"
+						style="font-family: monospace;">{{ allowed_images }}</textarea>
+				</div>
+
+				<div class="form-group d-flex">
+					<button type="submit" class="btn btn-primary">Save</button>
+					<button type="button" id="test-connection" class="btn btn-secondary ml-2">Test Manager Connection</button>
+					<span id="test-result" class="align-self-center ml-3"></span>
+				</div>
+			</form>
+
+		</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	(function () {
+		var btn = document.getElementById("test-connection");
+		var result = document.getElementById("test-result");
+		btn.addEventListener("click", function () {
+			result.textContent = "Testing…";
+			result.className = "align-self-center ml-3 text-muted";
+			fetch(init.urlRoot + "/admin/instances/test", {
+				method: "POST",
+				credentials: "same-origin",
+				headers: {
+					"Accept": "application/json",
+					"CSRF-Token": init.csrfNonce
+				}
+			})
+				.then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+				.then(function (res) {
+					if (res.j && res.j.success) {
+						result.textContent = "✓ Connected: " + (res.j.message || "");
+						result.className = "align-self-center ml-3 text-success";
+					} else {
+						result.textContent = "✗ " + ((res.j && res.j.message) || "Failed");
+						result.className = "align-self-center ml-3 text-danger";
+					}
+				})
+				.catch(function (e) {
+					result.textContent = "✗ " + e;
+					result.className = "align-self-center ml-3 text-danger";
+				});
+		});
+	})();
+</script>
+{% endblock %}

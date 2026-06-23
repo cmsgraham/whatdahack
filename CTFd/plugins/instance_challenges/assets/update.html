@@ -1,0 +1,70 @@
+{% extends "admin/challenges/update.html" %}
+
+{% block value %}
+<div class="form-group">
+	<label>
+		Value:<br>
+		<small class="form-text text-muted">
+			How many points solving this challenge is worth.
+		</small>
+	</label>
+	<input type="number" class="form-control chal-value" name="value" value="{{ challenge.value }}" required>
+</div>
+
+<div class="form-group">
+	<label for="instance_image">Instance Image<br>
+		<small class="form-text text-muted">
+			Docker image launched per user. Managed under
+			<a href="{{ script_root }}/admin/instances/settings" target="_blank">Admin &rarr; Instances</a>.
+		</small>
+	</label>
+	<select class="form-control custom-select" name="instance_image" id="instance_image"
+		data-selected="{{ challenge.instance_image or '' }}" required>
+		<option value="">— Loading images… —</option>
+	</select>
+</div>
+
+<div class="form-group">
+	<label for="connect_mode">Connection Method<br>
+		<small class="form-text text-muted">How players connect to their instance.</small>
+	</label>
+	<select class="form-control custom-select" name="connect_mode" id="connect_mode">
+		<option value="ssh" {% if challenge.connect_mode == "ssh" %}selected{% endif %}>SSH only</option>
+		<option value="console" {% if challenge.connect_mode == "console" %}selected{% endif %}>Browser console only</option>
+		<option value="both" {% if challenge.connect_mode == "both" %}selected{% endif %}>SSH + browser console</option>
+	</select>
+</div>
+
+<div class="form-row">
+	<div class="form-group col-md-4">
+		<label for="ttl_minutes">TTL (minutes)<br>
+			<small class="form-text text-muted">Soft lifetime. Blank = default.</small>
+		</label>
+		<input type="number" min="1" class="form-control" name="ttl_minutes" id="ttl_minutes"
+			value="{{ challenge.ttl_minutes if challenge.ttl_minutes is not none else '' }}" placeholder="60">
+	</div>
+	<div class="form-group col-md-4">
+		<label for="memory_mb">Memory (MB)<br>
+			<small class="form-text text-muted">Blank = default.</small>
+		</label>
+		<input type="number" min="32" class="form-control" name="memory_mb" id="memory_mb"
+			value="{{ challenge.memory_mb if challenge.memory_mb is not none else '' }}" placeholder="256">
+	</div>
+	<div class="form-group col-md-4">
+		<label for="cpus">CPUs<br>
+			<small class="form-text text-muted">e.g. 0.5. Blank = default.</small>
+		</label>
+		<input type="text" class="form-control" name="cpus" id="cpus"
+			value="{{ challenge.cpus or '' }}" placeholder="0.5">
+	</div>
+</div>
+
+<div class="form-group">
+	<label for="egress">Egress Allow-list<br>
+		<small class="form-text text-muted">
+			One <code>host</code> or <code>host:port</code> per line. Blank = deny all outbound (default).
+		</small>
+	</label>
+	<textarea class="form-control" name="egress" id="egress" rows="3" placeholder="example.com&#10;10.0.0.5:443">{{ challenge.egress or '' }}</textarea>
+</div>
+{% endblock %}
