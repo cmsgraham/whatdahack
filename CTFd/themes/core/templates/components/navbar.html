@@ -423,7 +423,7 @@
         </li>
 
         <li class="nav-item">
-          <a class="nav-link {% if request.blueprint == 'competitions' %}active{% endif %}"
+          <a class="nav-link {% if request.blueprint == 'competitions' and request.endpoint != 'competitions.leaderboard' %}active{% endif %}"
              href="{{ url_for('competitions.listing') }}"
              data-bs-toggle="tooltip" data-bs-placement="bottom" title="{% trans %}Competitions{% endtrans %}">
             <i class="fas fa-layer-group"></i><span class="link-label"> {% trans %}Competitions{% endtrans %}</span>
