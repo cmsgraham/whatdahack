@@ -16,8 +16,8 @@
   --lb-border-s:   rgba(0,0,0,.05);
   --lb-text:       #0f172a;
   --lb-muted:      #64748b;
-  --lb-accent:     #059669;
-  --lb-acc-rgb:    5,150,105;
+  --lb-accent:     var(--ak-accent, #0061A8);
+  --lb-acc-rgb:    var(--ak-accent-rgb, 0,97,168);
   --lb-shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
   --lb-shadow-md:  0 4px 20px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
   --lb-gold:       #f59e0b;
@@ -32,8 +32,8 @@
   --lb-border-s:   rgba(255,255,255,.04);
   --lb-text:       #f1f5f9;
   --lb-muted:      #64748b;
-  --lb-accent:     #10b981;
-  --lb-acc-rgb:    16,185,129;
+  --lb-accent:     var(--ak-accent, #36B5F0);
+  --lb-acc-rgb:    var(--ak-accent-rgb, 54,181,240);
   --lb-shadow-sm:  0 1px 3px rgba(0,0,0,.4);
   --lb-shadow-md:  0 4px 20px rgba(0,0,0,.5);
   --lb-gold:       #fbbf24;
@@ -257,7 +257,7 @@ body { background: var(--lb-page) !important; }
 }
 .bnav-create{
   width:48px;height:48px;border-radius:50%;
-  background:linear-gradient(135deg,var(--lb-accent),#06b6d4);
+  background:linear-gradient(135deg,var(--lb-accent),var(--ak-accent-vibrant, #00A4EB));
   display:flex;align-items:center;justify-content:center;
   color:#fff;font-size:1.3rem;border:none;cursor:pointer;
   box-shadow:0 4px 14px rgba(var(--lb-acc-rgb),.35);
