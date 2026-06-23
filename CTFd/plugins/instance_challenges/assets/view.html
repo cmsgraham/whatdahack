@@ -1,1 +1,15 @@
 {% extends "challenge.html" %}
+
+{% block description %}
+{{ super() }}
+{% if challenge.type == "instance" %}
+<div class="cm-section wdh-instance" id="wdh-instance-panel"
+     data-challenge-id="{{ challenge.id }}"
+     data-connect-mode="{{ challenge.connect_mode or 'ssh' }}">
+  <div class="cm-section-label"><i class="fas fa-server"></i> Instance</div>
+  <div id="wdh-instance-body">
+    <div class="wdh-muted"><i class="fas fa-circle-notch fa-spin"></i> Checking instance…</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+/* whatdahack instance challenge panel */
+.wdh-instance .wdh-muted { color: #8b949e; font-size: 0.85rem; }
+.wdh-instance .wdh-running { display: flex; flex-direction: column; gap: 0.5rem; }
+.wdh-instance .wdh-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.wdh-instance .wdh-k {
+    min-width: 84px;
+    font-size: 0.72rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #8b949e;
+}
+.wdh-instance .wdh-v {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.15rem 0.45rem;
+    border-radius: 4px;
+    word-break: break-all;
+}
+.wdh-instance .wdh-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.wdh-instance .wdh-copy { line-height: 1; padding: 0.1rem 0.4rem; }

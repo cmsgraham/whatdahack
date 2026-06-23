@@ -16,20 +16,21 @@ Phase 2 scope (this file):
 
 The player-facing launch/connect UI and the actual broker calls live in Phase 3.
 """
-import json
-
 import requests
 from flask import Blueprint, jsonify, render_template, request
 
+from CTFd.cache import cache
 from CTFd.models import Challenges, db
 from CTFd.plugins import (
     register_admin_plugin_menu_bar,
     register_plugin_assets_directory,
+    register_plugin_stylesheet,
 )
 from CTFd.plugins.challenges import CHALLENGE_CLASSES, BaseChallenge
 from CTFd.plugins.migrations import upgrade
 from CTFd.utils import get_config, set_config
-from CTFd.utils.decorators import admins_only
+from CTFd.utils.decorators import admins_only, authed_only
+from CTFd.utils.user import get_current_user
 
 # ---------------------------------------------------------------------------
 # Config helpers (stored in CTFd's config table via get_config/set_config)
@@ -54,6 +55,54 @@ def get_allowed_images():
 def get_manager_config():
     """Return (url, token) for the Instance Manager broker."""
     return (get_config(CFG_MANAGER_URL) or "", get_config(CFG_MANAGER_TOKEN) or "")
+
+
+# Cache key prefix for the one-time SSH password (so the owner can re-reveal it
+# while the modal is open without us persisting it on the runner).
+PW_CACHE_PREFIX = "instance:pw:"
+PW_CACHE_TTL = 6 * 60 * 60  # 6h — matches the Manager hard lifetime cap
+
+
+class ManagerError(Exception):
+    def __init__(self, status, message):
+        self.status = status
+        self.message = message
+        super().__init__(message)
+
+
+def _manager_request(method, path, *, params=None, json_body=None, timeout=10):
+    """Call the Instance Manager broker with the configured bearer token.
+
+    Raises ManagerError on transport failure or non-2xx responses.
+    """
+    url, token = get_manager_config()
+    if not url:
+        raise ManagerError(503, "Instance Manager is not configured")
+    full = url.rstrip("/") + path
+    try:
+        resp = requests.request(
+            method,
+            full,
+            params=params,
+            json=json_body,
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=timeout,
+        )
+    except requests.RequestException as e:
+        raise ManagerError(502, f"Manager unreachable: {e}")
+
+    if resp.status_code >= 400:
+        # Surface the Manager's structured error when present.
+        try:
+            detail = resp.json().get("detail")
+        except ValueError:
+            detail = resp.text[:200]
+        raise ManagerError(resp.status_code, detail or "Manager error")
+
+    if resp.status_code == 204 or not resp.content:
+        return None
+    return resp.json()
+
 
 
 # ---------------------------------------------------------------------------
@@ -254,6 +303,206 @@ def _register_admin_routes(app):
 
 
 # ---------------------------------------------------------------------------
+# Player-facing API (proxies to the Manager; the broker token never leaves
+# the server). All routes require an authenticated, non-admin-or-admin user.
+# ---------------------------------------------------------------------------
+def _instance_owner_id(user):
+    """Per-user instances: the owner is always the individual user."""
+    return user.id
+
+
+def _load_instance_challenge(challenge_id):
+    chal = InstanceChallenge.query.filter_by(id=challenge_id).first()
+    return chal
+
+
+def _public_instance(info, *, password=None, connect_mode=None):
+    """Strip the Manager payload down to what the browser is allowed to see."""
+    if info is None:
+        return None
+    return {
+        "id": info.get("id"),
+        "status": info.get("status"),
+        "ssh_host": info.get("ssh_host"),
+        "ssh_port": info.get("ssh_port"),
+        "ssh_user": info.get("ssh_user", "player"),
+        "ssh_password": password if password is not None else info.get("ssh_password"),
+        "expires_at": info.get("expires_at"),
+        "created_at": info.get("created_at"),
+        "connect_mode": connect_mode,
+    }
+
+
+def _register_player_routes(app):
+    player_bp = Blueprint("instance_player", __name__)
+
+    @player_bp.route("/plugins/instance_challenges/instances", methods=["GET"])
+    @authed_only
+    def status():
+        user = get_current_user()
+        try:
+            challenge_id = int(request.args.get("challenge_id", ""))
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "message": "challenge_id required"}), 400
+
+        chal = _load_instance_challenge(challenge_id)
+        if chal is None:
+            return jsonify({"success": False, "message": "Not an instance challenge"}), 404
+
+        owner_id = _instance_owner_id(user)
+        try:
+            instances = _manager_request(
+                "GET",
+                "/instances",
+                params={"owner_id": owner_id, "challenge_id": challenge_id},
+            )
+        except ManagerError as e:
+            return jsonify({"success": False, "message": e.message}), e.status
+
+        info = instances[0] if instances else None
+        password = None
+        if info:
+            password = cache.get(PW_CACHE_PREFIX + info["id"])
+        return jsonify(
+            {
+                "success": True,
+                "data": _public_instance(
+                    info, password=password, connect_mode=chal.connect_mode
+                ),
+            }
+        )
+
+    @player_bp.route("/plugins/instance_challenges/instances", methods=["POST"])
+    @authed_only
+    def launch():
+        user = get_current_user()
+        body = request.get_json(silent=True) or {}
+        try:
+            challenge_id = int(body.get("challenge_id"))
+        except (TypeError, ValueError):
+            return jsonify({"success": False, "message": "challenge_id required"}), 400
+
+        chal = _load_instance_challenge(challenge_id)
+        if chal is None:
+            return jsonify({"success": False, "message": "Not an instance challenge"}), 404
+        if chal.state != "visible":
+            return jsonify({"success": False, "message": "Challenge is not available"}), 403
+        if not chal.instance_image:
+            return jsonify({"success": False, "message": "No image configured"}), 400
+
+        # Only allow images the admin has whitelisted.
+        if chal.instance_image not in get_allowed_images():
+            return (
+                jsonify({"success": False, "message": "Image is not allow-listed"}),
+                400,
+            )
+
+        owner_id = _instance_owner_id(user)
+        payload = {
+            "challenge_id": challenge_id,
+            "owner_id": owner_id,
+            "image": chal.instance_image,
+        }
+        if chal.ttl_minutes:
+            payload["ttl_minutes"] = chal.ttl_minutes
+        if chal.memory_mb:
+            payload["mem_mb"] = chal.memory_mb
+        if chal.cpus:
+            try:
+                payload["cpus"] = float(chal.cpus)
+            except (TypeError, ValueError):
+                pass
+        if chal.pids:
+            payload["pids"] = chal.pids
+
+        try:
+            info = _manager_request("POST", "/instances", json_body=payload)
+        except ManagerError as e:
+            # 409 -> already running; return the existing instance instead of erroring.
+            if e.status == 409:
+                try:
+                    existing = _manager_request(
+                        "GET",
+                        "/instances",
+                        params={"owner_id": owner_id, "challenge_id": challenge_id},
+                    )
+                    info = existing[0] if existing else None
+                    if info:
+                        pw = cache.get(PW_CACHE_PREFIX + info["id"])
+                        return jsonify(
+                            {
+                                "success": True,
+                                "data": _public_instance(
+                                    info, password=pw, connect_mode=chal.connect_mode
+                                ),
+                            }
+                        )
+                except ManagerError:
+                    pass
+                return jsonify({"success": False, "message": "Instance already running"}), 409
+            return jsonify({"success": False, "message": e.message}), e.status
+
+        # Cache the one-time password so the owner can re-reveal it.
+        if info and info.get("ssh_password"):
+            cache.set(
+                PW_CACHE_PREFIX + info["id"], info["ssh_password"], timeout=PW_CACHE_TTL
+            )
+        return jsonify(
+            {
+                "success": True,
+                "data": _public_instance(info, connect_mode=chal.connect_mode),
+            }
+        )
+
+    @player_bp.route(
+        "/plugins/instance_challenges/instances/<instance_id>/extend", methods=["POST"]
+    )
+    @authed_only
+    def extend(instance_id):
+        user = get_current_user()
+        owner_id = _instance_owner_id(user)
+        # Verify ownership before mutating (IDOR protection).
+        try:
+            info = _manager_request("GET", f"/instances/{instance_id}")
+        except ManagerError as e:
+            return jsonify({"success": False, "message": e.message}), e.status
+        if not info or int(info.get("owner_id", -1)) != owner_id:
+            return jsonify({"success": False, "message": "Not found"}), 404
+
+        try:
+            info = _manager_request(
+                "POST", f"/instances/{instance_id}/extend", params={"minutes": 30}
+            )
+        except ManagerError as e:
+            return jsonify({"success": False, "message": e.message}), e.status
+        pw = cache.get(PW_CACHE_PREFIX + instance_id)
+        return jsonify({"success": True, "data": _public_instance(info, password=pw)})
+
+    @player_bp.route(
+        "/plugins/instance_challenges/instances/<instance_id>", methods=["DELETE"]
+    )
+    @authed_only
+    def terminate(instance_id):
+        user = get_current_user()
+        owner_id = _instance_owner_id(user)
+        try:
+            info = _manager_request("GET", f"/instances/{instance_id}")
+        except ManagerError as e:
+            return jsonify({"success": False, "message": e.message}), e.status
+        if not info or int(info.get("owner_id", -1)) != owner_id:
+            return jsonify({"success": False, "message": "Not found"}), 404
+
+        try:
+            _manager_request("DELETE", f"/instances/{instance_id}")
+        except ManagerError as e:
+            return jsonify({"success": False, "message": e.message}), e.status
+        cache.delete(PW_CACHE_PREFIX + instance_id)
+        return jsonify({"success": True})
+
+    app.register_blueprint(player_bp)
+
+
+# ---------------------------------------------------------------------------
 # Plugin entrypoint
 # ---------------------------------------------------------------------------
 def load(app):
@@ -262,5 +511,10 @@ def load(app):
     register_plugin_assets_directory(
         app, base_path="/plugins/instance_challenges/assets/"
     )
+    register_plugin_stylesheet(
+        "/plugins/instance_challenges/assets/instance.css"
+    )
     _register_admin_routes(app)
+    _register_player_routes(app)
     register_admin_plugin_menu_bar("Instances", "/admin/instances/settings")
+
