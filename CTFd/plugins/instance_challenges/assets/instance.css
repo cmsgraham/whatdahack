@@ -36,3 +36,14 @@
     font-size: 0.85rem;
 }
 .wdh-instance .wdh-warn strong { color: #ffce80; }
+.wdh-instance .wdh-local {
+    margin-top: 0.75rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.wdh-instance .wdh-local-link {
+    font-size: 0.82rem;
+    color: #8b949e;
+    text-decoration: none;
+}
+.wdh-instance .wdh-local-link:hover { color: #c9d1d9; text-decoration: underline; }

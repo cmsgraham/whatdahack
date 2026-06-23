@@ -10,6 +10,12 @@
   <div id="wdh-instance-body">
     <div class="wdh-muted"><i class="fas fa-circle-notch fa-spin"></i> Checking instance…</div>
   </div>
+  <div class="wdh-local">
+    <a href="{{ request.script_root }}/plugins/instance_challenges/instances/export?challenge_id={{ challenge.id }}"
+       class="wdh-local-link">
+      <i class="fas fa-download"></i> Run locally (Docker Compose)
+    </a>
+  </div>
 </div>
 {% endif %}
 {% endblock %}
