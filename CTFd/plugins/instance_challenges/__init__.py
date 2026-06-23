@@ -330,6 +330,7 @@ def _public_instance(info, *, password=None, connect_mode=None):
         "ssh_password": password if password is not None else info.get("ssh_password"),
         "console_url": info.get("console_url"),
         "expires_at": info.get("expires_at"),
+        "hardcap": info.get("hardcap"),
         "created_at": info.get("created_at"),
         "connect_mode": connect_mode or info.get("connect_mode"),
     }

@@ -103,23 +103,41 @@ CTFd.plugin.run((_CTFd) => {
             }
         }
 
+        const hardcap = d.hardcap || 0;
+        // At the hard cap there is nothing left to extend into.
+        const atCap = hardcap > 0 && hardcap - (d.expires_at || 0) <= 60;
+        const capLine = hardcap
+            ? new Date(hardcap * 1000).toLocaleTimeString()
+            : null;
+
+        const extendBtn = atCap
+            ? '<button type="button" class="btn btn-sm btn-secondary wdh-extend" disabled title="Maximum lifetime reached"><i class="fas fa-clock"></i> Max lifetime reached</button>'
+            : '<button type="button" class="btn btn-sm btn-secondary wdh-extend"><i class="fas fa-clock"></i> Extend 30m</button>';
+
         body.innerHTML =
             '<div class="wdh-running">' +
+            '<div class="wdh-warn" id="wdh-warn" style="display:none;"></div>' +
             rows +
             '<div class="wdh-row"><span class="wdh-k">Expires</span>' +
             '<span class="wdh-v" id="wdh-countdown">—</span></div>' +
+            (capLine
+                ? '<div class="wdh-row"><span class="wdh-k">Max session</span>' +
+                  '<span class="wdh-v wdh-muted">until ' + esc(capLine) +
+                  ' · active sessions auto-renew</span></div>'
+                : "") +
             '<div class="wdh-actions">' +
-            '<button type="button" class="btn btn-sm btn-secondary wdh-extend"><i class="fas fa-clock"></i> Extend 30m</button>' +
+            extendBtn +
             '<button type="button" class="btn btn-sm btn-danger wdh-terminate"><i class="fas fa-stop"></i> Terminate</button>' +
             "</div></div>";
 
-        startCountdown(d.expires_at);
+        startCountdown(d.expires_at, atCap);
         wireCopy();
         wireRunningActions(d.id);
     }
 
-    function startCountdown(expiresAt) {
+    function startCountdown(expiresAt, atCap) {
         const el = document.getElementById("wdh-countdown");
+        const warn = document.getElementById("wdh-warn");
         function tick() {
             if (!document.getElementById("wdh-countdown")) {
                 clearInterval(window._wdhTimer);
@@ -129,6 +147,19 @@ CTFd.plugin.run((_CTFd) => {
             const left = Math.floor(expiresAt - Date.now() / 1000);
             el.textContent = fmtCountdown(left);
             el.style.color = left < 120 ? "#f0a4a4" : "";
+            // Pre-reclaim warning inside the last 5 minutes.
+            if (warn) {
+                if (left > 0 && left < 300) {
+                    warn.style.display = "";
+                    warn.innerHTML =
+                        '<i class="fas fa-triangle-exclamation"></i> ' +
+                        (atCap
+                            ? "This instance has reached its maximum lifetime and will be reclaimed soon. Finish up or relaunch."
+                            : "Expiring soon — click <strong>Extend 30m</strong> to keep it. Active SSH/console sessions are auto-renewed.");
+                } else {
+                    warn.style.display = "none";
+                }
+            }
             if (left <= 0) {
                 clearInterval(window._wdhTimer);
                 window._wdhTimer = null;

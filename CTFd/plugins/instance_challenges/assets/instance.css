@@ -27,3 +27,12 @@
     margin-top: 0.5rem;
 }
 .wdh-instance .wdh-copy { line-height: 1; padding: 0.1rem 0.4rem; }
+.wdh-instance .wdh-warn {
+    background: rgba(240, 164, 76, 0.12);
+    border: 1px solid rgba(240, 164, 76, 0.45);
+    color: #f0b24c;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+.wdh-instance .wdh-warn strong { color: #ffce80; }
