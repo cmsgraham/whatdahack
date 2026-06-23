@@ -46,6 +46,10 @@ services:
   nginx:
     image: nginx:stable
     restart: always
+    # Disabled on hosts where an external reverse proxy (Caddy) terminates TLS
+    # and proxies directly to the ctfd app. Start explicitly with
+    # `docker compose --profile proxy up -d nginx` if you need it.
+    profiles: ["proxy"]
     volumes:
       - ./conf/nginx/http.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
