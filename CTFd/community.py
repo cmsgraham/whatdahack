@@ -260,7 +260,7 @@ def _extract_flag_hint(flag_raw):
     return inner[:cut] + '…'
 
 
-BANNER_SIZE = "1792x1024"
+BANNER_SIZE = "1536x1024"
 BANNER_DEFAULT_PROMPT = (
     "Create a clean, high-contrast banner image for a cybersecurity CTF challenge, "
     "optimized for small web thumbnails. "
@@ -376,7 +376,7 @@ def _build_banner_variation(category: str) -> str:
 @community.route("/community/api/generate-banner", methods=["POST"])
 @authed_only
 def api_generate_banner():
-    """Generate a banner image for a community challenge using OpenAI DALL-E 3."""
+    """Generate a banner image for a community challenge using OpenAI gpt-image-1."""
     import openai
 
     api_key = os.environ.get("OPENAI_API_KEY", "")
@@ -430,12 +430,11 @@ def api_generate_banner():
     try:
         client = openai.OpenAI(api_key=api_key)
         response = client.images.generate(
-            model="dall-e-3",
+            model="gpt-image-1",
             prompt=prompt,
             size=BANNER_SIZE,
             n=1,
-            response_format="b64_json",
-            quality="hd",
+            quality="high",
         )
         image_bytes = base64.b64decode(response.data[0].b64_json)
     except openai.APIError as exc:
