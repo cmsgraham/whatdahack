@@ -23,7 +23,15 @@ CTFd._internal.challenge.postRender = function () {
 };
 
 function waitForInstancePanel(attempt) {
-    var panel = document.getElementById("wdh-instance-panel");
+    // Select a panel that has NOT been initialized yet. On modal re-open the core
+    // theme briefly leaves the previous (already-initialized) panel in the DOM
+    // before its reactive v-html swaps in a fresh one; binding to the stale node
+    // would update an element that is about to be replaced, leaving the visible
+    // panel stuck on "Checking instance…". The :not([data-wdh-init]) filter skips
+    // the stale node and waits for the freshly rendered one.
+    var panel = document.querySelector(
+        "#wdh-instance-panel:not([data-wdh-init])"
+    );
     if (!panel) {
         if (attempt < 50) {
             // ~5s total at 100ms intervals — plenty for the reactive render.
@@ -33,8 +41,9 @@ function waitForInstancePanel(attempt) {
         }
         return;
     }
+    panel.setAttribute("data-wdh-init", "1");
     try {
-        initInstancePanel();
+        initInstancePanel(panel);
     } catch (e) {
         // Never let panel errors break the core challenge modal.
         console.error("instance panel init failed", e);
@@ -59,7 +68,7 @@ CTFd._internal.challenge.submit = function (preview) {
     });
 };
 
-function initInstancePanel() {
+function initInstancePanel(panel) {
     const $ = CTFd.lib.$;
     const root = (CTFd.config && CTFd.config.urlRoot) || "";
 
@@ -73,11 +82,13 @@ function initInstancePanel() {
         window._wdhPoll = null;
     }
 
-    const panel = document.getElementById("wdh-instance-panel");
+    // The caller passes the freshly rendered panel; fall back to a lookup for
+    // safety. Scope the body to THIS panel so we never mutate a stale node.
+    panel = panel || document.getElementById("wdh-instance-panel");
     if (!panel) {
         return; // not an instance challenge view
     }
-    const body = document.getElementById("wdh-instance-body");
+    const body = panel.querySelector("#wdh-instance-body");
     const challengeId = panel.getAttribute("data-challenge-id");
     const connectMode = panel.getAttribute("data-connect-mode") || "ssh";
 
