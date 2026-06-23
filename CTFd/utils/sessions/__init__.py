@@ -100,7 +100,16 @@ class CachingSessionInterface(SessionInterface):
                 )
             return
 
-        if session.modified:
+        # Sliding session window: persist (and re-issue the cookie + refresh the
+        # cache TTL) whenever the session changed OR it is a permanent session
+        # and SESSION_REFRESH_EACH_REQUEST is enabled. This mirrors a rotating
+        # refresh token — every request slides the expiry forward, so a user who
+        # touches the app within PERMANENT_SESSION_LIFETIME stays logged in
+        # indefinitely instead of being dropped at a fixed cutoff.
+        refresh_each_request = app.config.get("SESSION_REFRESH_EACH_REQUEST", True)
+        should_save = session.modified or (session.permanent and refresh_each_request)
+
+        if should_save:
             httponly = self.get_cookie_httponly(app)
             secure = self.get_cookie_secure(app)
             expires = self.get_expiration_time(app, session)
