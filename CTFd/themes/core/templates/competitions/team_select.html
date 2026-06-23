@@ -10,8 +10,8 @@
   --ts-text: #111827;
   --ts-muted: #6b7280;
   --ts-border: #d1d5db;
-  --ts-accent: #059669;
-  --ts-accent-rgb: 5, 150, 105;
+  --ts-accent: var(--ak-accent, #0061A8);
+  --ts-accent-rgb: var(--ak-accent-rgb, 0, 97, 168);
 }
 [data-bs-theme="dark"] {
   --ts-bg-page: #0d1117;
@@ -20,8 +20,8 @@
   --ts-text: #e6edf3;
   --ts-muted: #8b949e;
   --ts-border: #30363d;
-  --ts-accent: #00ff88;
-  --ts-accent-rgb: 0, 255, 136;
+  --ts-accent: var(--ak-accent, #36B5F0);
+  --ts-accent-rgb: var(--ak-accent-rgb, 54, 181, 240);
 }
 .jumbotron { display: none !important; }
 body { background: var(--ts-bg-page) !important; }

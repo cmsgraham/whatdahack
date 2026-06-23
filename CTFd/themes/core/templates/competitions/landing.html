@@ -13,9 +13,9 @@
   --comp-text:        #111827;
   --comp-muted:       #6b7280;
   --comp-border:      #d1d5db;
-  --comp-accent:      #059669;
-  --comp-accent-rgb:  5, 150, 105;
-  --comp-accent-glow: rgba(5,150,105,.15);
+  --comp-accent:      var(--ak-accent, #0061A8);
+  --comp-accent-rgb:  var(--ak-accent-rgb, 0, 97, 168);
+  --comp-accent-glow: rgba(var(--ak-accent-vibrant-rgb, 0,164,235),.15);
 }
 [data-bs-theme="dark"] {
   --comp-bg-page:     #0d1117;
@@ -25,9 +25,9 @@
   --comp-text:        #e6edf3;
   --comp-muted:       #8b949e;
   --comp-border:      #30363d;
-  --comp-accent:      #00ff88;
-  --comp-accent-rgb:  0, 255, 136;
-  --comp-accent-glow: rgba(0,255,136,.12);
+  --comp-accent:      var(--ak-accent, #36B5F0);
+  --comp-accent-rgb:  var(--ak-accent-rgb, 54, 181, 240);
+  --comp-accent-glow: rgba(var(--ak-accent-vibrant-rgb, 0,164,235),.12);
 }
 
 .jumbotron { display: none !important; }
