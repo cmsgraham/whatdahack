@@ -1,129 +1,363 @@
 {% extends "admin/base.html" %}
 
+{% block stylesheets %}
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   Dashboard — futuristic control center (whatdahack.com)
+   Uses admin brand tokens (--adm-*) from base.html.
+═══════════════════════════════════════════════════════════════════════ */
+.stats-modern{position:relative;}
+
+/* ── Hero ──────────────────────────────────────────────────────────── */
+.stats-hero{
+  position:relative;overflow:hidden;
+  padding:2.6rem 0 2.2rem;margin-bottom:1.8rem;
+  background:
+    radial-gradient(1200px 380px at 18% -40%, rgba(0,164,235,.22), transparent 60%),
+    radial-gradient(900px 360px at 88% -20%, rgba(255,139,0,.14), transparent 60%),
+    linear-gradient(135deg,#04122b 0%, #061a3a 45%, #02080f 100%);
+  border-bottom:1px solid rgba(var(--adm-accent-rgb),.25);
+}
+[data-bs-theme="light"] .stats-hero{
+  background:
+    radial-gradient(1200px 380px at 18% -40%, rgba(0,164,235,.20), transparent 60%),
+    radial-gradient(900px 360px at 88% -20%, rgba(255,139,0,.12), transparent 60%),
+    linear-gradient(135deg,#002F6C 0%, #0a3f86 50%, #00224f 100%);
+}
+.stats-hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(54,181,240,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(54,181,240,.06) 1px, transparent 1px);
+  background-size:34px 34px;
+  mask-image:radial-gradient(circle at 50% 0%, #000 30%, transparent 78%);
+  -webkit-mask-image:radial-gradient(circle at 50% 0%, #000 30%, transparent 78%);
+}
+.stats-hero__eyebrow{
+  display:inline-flex;align-items:center;gap:.5rem;
+  font-size:.66rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:#7DD3FC;margin-bottom:.55rem;
+}
+.stats-hero__eyebrow::before{
+  content:"";width:26px;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,#00A4EB,#FF8B00);
+}
+.stats-hero__title{
+  margin:0;font-weight:800;letter-spacing:-.5px;line-height:1.05;
+  font-size:clamp(1.9rem,3.4vw,2.7rem);color:#fff!important;
+  text-shadow:0 0 36px rgba(0,164,235,.45);
+}
+.stats-hero__sub{margin:.45rem 0 0;color:rgba(230,237,243,.72);font-size:.95rem;}
+
+/* ── KPI grid ──────────────────────────────────────────────────────── */
+.stats-wrap{max-width:1320px;}
+.kpi-grid{
+  display:grid;gap:1rem;margin-bottom:1.4rem;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+}
+.kpi-card{
+  position:relative;overflow:hidden;
+  display:flex;align-items:center;gap:1rem;
+  padding:1.15rem 1.25rem;border-radius:16px;
+  background:var(--adm-bg-surface);
+  border:1px solid var(--adm-border);
+  box-shadow:var(--adm-shadow);
+  transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.kpi-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:linear-gradient(180deg,#00A4EB,#00D1FF);
+}
+.kpi-card::after{
+  content:"";position:absolute;right:-40px;top:-40px;width:120px;height:120px;
+  background:radial-gradient(circle, rgba(var(--adm-accent-rgb),.18), transparent 70%);
+  pointer-events:none;
+}
+.kpi-card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(var(--adm-accent-rgb),.55);
+  box-shadow:0 14px 38px rgba(0,164,235,.18), var(--adm-shadow);
+}
+.kpi-card__icon{
+  flex:0 0 auto;width:46px;height:46px;border-radius:13px;
+  display:grid;place-items:center;font-size:1.15rem;color:#fff;
+  background:linear-gradient(135deg,#0061A8,#00A4EB);
+  box-shadow:0 6px 18px rgba(0,164,235,.4);
+}
+.kpi-card--accent2 .kpi-card__icon{
+  background:linear-gradient(135deg,#C96A00,#FF8B00);
+  box-shadow:0 6px 18px rgba(255,139,0,.4);
+}
+.kpi-card--accent2::before{background:linear-gradient(180deg,#FF8B00,#FFB454);}
+.kpi-card__value{
+  font-size:1.7rem;font-weight:800;line-height:1;color:var(--adm-text);
+  letter-spacing:-.5px;font-variant-numeric:tabular-nums;
+}
+.kpi-card__label{
+  margin-top:.25rem;font-size:.7rem;font-weight:600;letter-spacing:1.4px;
+  text-transform:uppercase;color:var(--adm-text-muted);
+}
+
+/* ── chips ─────────────────────────────────────────────────────────── */
+.stat-chips{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:1.6rem;}
+.stat-chip{
+  display:inline-flex;align-items:center;gap:.5rem;
+  padding:.45rem .85rem;border-radius:999px;font-size:.8rem;
+  background:var(--adm-bg-elevated);border:1px solid var(--adm-border);
+  color:var(--adm-text-s2);
+}
+.stat-chip b{color:var(--adm-text);}
+.stat-chip--up{border-color:rgba(var(--adm-accent-rgb),.45);}
+.stat-chip--up i{color:var(--adm-accent);}
+.stat-chip--down i{color:#FF8B00;}
+
+/* ── Panels ────────────────────────────────────────────────────────── */
+.stat-panel{
+  position:relative;overflow:hidden;
+  background:var(--adm-bg-surface);
+  border:1px solid var(--adm-border);
+  border-radius:18px;
+  box-shadow:var(--adm-shadow);
+  margin-bottom:1.4rem;
+  transition:border-color .25s ease, box-shadow .25s ease;
+}
+.stat-panel:hover{
+  border-color:rgba(var(--adm-accent-rgb),.4);
+  box-shadow:0 16px 44px rgba(0,0,0,.22);
+}
+.stat-panel__head{
+  display:flex;align-items:center;gap:.7rem;
+  padding:1rem 1.3rem;border-bottom:1px solid var(--adm-border-subtle);
+}
+.stat-panel__head h3{
+  margin:0;font-size:.95rem;font-weight:700;letter-spacing:.3px;
+  color:var(--adm-text);text-transform:none;
+}
+.stat-panel__dot{
+  width:9px;height:9px;border-radius:50%;flex:0 0 auto;
+  background:#00D1FF;box-shadow:0 0 0 4px rgba(0,209,255,.18),0 0 12px rgba(0,209,255,.8);
+}
+.stat-panel__tag{
+  margin-left:auto;font-size:.62rem;font-weight:700;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--adm-accent);
+  padding:.25rem .6rem;border-radius:999px;
+  background:rgba(var(--adm-accent-rgb),.12);
+  border:1px solid rgba(var(--adm-accent-rgb),.3);
+}
+.stat-panel__body{padding:1.1rem 1.3rem 1.4rem;}
+
+/* chart canvases */
+.chart-box{width:100%;min-height:430px;}
+.chart-box--pie{min-height:330px;}
+
+.pie-grid{
+  display:grid;gap:1.4rem;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+}
+.pie-foot{
+  display:flex;justify-content:center;gap:1.4rem;flex-wrap:wrap;
+  padding:.3rem 1.3rem 1.1rem;
+}
+.pie-stat{font-size:.92rem;color:var(--adm-text-s2);}
+.pie-stat b{font-size:1.15rem;}
+.pie-stat--ok b{color:var(--adm-accent);}
+.pie-stat--bad b{color:#FF5C5C;}
+
+/* spinner color */
+.stats-modern .spinner{color:var(--adm-accent);}
+
+@media (max-width:575px){
+  .kpi-card__value{font-size:1.45rem;}
+  .chart-box{min-height:360px;}
+}
+</style>
+{% endblock %}
+
 {% block content %}
-    <div class="jumbotron">
-        <div class="container">
-            <h1>Statistics</h1>
-        </div>
+<div class="stats-modern">
+
+  <div class="stats-hero">
+    <div class="container position-relative">
+      <div class="stats-hero__eyebrow">Mission Control</div>
+      <h1 class="stats-hero__title">Dashboard</h1>
+      <p class="stats-hero__sub">Live competition telemetry &amp; analytics</p>
     </div>
-    <div class="container-fluid">
-        <div class="row mb-4">
-            <div class="col-md-12 text-center">
-                <div class="d-flex justify-content-center align-items-center flex-wrap">
-                    <div class="mx-4 my-2">
-                        <h5><b>{{ user_count }}</b> <small class="text-muted">users</small></h5>
-                    </div>
-                    {% if get_config('user_mode') == 'teams' %}
-                        <div class="mx-4 my-2">
-                            <h5><b>{{ team_count }}</b> <small class="text-muted">teams</small></h5>
-                        </div>
-                    {% endif %}
-                    <div class="mx-4 my-2">
-                        <h5><b>{{ ip_count }}</b> <small class="text-muted">IPs</small></h5>
-                    </div>
-                    <div class="mx-4 my-2">
-                        <h5><b>{{ total_points }}</b> <small class="text-muted">points</small></h5>
-                    </div>
-                    <div class="mx-4 my-2">
-                        <h5><b>{{ challenge_count }}</b> <small class="text-muted">challenges</small></h5>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-center align-items-center flex-wrap">
-                    {% if most_solved %}
-                        <div class="mx-4 my-2">
-                            <small>Most Solved: <b>{{ most_solved }}</b> ({{ solve_data[most_solved] }})</small>
-                        </div>
-                    {% endif %}
-                    {% if least_solved %}
-                        <div class="mx-4 my-2">
-                            <small>Least Solved: <b>{{ least_solved }}</b> ({{ solve_data[least_solved] }})</small>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+  </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <h3>Player Progression <sup class="text-muted">(Top 100)</sup></h3>
-                <div id="scoreboard-matrix">
-                    <div class="text-center py-5">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="container-fluid stats-wrap">
 
-        <hr>
+    <!-- KPI cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-card__icon"><i class="fas fa-users"></i></div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ user_count }}</div>
+          <div class="kpi-card__label">Users</div>
+        </div>
+      </div>
+      {% if get_config('user_mode') == 'teams' %}
+      <div class="kpi-card">
+        <div class="kpi-card__icon"><i class="fas fa-user-friends"></i></div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ team_count }}</div>
+          <div class="kpi-card__label">Teams</div>
+        </div>
+      </div>
+      {% endif %}
+      <div class="kpi-card">
+        <div class="kpi-card__icon"><i class="fas fa-network-wired"></i></div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ ip_count }}</div>
+          <div class="kpi-card__label">IPs</div>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--accent2">
+        <div class="kpi-card__icon"><i class="fas fa-star"></i></div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ total_points }}</div>
+          <div class="kpi-card__label">Points</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-card__icon"><i class="fas fa-flag"></i></div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ challenge_count }}</div>
+          <div class="kpi-card__label">Challenges</div>
+        </div>
+      </div>
     </div>
 
-    <div class="container">
-        <div class="row d-flex align-items-center">
-            <div class="col-md-12">
-                <div id="solves-graph" class="d-flex align-items-center">
-                    <div class="text-center w-100">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div id="score-distribution-graph" class="d-flex align-items-center">
-                    <div class="text-center w-100">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <hr>
-
-        <div class="row">
-            <div class="col-md-12">
-                <div id="solve-percentages-graph" class="d-flex align-items-center">
-                    <div class="text-center w-100">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <hr>
+    <!-- most / least solved -->
+    {% if most_solved or least_solved %}
+    <div class="stat-chips">
+      {% if most_solved %}
+      <span class="stat-chip stat-chip--up">
+        <i class="fas fa-arrow-up"></i> Most Solved:&nbsp;<b>{{ most_solved }}</b>&nbsp;({{ solve_data[most_solved] }})
+      </span>
+      {% endif %}
+      {% if least_solved %}
+      <span class="stat-chip stat-chip--down">
+        <i class="fas fa-arrow-down"></i> Least Solved:&nbsp;<b>{{ least_solved }}</b>&nbsp;({{ solve_data[least_solved] }})
+      </span>
+      {% endif %}
     </div>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-4">
-                <div id="keys-pie-graph" class="d-flex align-items-center">
-                    <div class="text-center w-100">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-                <div class="text-center">
-                    <h5><b>{{ solve_count }}</b> right submissions</h5>
-                    <h5><b>{{ wrong_count }}</b> wrong submissions</h5>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="categories-pie-graph" class="d-flex align-items-center">
-                    <div class="text-center w-100">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div id="points-pie-graph" class="d-flex align-items-center">
-                    <div class="text-center w-100">
-                        <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
+    {% endif %}
 
+    <!-- Player progression -->
+    <div class="stat-panel">
+      <div class="stat-panel__head">
+        <span class="stat-panel__dot"></span>
+        <h3>Player Progression</h3>
+        <span class="stat-panel__tag">Top 100</span>
+      </div>
+      <div class="stat-panel__body">
+        <div id="scoreboard-matrix">
+          <div class="text-center py-5">
+            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Solve counts -->
+    <div class="stat-panel">
+      <div class="stat-panel__head">
+        <span class="stat-panel__dot"></span>
+        <h3>Solve Counts</h3>
+        <span class="stat-panel__tag">per challenge</span>
+      </div>
+      <div class="stat-panel__body">
+        <div id="solves-graph" class="chart-box">
+          <div class="text-center w-100 py-5">
+            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score distribution -->
+    <div class="stat-panel">
+      <div class="stat-panel__head">
+        <span class="stat-panel__dot"></span>
+        <h3>Score Distribution</h3>
+        <span class="stat-panel__tag">brackets</span>
+      </div>
+      <div class="stat-panel__body">
+        <div id="score-distribution-graph" class="chart-box">
+          <div class="text-center w-100 py-5">
+            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solve percentages -->
+    <div class="stat-panel">
+      <div class="stat-panel__head">
+        <span class="stat-panel__dot"></span>
+        <h3>Solve Percentages</h3>
+        <span class="stat-panel__tag">per challenge</span>
+      </div>
+      <div class="stat-panel__body">
+        <div id="solve-percentages-graph" class="chart-box">
+          <div class="text-center w-100 py-5">
+            <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pie row -->
+    <div class="pie-grid">
+      <div class="stat-panel">
+        <div class="stat-panel__head">
+          <span class="stat-panel__dot"></span>
+          <h3>Submissions</h3>
+        </div>
+        <div class="stat-panel__body">
+          <div id="keys-pie-graph" class="chart-box chart-box--pie">
+            <div class="text-center w-100 py-5">
+              <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+            </div>
+          </div>
+        </div>
+        <div class="pie-foot">
+          <span class="pie-stat pie-stat--ok"><b>{{ solve_count }}</b> correct</span>
+          <span class="pie-stat pie-stat--bad"><b>{{ wrong_count }}</b> wrong</span>
+        </div>
+      </div>
+
+      <div class="stat-panel">
+        <div class="stat-panel__head">
+          <span class="stat-panel__dot"></span>
+          <h3>Category Breakdown</h3>
+        </div>
+        <div class="stat-panel__body">
+          <div id="categories-pie-graph" class="chart-box chart-box--pie">
+            <div class="text-center w-100 py-5">
+              <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-panel">
+        <div class="stat-panel__head">
+          <span class="stat-panel__dot"></span>
+          <h3>Point Breakdown</h3>
+        </div>
+        <div class="stat-panel__body">
+          <div id="points-pie-graph" class="chart-box chart-box--pie">
+            <div class="text-center w-100 py-5">
+              <i class="fas fa-circle-notch fa-spin fa-3x fa-fw spinner"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 {% endblock %}
 
 {% block entrypoint %}
