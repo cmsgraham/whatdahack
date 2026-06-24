@@ -259,21 +259,21 @@
     <div class="d-flex justify-content-end mb-2">
       <div class="d-flex align-items-center mr-3">
         <div
-          style="width: 15px; height: 15px; background-color: #28a745"
+          style="width: 15px; height: 15px; background-color: #00A4EB"
           class="mr-1 border"
         ></div>
         <small>Solved</small>
       </div>
       <div class="d-flex align-items-center mr-3">
         <div
-          style="width: 15px; height: 15px; background-color: #ffc107"
+          style="width: 15px; height: 15px; background-color: #FF8B00"
           class="mr-1 border"
         ></div>
         <small>Attempted</small>
       </div>
       <div class="d-flex align-items-center">
         <div
-          style="width: 15px; height: 15px; background-color: #17a2b8"
+          style="width: 15px; height: 15px; background-color: #64748B"
           class="mr-1 border"
         ></div>
         <small>Opened</small>
@@ -596,13 +596,16 @@ export default {
       const isOpened = user.opens.includes(challenge.id);
 
       if (isSolved) {
-        return { backgroundColor: "#28a745", color: "white" };
+        return { backgroundColor: "#00A4EB", color: "white" };
       } else if (isAttempted) {
-        return { backgroundColor: "#ffc107", color: "#212529" };
+        return { backgroundColor: "#FF8B00", color: "#1f2933" };
       } else if (isOpened) {
-        return { backgroundColor: "#17a2b8", color: "white" };
+        return { backgroundColor: "#64748B", color: "white" };
       } else {
-        return { backgroundColor: "#f8f9fa", color: "#6c757d" };
+        return {
+          backgroundColor: "var(--adm-bg-elevated)",
+          color: "var(--adm-text-dim)",
+        };
       }
     },
     getCellSymbol(user, challenge) {

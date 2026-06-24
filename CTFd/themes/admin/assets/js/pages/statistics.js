@@ -170,6 +170,43 @@ function futurize(option) {
     });
   }
 
+  // The glass panel header already names each chart — hide the in-chart title
+  // and the axis-name labels that were colliding with long category labels.
+  if (option.title) option.title = { show: false };
+
+  ["xAxis", "yAxis"].forEach((axisKey) => {
+    if (!option[axisKey]) return;
+    const axes = Array.isArray(option[axisKey])
+      ? option[axisKey]
+      : [option[axisKey]];
+    axes.forEach((axis) => {
+      axis.name = "";
+      if (axis.type === "category") {
+        axis.axisLabel = Object.assign({}, axis.axisLabel, {
+          formatter: (val) =>
+            typeof val === "string" && val.length > 16
+              ? val.slice(0, 15) + "…"
+              : val,
+        });
+      }
+    });
+  });
+
+  // Reserve room so labels and zoom sliders never overlap or clip.
+  const hasTopSlider =
+    Array.isArray(option.dataZoom) &&
+    option.dataZoom.some((dz) => dz.type === "slider" && dz.top !== undefined);
+  option.grid = Object.assign(
+    {
+      left: "2%",
+      right: "5%",
+      top: hasTopSlider ? 58 : 24,
+      bottom: "3%",
+      containLabel: true,
+    },
+    option.grid,
+  );
+
   return option;
 }
 
