@@ -1353,6 +1353,64 @@ CHEATSHEET_STYLE = """
 }
 .dp-toc a:hover{background:rgba(var(--dp-accent-rgb),.2);}
 .dp-anchor{scroll-margin-top:84px;}
+/* ── Beginner: start-here callout ─────────────────────────────────────────── */
+.dp-start{
+  background:linear-gradient(135deg,rgba(var(--dp-accent-rgb),.12),rgba(var(--dp-accent-rgb),.03));
+  border:1px solid rgba(var(--dp-accent-rgb),.28);
+  border-radius:14px;padding:1.5rem 1.6rem;margin-bottom:1.6rem;
+}
+.dp-start h3{font-size:1rem;font-weight:700;color:var(--dp-accent);margin:0 0 .6rem;display:flex;align-items:center;gap:.5rem;}
+.dp-start p{font-size:.86rem;color:var(--dp-text);line-height:1.7;margin:0 0 .6rem;}
+.dp-start p:last-child{margin-bottom:0;}
+.dp-start code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.8rem;background:var(--dp-bg);border:1px solid var(--dp-border);border-radius:5px;padding:.08rem .35rem;color:var(--dp-accent2);}
+/* ── Numbered steps ───────────────────────────────────────────────────────── */
+.dp-steps{list-style:none;counter-reset:dp-step;margin:0;padding:0;}
+.dp-steps li{
+  counter-increment:dp-step;position:relative;
+  padding:.6rem 0 .6rem 2.5rem;font-size:.86rem;color:var(--dp-text);line-height:1.65;
+  border-bottom:1px solid var(--dp-border);
+}
+.dp-steps li:last-child{border-bottom:none;}
+.dp-steps li::before{
+  content:counter(dp-step);position:absolute;left:0;top:.55rem;
+  width:1.6rem;height:1.6rem;border-radius:50%;
+  background:var(--dp-accent);color:#fff;font-size:.76rem;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+}
+.dp-steps li strong{color:var(--dp-accent2);}
+/* ── Approach / methodology cards ─────────────────────────────────────────── */
+.dp-approach-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+@media(max-width:760px){.dp-approach-grid{grid-template-columns:1fr;}}
+.dp-approach{
+  background:var(--dp-surface);border:1px solid var(--dp-border);
+  border-top:3px solid rgba(var(--dp-accent-rgb),.6);
+  border-radius:0 0 10px 10px;padding:1.1rem 1.25rem;
+}
+.dp-approach h4{font-size:.9rem;font-weight:700;color:var(--dp-accent);margin:0 0 .35rem;display:flex;align-items:center;gap:.45rem;}
+.dp-approach-intro{font-size:.78rem;color:var(--dp-muted);margin:0 0 .7rem;line-height:1.55;font-style:italic;}
+.dp-approach ol{margin:0;padding-left:1.15rem;}
+.dp-approach ol li{font-size:.81rem;color:var(--dp-text);line-height:1.55;margin-bottom:.34rem;}
+.dp-approach ol li code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.74rem;background:var(--dp-bg);border:1px solid var(--dp-border);border-radius:5px;padding:.05rem .3rem;color:var(--dp-accent);}
+/* ── Command table ────────────────────────────────────────────────────────── */
+.dp-cmd-table{display:flex;flex-direction:column;gap:.5rem;}
+.dp-cmd-row{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1rem;align-items:center;
+  background:var(--dp-surface);border:1px solid var(--dp-border);border-radius:8px;padding:.6rem .85rem;
+}
+@media(max-width:640px){.dp-cmd-row{grid-template-columns:1fr;gap:.35rem;}}
+.dp-cmd-row code{
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.77rem;
+  color:var(--dp-accent);background:var(--dp-bg);border:1px solid var(--dp-border);
+  border-radius:6px;padding:.35rem .55rem;display:block;white-space:pre-wrap;word-break:break-all;
+}
+.dp-cmd-row span{font-size:.8rem;color:var(--dp-muted);line-height:1.5;}
+/* ── Glossary ─────────────────────────────────────────────────────────────── */
+.dp-gloss-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+@media(max-width:760px){.dp-gloss-grid{grid-template-columns:1fr;}}
+.dp-gloss{background:var(--dp-surface);border:1px solid var(--dp-border);border-radius:8px;padding:.75rem .9rem;}
+.dp-gloss-term{font-size:.83rem;font-weight:700;color:var(--dp-accent);margin-bottom:.22rem;}
+.dp-gloss-def{font-size:.79rem;color:var(--dp-muted);line-height:1.55;}
+.dp-gloss-def code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.72rem;background:var(--dp-bg);border:1px solid var(--dp-border);border-radius:4px;padding:.04rem .28rem;color:var(--dp-accent2);}
 </style>
 """
 
@@ -1386,6 +1444,37 @@ def _faq(q, a):
     <div class="dp-faq">
       <div class="dp-faq-q">{q}</div>
       <div class="dp-faq-a">{a}</div>
+    </div>"""
+
+
+def _steps(items):
+    lis = "".join(f"<li>{s}</li>" for s in items)
+    return f'<ol class="dp-steps">{lis}</ol>'
+
+
+def _approach(emoji, title, intro, steps):
+    lis = "".join(f"<li>{s}</li>" for s in steps)
+    return f"""
+    <div class="dp-approach">
+      <h4>{emoji} {title}</h4>
+      <p class="dp-approach-intro">{intro}</p>
+      <ol>{lis}</ol>
+    </div>"""
+
+
+def _cmd(command, desc):
+    return f"""
+    <div class="dp-cmd-row">
+      <code>{command}</code>
+      <span>{desc}</span>
+    </div>"""
+
+
+def _gloss(term, defn):
+    return f"""
+    <div class="dp-gloss">
+      <div class="dp-gloss-term">{term}</div>
+      <div class="dp-gloss-def">{defn}</div>
     </div>"""
 
 
@@ -1816,6 +1905,124 @@ def build_cheatsheet():
     ]
     faq_html = "".join(_faq(q, a) for q, a in faqs)
 
+    # ── Beginner onboarding: the universal workflow ──────────────────────────
+    workflow_steps = [
+        "<strong>Read the prompt.</strong> Note the category, any hint, and the flag format. "
+        "Download every attached file before you start.",
+        "<strong>Recon &amp; identify.</strong> Work out <em>what you're looking at</em> — a file type, "
+        "an encoding, a running service, or a web technology — before reaching for a tool.",
+        "<strong>Research the technique.</strong> Search the challenge keywords plus "
+        "<code>CTF writeup</code>. Someone has almost certainly solved something similar.",
+        "<strong>Pick the right tool.</strong> Jump to the matching category below and grab the tool "
+        "built for that job.",
+        "<strong>Solve &amp; extract the flag.</strong> Apply the decode/attack. The flag is usually "
+        "text like <code>whatdahack{...}</code>.",
+        "<strong>Submit &amp; take notes.</strong> Paste the flag to score, then jot down what worked "
+        "so you recognise the pattern next time.",
+    ]
+    workflow_html = _steps(workflow_steps)
+
+    # ── First moves on any file (recon commands) ─────────────────────────────
+    first_moves = [
+        ("file mystery", "What kind of file is it <em>really</em>? Ignores the extension."),
+        ("strings -n 8 mystery", "Dump readable text — skim it for the flag straight away."),
+        ("strings mystery | grep -i flag", "Shortcut: jump directly to a plaintext flag."),
+        ("exiftool mystery", "Hidden info in metadata: author, comments, GPS, software."),
+        ("binwalk mystery", "Spot files hidden <em>inside</em> the file."),
+        ("binwalk -e mystery", "Extract those embedded / appended files."),
+        ("xxd mystery | head", "Inspect the first bytes and the magic number."),
+        ("unzip -l mystery", "Many formats (docx, apk, jar, pptx) are just ZIP archives."),
+    ]
+    first_moves_html = f'<div class="dp-cmd-table">{"".join(_cmd(c, d) for c, d in first_moves)}</div>'
+
+    # ── How to approach each category ────────────────────────────────────────
+    approaches = [
+        ("🔐", "Cryptography", "You're given ciphertext or keys and must recover the plaintext.", [
+            "Identify the scheme with the checklist above.",
+            "Throw it at <code>CyberChef</code> / <code>dCode</code> first.",
+            "For RSA, collect <code>n, e, c</code> and match an attack.",
+            "Watch for layered encodings — decode repeatedly until it's text.",
+        ]),
+        ("🌐", "Web", "Attack a website to reach data or actions you shouldn't have.", [
+            "View the page source and <code>/robots.txt</code>.",
+            "Open DevTools → check Network, Cookies and Storage.",
+            "Try SQLi, XSS, IDOR and path traversal.",
+            "Fuzz for hidden paths with <code>ffuf</code> / <code>dirsearch</code>.",
+            "Intercept and tamper requests with <code>Burp Suite</code>.",
+        ]),
+        ("🔍", "Forensics", "Dig a flag out of a file, network capture, or disk image.", [
+            "Run <code>file</code>, <code>strings</code>, <code>exiftool</code>, <code>binwalk</code>.",
+            "For <code>.pcap</code>, open in Wireshark and follow TCP streams.",
+            "Carve deleted or embedded files with <code>foremost</code>.",
+            "Analyse memory dumps with <code>Volatility</code>.",
+        ]),
+        ("🔬", "Reverse Engineering", "Understand a compiled program to find the secret.", [
+            "Run <code>file</code> and <code>strings</code> first.",
+            "Decompile in <code>Ghidra</code> and read <code>main</code>.",
+            "Find the check that validates your input.",
+            "Trace the logic, or brute it with <code>angr</code>.",
+            "Debug / patch with <code>GDB</code> + <code>pwndbg</code>.",
+        ]),
+        ("💥", "Binary Exploitation (Pwn)", "Abuse a memory bug in a running binary for a shell.", [
+            "Run <code>checksec</code> to see the binary's protections.",
+            "Find the bug: overflow, format string, use-after-free.",
+            "Craft input with <code>pwntools</code>.",
+            "Redirect execution: ret2win, ROP chain, or shellcode.",
+            "Pop a shell and <code>cat flag.txt</code>.",
+        ]),
+        ("🖼️", "Steganography", "Data hidden inside images, audio, or other files.", [
+            "Start with <code>AperiSolve</code> / <code>StegOnline</code>.",
+            "Run <code>strings</code> and <code>binwalk</code> on the file.",
+            "Inspect the bit planes in <code>Stegsolve</code>.",
+            "For audio, view the spectrogram in Sonic Visualiser.",
+            "Try <code>steghide</code> / <code>zsteg</code> (crack the passphrase).",
+        ]),
+        ("👁️", "OSINT", "Find the answer using only public information.", [
+            "Note every name, handle, image and coordinate.",
+            "Reverse-image search with <code>TinEye</code> / Yandex.",
+            "Pivot usernames across sites.",
+            "Read EXIF for GPS and timestamps.",
+            "Cross-check social media, maps and Street View.",
+        ]),
+        ("🎲", "Misc", "Everything else — scripting, esolangs, and jails.", [
+            "Read the prompt for the real puzzle.",
+            "Identify weird languages with the checklist above.",
+            "If it says <code>nc host port</code>, just connect and read.",
+            "Automate repetitive input with <code>pwntools</code> / Python.",
+        ]),
+    ]
+    approach_html = f'<div class="dp-approach-grid">{"".join(_approach(*a) for a in approaches)}</div>'
+
+    # ── Essential commands ───────────────────────────────────────────────────
+    commands = [
+        ("nc &lt;host&gt; &lt;port&gt;", "Connect to a remote challenge service."),
+        ('grep -rInso "flag{.*}" .', "Recursively hunt a flag across files."),
+        ("echo &lt;b64&gt; | base64 -d", "Decode a Base64 string."),
+        ("xxd -r -p &lt;&lt;&lt; &lt;hex&gt;", "Turn a hex string back into raw bytes."),
+        ("python3 -m http.server 8000", "Serve files or catch a callback."),
+        ("chmod +x ./chall &amp;&amp; ./chall", "Make a downloaded binary runnable."),
+        ("curl -s &lt;url&gt;", "Fetch a page or API without a browser."),
+        ("ssh user@&lt;host&gt;", "Log into a remote machine."),
+    ]
+    commands_html = f'<div class="dp-cmd-table">{"".join(_cmd(c, d) for c, d in commands)}</div>'
+
+    # ── Glossary ─────────────────────────────────────────────────────────────
+    glossary = [
+        ("Flag", "The secret string that proves you solved a challenge, e.g. <code>whatdahack{...}</code>."),
+        ("Jeopardy", "The common CTF format: pick standalone challenges off a board for points."),
+        ("Payload", "The crafted input or data you send to trigger a bug."),
+        ("Shell", "Command-line access to a machine — the usual goal of pwn/web challenges."),
+        ("Reverse shell", "A shell that connects back to <em>you</em>, slipping past firewalls."),
+        ("Enumeration", "Systematically listing everything about a target: files, ports, parameters."),
+        ("Fuzzing", "Throwing lots of automated inputs to uncover hidden paths or crashes."),
+        ("Encoding vs Encryption", "Encoding (Base64/hex) is reversible with no key; encryption needs a key."),
+        ("Hash", "A one-way fingerprint of data — you crack it by guessing, not decrypting."),
+        ("Rabbit hole", "A tempting dead-end path. If you're stuck for ages, step back and re-read the prompt."),
+        ("Endianness", "Byte order (little / big) that matters when building pwn payloads."),
+        ("checksec", "A quick look at which security protections a binary was compiled with."),
+    ]
+    glossary_html = f'<div class="dp-gloss-grid">{"".join(_gloss(t, d) for t, d in glossary)}</div>'
+
     return CHEATSHEET_STYLE + SHARED_STYLE + f"""
 <div class="dp-wrap">
 
@@ -1829,19 +2036,11 @@ def build_cheatsheet():
     </p>
   </div>
 
-  <div class="dp-section dp-anchor" id="identify">
-    <h2 class="dp-section-title"><i class="fas fa-fingerprint"></i> Identify the Encoding / Cipher</h2>
-    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
-      Got a blob of unknown data? Match its shape against the patterns below, then decode it with
-      <a href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener noreferrer">CyberChef</a> or
-      <a href="https://www.dcode.fr/en" target="_blank" rel="noopener noreferrer">dCode</a>.
-    </p>
-    {id_html}
-    {symbol_html}
-    {rsa_html}
-  </div>
-
   <div class="dp-toc">
+    <a href="#start">🚀 Start Here</a>
+    <a href="#firstmoves">🧭 First Moves</a>
+    <a href="#approach">🗺️ Approach</a>
+    <a href="#commands">⌨️ Commands</a>
     <a href="#identify">🔎 Identify</a>
     <a href="#crypto">🔐 Crypto</a>
     <a href="#pwn">💥 Pwn</a>
@@ -1859,7 +2058,65 @@ def build_cheatsheet():
     <a href="#host">🏗️ Host a CTF</a>
     <a href="#build">🧰 Build</a>
     <a href="#writeups">📝 Writeups</a>
+    <a href="#glossary">📖 Glossary</a>
     <a href="#faq">❓ FAQ</a>
+  </div>
+
+  <div class="dp-section dp-anchor" id="start">
+    <h2 class="dp-section-title"><i class="fas fa-flag-checkered"></i> New to CTFs? Start Here</h2>
+    <div class="dp-start">
+      <h3>👋 What is a CTF?</h3>
+      <p>
+        A <strong>Capture-The-Flag</strong> is a friendly hacking competition. You solve puzzles across
+        categories like web, crypto and forensics; each one hides a secret <strong>flag</strong> — a string
+        such as <code>whatdahack{{y0u_g0t_1t}}</code>. Find it, submit it, score points. You don't need to be
+        an expert: many challenges are beginner-friendly and you learn by doing.
+      </p>
+      <p>
+        Stuck? That's normal. Search the challenge topic with the words <code>CTF writeup</code>, read how
+        others approached similar problems, and keep notes. Every solve makes the next one faster.
+      </p>
+    </div>
+    <h3 class="dp-check-group-title" style="margin-top:.4rem;">🔁 The universal workflow — repeat for every challenge</h3>
+    {workflow_html}
+  </div>
+
+  <div class="dp-section dp-anchor" id="firstmoves">
+    <h2 class="dp-section-title"><i class="fas fa-terminal"></i> First Moves on Any File</h2>
+    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
+      Downloaded a mystery file and don't know where to start? Run these first — one of them often reveals
+      the flag outright. Replace <code>mystery</code> with your filename.
+    </p>
+    {first_moves_html}
+  </div>
+
+  <div class="dp-section dp-anchor" id="approach">
+    <h2 class="dp-section-title"><i class="fas fa-map-signs"></i> How to Approach Each Category</h2>
+    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
+      Not sure where to begin for a given challenge type? Follow the first few steps for its category,
+      then grab the matching tools further down the page.
+    </p>
+    {approach_html}
+  </div>
+
+  <div class="dp-section dp-anchor" id="commands">
+    <h2 class="dp-section-title"><i class="fas fa-keyboard"></i> Essential Commands</h2>
+    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
+      A handful of commands you'll reach for constantly. Copy, tweak the placeholders, and go.
+    </p>
+    {commands_html}
+  </div>
+
+  <div class="dp-section dp-anchor" id="identify">
+    <h2 class="dp-section-title"><i class="fas fa-fingerprint"></i> Identify the Encoding / Cipher</h2>
+    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
+      Got a blob of unknown data? Match its shape against the patterns below, then decode it with
+      <a href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener noreferrer">CyberChef</a> or
+      <a href="https://www.dcode.fr/en" target="_blank" rel="noopener noreferrer">dCode</a>.
+    </p>
+    {id_html}
+    {symbol_html}
+    {rsa_html}
   </div>
 
   <div class="dp-anchor" id="crypto">{_section("fas fa-lock", "Cryptography Tools", "".join(_card(*r) for r in crypto_tools))}</div>
@@ -1878,6 +2135,14 @@ def build_cheatsheet():
   <div class="dp-anchor" id="host">{_section("fas fa-server", "Host Your Own CTF", "".join(_card(*r) for r in create_platforms))}</div>
   <div class="dp-anchor" id="build">{_section("fas fa-tools", "Challenge-Creation Tools", "".join(_card(*r) for r in create_tools))}</div>
   <div class="dp-anchor" id="writeups">{_section("fas fa-book", "Writeups &amp; Courses", "".join(_card(*r) for r in writeups))}</div>
+
+  <div class="dp-section dp-anchor" id="glossary">
+    <h2 class="dp-section-title"><i class="fas fa-spell-check"></i> Glossary — Words You'll Hear</h2>
+    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
+      New terms come thick and fast in CTFs. Here are the ones worth knowing on day one.
+    </p>
+    {glossary_html}
+  </div>
 
   <div class="dp-section dp-anchor" id="faq">
     <h2 class="dp-section-title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
