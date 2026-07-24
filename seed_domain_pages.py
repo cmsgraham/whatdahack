@@ -466,6 +466,20 @@ def build_landing():
     </p>
   </div>
   <div class="dp-section">
+    <h2 class="dp-section-title"><i class="fas fa-bolt"></i> Quick Reference</h2>
+    <div class="row g-3">
+      <div class="col-12">
+        <a href="/resources/cheatsheet" class="dp-domain-card" style="flex-direction:row;align-items:center;gap:1.1rem;">
+          <span class="dp-domain-card-icon" style="margin-bottom:0;">🚩</span>
+          <div>
+            <div class="dp-domain-card-name">CTF Cheatsheet</div>
+            <div class="dp-domain-card-desc">Identify unknown encodings &amp; ciphers at a glance, pick the right RSA attack, and jump to the best tool for every category.</div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="dp-section">
     <h2 class="dp-section-title"><i class="fas fa-th"></i> Challenge Domains</h2>
     <div class="row g-3">{cards}</div>
   </div>
@@ -1271,11 +1285,622 @@ HARDWARE = _page(
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  CTF CHEATSHEET  (quick-reference: encoding/cipher ID + full tool directory)
+#  Content adapted from the public cheatsheet at
+#  https://neerajlovecyber.com/ctf-cheatsheet
+# ─────────────────────────────────────────────────────────────────────────────
+
+CHEATSHEET_STYLE = """
+<style>
+/* ── Cheatsheet checklist ─────────────────────────────────────────────────── */
+.dp-check-group{margin-bottom:2rem;}
+.dp-check-group-title{
+  font-size:.95rem;font-weight:700;color:var(--dp-accent2);
+  margin-bottom:.9rem;display:flex;align-items:center;gap:.5rem;
+}
+.dp-check-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:.85rem;
+}
+@media(max-width:720px){.dp-check-grid{grid-template-columns:1fr;}}
+.dp-check{
+  background:var(--dp-surface);
+  border:1px solid var(--dp-border);
+  border-left:3px solid rgba(var(--dp-accent-rgb),.55);
+  border-radius:0 8px 8px 0;
+  padding:.85rem 1rem;
+}
+.dp-check-head{
+  display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+  margin-bottom:.35rem;
+}
+.dp-check-name{font-size:.86rem;font-weight:700;color:var(--dp-accent);}
+.dp-check-decoder{
+  font-size:.68rem;font-weight:600;text-decoration:none;
+  color:var(--dp-accent2);white-space:nowrap;
+}
+.dp-check-decoder:hover{text-decoration:underline;}
+.dp-check-pattern{font-size:.78rem;color:var(--dp-muted);line-height:1.55;}
+.dp-check-code{
+  margin:.55rem 0 0;padding:.5rem .7rem;
+  background:var(--dp-bg);border:1px solid var(--dp-border);border-radius:6px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:.72rem;color:var(--dp-text);
+  white-space:pre-wrap;word-break:break-all;overflow-x:auto;
+}
+/* ── FAQ ──────────────────────────────────────────────────────────────────── */
+.dp-faq{
+  background:var(--dp-surface);
+  border:1px solid var(--dp-border);
+  border-radius:10px;
+  padding:1rem 1.25rem;
+  margin-bottom:.75rem;
+}
+.dp-faq-q{font-size:.88rem;font-weight:700;color:var(--dp-accent);margin-bottom:.4rem;}
+.dp-faq-a{font-size:.83rem;color:var(--dp-text);line-height:1.65;}
+.dp-credit{
+  text-align:center;font-size:.78rem;color:var(--dp-muted);
+  margin-top:2.5rem;padding-top:1.4rem;border-top:1px solid var(--dp-border);
+}
+.dp-credit a{color:var(--dp-accent);text-decoration:none;font-weight:600;}
+.dp-credit a:hover{text-decoration:underline;}
+/* ── Jump nav ─────────────────────────────────────────────────────────────── */
+.dp-toc{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 2.2rem;}
+.dp-toc a{
+  font-size:.73rem;font-weight:600;text-decoration:none;
+  padding:.3rem .7rem;border-radius:999px;
+  background:rgba(var(--dp-accent-rgb),.1);color:var(--dp-accent);
+  border:1px solid rgba(var(--dp-accent-rgb),.22);
+}
+.dp-toc a:hover{background:rgba(var(--dp-accent-rgb),.2);}
+.dp-anchor{scroll-margin-top:84px;}
+</style>
+"""
+
+
+def _check(name, pattern, example=None, decoder=None):
+    ex = f'<pre class="dp-check-code">{example}</pre>' if example else ""
+    dec = (f'<a class="dp-check-decoder" href="{decoder}" target="_blank" '
+           f'rel="noopener noreferrer">Decoder ↗</a>') if decoder else ""
+    return f"""
+      <div class="dp-check">
+        <div class="dp-check-head">
+          <span class="dp-check-name">{name}</span>
+          {dec}
+        </div>
+        <div class="dp-check-pattern">{pattern}</div>
+        {ex}
+      </div>"""
+
+
+def _check_group(title, checks):
+    grid = "".join(_check(*c) for c in checks)
+    return f"""
+    <div class="dp-check-group">
+      <h3 class="dp-check-group-title">{title}</h3>
+      <div class="dp-check-grid">{grid}</div>
+    </div>"""
+
+
+def _faq(q, a):
+    return f"""
+    <div class="dp-faq">
+      <div class="dp-faq-q">{q}</div>
+      <div class="dp-faq-a">{a}</div>
+    </div>"""
+
+
+def build_cheatsheet():
+    # ── Encoding / cipher identification checklist ───────────────────────────
+    id_groups = [
+        ("📦 Base Encodings", [
+            ("Base64", "Alphanumeric with <code>+</code> and <code>/</code>, often padded with <code>=</code>.",
+             "dGhpc2lzYmFzZTY0Y2lwaGVyCg=="),
+            ("Base32", "UPPERCASE letters A–Z and digits 2–7, may end with <code>=</code>.",
+             "ORUGS43JONRGC43FGMZGG2LQNBSXE==="),
+            ("Base85 / Ascii85", "Gibberish using a wide range of printable ASCII symbols.",
+             "<+oueBld\\lF(I<gASu!rA8,po/lH7t"),
+            ("Base16 (Hex)", "Only 0–9 and a–f. Two characters per byte.",
+             "746869732069732068657821"),
+        ]),
+        ("🔁 ROT / Shift Ciphers", [
+            ("ROT13 / ROT-n", "Caesar shift within the 26 letters. Letters only, no symbols changed.", None),
+            ("ROT47", "Shifts across 94 printable ASCII characters — includes symbols.",
+             "E9:D:DC@Ecf4:A96C"),
+            ("Caesar", "Every letter shifted by a fixed amount. Try all 25 shifts.", None),
+            ("Atbash", "Alphabet reversed (A↔Z, B↔Y). Self-inverse.", None),
+        ]),
+        ("🔑 Classical Ciphers", [
+            ("Vigenère", "Polyalphabetic; repeating keyword. Bruteforce if key unknown.",
+             "elmltwzbrrikpgmisivptxldpcpxpx   key: leet"),
+            ("Substitution", "Each letter mapped to another fixed letter. Solve via frequency analysis.", None),
+            ("Transposition", "Plaintext letters re-ordered, not substituted (columnar, route, etc.).", None),
+            ("A1Z26", "Letters as their alphabet index (1–26), often dash/space separated.",
+             "3-20-6 = CTF"),
+            ("Rail Fence", "Zig-zag transposition across N rows.", None),
+        ]),
+        ("📻 Symbol-Based", [
+            ("Morse Code", "Dots and dashes (dit-dah), space separated.",
+             ".... .. ... .. ... -- --- .-. ... . -.-. --- -.. ."),
+            ("Tap Code", "Groups of taps, Polybius-style pairs (1–5).",
+             ".... .... .. ... .. .... .... ..."),
+            ("Bacon Cipher", "Binary A/B pattern in groups of 5 encoding letters.",
+             "BAABAAABBBABAAABAAABABAAAB"),
+            ("Polybius Square", "Row/column coordinates into a 5×5 grid.", None),
+        ]),
+        ("🧬 Unusual Alphabets", [
+            ("DNA Encoding", "Uses only A, T, G, C base characters.",
+             "GAGTTGAAAATATTGCGGCCGCTGGTAATGAT"),
+            ("Braille", "6-dot patterns; often rendered as ⠿ unicode.", None,
+             "https://www.branah.com/braille-translator"),
+            ("Keyboard Shift", "Text shifted by physical QWERTY key positions.", None),
+            ("Binary / Decimal", "Streams of 0/1 in bytes, or decimal ASCII codes.",
+             "01100011 01110100 01100110"),
+        ]),
+        ("🧠 Esoteric Languages", [
+            ("Brainfuck", "Only <code>+ - &gt; &lt; [ ] . ,</code> characters.",
+             "++++++++++[>+>+++>+++++++>++++++++++<<<<-]>>>>."),
+            ("JSFuck", "JavaScript using only <code>[ ] ( ) ! +</code>.",
+             "[][(![]+[])[+[]]+([![]]+[][[]])[+!+[]+[+[]]]..."),
+            ("Malbolge", "Short gibberish string, notoriously hard to write.",
+             "('&%:9]!~}|z2Vxwv-,POqponl$Hjig%eB@@>}=<M:9wv6"),
+            ("Whitespace", "Program made only of spaces, tabs and newlines (0x20/0x09/0x0A).", None),
+            ("Ook!", "Brainfuck variant using only <code>Ook.</code>, <code>Ook?</code>, <code>Ook!</code>.",
+             "Ook. Ook? Ook. Ook. Ook! Ook."),
+            ("PikaLang", "Pokémon-style tokens: <code>pi</code>, <code>pika</code>, <code>ka</code>, <code>pipi</code>.", None),
+            ("COW", "Bovine-themed Brainfuck variant of <code>moo</code>/<code>MOO</code> tokens.", None),
+            ("Piet", "Program IS an abstract image; colour blocks are instructions.", None),
+            ("Rockstar", "Source written to read like power-ballad song lyrics.", None),
+        ]),
+    ]
+    id_html = "".join(_check_group(title, checks) for title, checks in id_groups)
+
+    # ── Symbol ciphers (with online decoders) ────────────────────────────────
+    symbol_checks = [
+        ("Pigpen Cipher", "Letters replaced by grid/“pigpen” shapes. Common in puzzles.", None,
+         "https://www.dcode.fr/pigpen-cipher"),
+        ("Dancing Men", "Stick-figure substitution cipher (Sherlock Holmes).", None,
+         "https://www.dcode.fr/dancing-men-cipher"),
+        ("Futurama Alien", "Alien glyph substitution from Futurama (two versions).", None,
+         "https://www.dcode.fr/futurama-alien-alphabet"),
+        ("Hylian (Twilight Princess)", "Zelda: Twilight Princess symbolic script.", None,
+         "https://www.dcode.fr/hylian-language-twilight-princess"),
+        ("Hylian (Skyward Sword)", "Zelda: Skyward Sword — maps symbols to English letters.", None,
+         "https://www.dcode.fr/hylian-language-skyward-sword"),
+        ("Hylian (BOTW)", "Zelda: Breath of the Wild symbol script.", None,
+         "https://www.dcode.fr/hylian-language-breath-of-the-wild"),
+        ("Daggers Alphabet", "Fantasy substitution glyphs.", None,
+         "https://www.dcode.fr/daggers-alphabet"),
+        ("Gravity Falls", "Mix of Caesar, Atbash, A1Z26 & symbol substitution from the show.", None,
+         "https://www.dcode.fr/gravity-falls-bill-cipher"),
+        ("Wingdings / Symbols", "Font-based glyph substitution; map back to letters.", None,
+         "https://lingojam.com/WingdingsTranslator"),
+    ]
+    symbol_html = _check_group("🧩 Symbol Ciphers (visual)", symbol_checks)
+
+    # ── RSA attack picker ────────────────────────────────────────────────────
+    rsa_checks = [
+        ("Classic RSA", "Given n, e, c — decrypt by factoring n into p·q.", None),
+        ("Small e (e=3) / Cube Root", "Low exponent + small message where m³ &lt; n → integer cube root of c.", None),
+        ("Håstad Broadcast", "Same m sent to many recipients with e=3 → CRT then cube root.", None),
+        ("Wiener's Attack", "Public e is large / private d is small → continued fractions recover d.", None),
+        ("Common Modulus", "Same n, two coprime exponents e1,e2 → Bézout combine c1,c2.", None),
+        ("Chinese Remainder (CRT)", "Given p, q, dp, dq, c → reconstruct the private key and decrypt.", None),
+        ("Fermat Factoring", "p and q are close together → factor n quickly.", None),
+        ("Twin-Prime RSA", "Moduli n1, n2 from twin primes → their closeness makes factoring easy.", None),
+        ("Multi-Prime", "n has more than two prime factors → easier to factor.", None),
+    ]
+    rsa_html = _check_group("🔐 RSA — pick your attack", rsa_checks)
+
+    # ── Tool directory (by category) ─────────────────────────────────────────
+    crypto_tools = [
+        ("CyberChef", "https://gchq.github.io/CyberChef/", "Web app for encryption, encoding, compression and data analysis.", ["Browser"]),
+        ("dCode.fr", "https://www.dcode.fr/tools-list#cryptography", "Solvers for crypto, maths and encodings online.", ["Browser"]),
+        ("Ciphey", "https://github.com/Ciphey/Ciphey", "Automatically decrypt encryptions, decode encodings and crack hashes.", ["Auto"]),
+        ("Cryptii", "https://cryptii.com/", "Modular conversion, encoding and encryption online.", ["Browser"]),
+        ("Decodify", "https://github.com/s0md3v/Decodify", "Detect and decode encoded strings, recursively.", ["Auto"]),
+        ("Rumkin Cipher Tools", "http://rumkin.com/tools/cipher/", "Collection of cipher / encoder tools.", ["Browser"]),
+        ("Base65536", "https://github.com/qntm/base65536", "Unicode's answer to Base64.", ["Encoding"]),
+        ("Braille Translator", "https://www.branah.com/braille-translator", "Translate braille to text.", ["Encoding"]),
+        ("Enigma Machine", "https://summersidemakerspace.ca/projects/enigma-machine/", "Universal Enigma machine simulator.", ["Classical"]),
+        ("Vigenère Solver", "https://www.guballa.de/vigenere-solver", "Break Vigenère ciphers without the key.", ["Classical"]),
+        ("Quipqiup", "https://quipqiup.com/", "Automated cryptogram / substitution solver.", ["Classical"]),
+        ("Polybius Square", "https://www.braingle.com/brainteasers/codes/polybius.php", "Translate letters to grid coordinates.", ["Classical"]),
+        ("RsaCtfTool", "https://github.com/RsaCtfTool/RsaCtfTool", "RSA multi-attack tool for common weaknesses.", ["RSA"]),
+        ("RSATool", "https://github.com/ius/rsatool", "Calculate RSA and RSA-CRT parameters.", ["RSA"]),
+        ("yafu", "https://sourceforge.net/projects/yafu/", "Automated integer factorization.", ["RSA"]),
+        ("FeatherDuster", "https://github.com/nccgroup/featherduster", "Automated, modular cryptanalysis tool.", ["Auto"]),
+        ("Galois", "http://web.eecs.utk.edu/~jplank/plank/papers/CS-07-593/", "Fast galois field arithmetic library/toolkit.", ["Library"]),
+        ("XORTool", "https://github.com/hellman/xortool", "Analyse multi-byte XOR ciphers.", ["XOR"]),
+        ("XOR Cracker", "https://wiremask.eu/tools/xor-cracker/", "Guess XOR key length and key to decrypt.", ["XOR"]),
+        ("HashExtender", "https://github.com/iagox86/hash_extender", "Perform hash length-extension attacks.", ["Attack"]),
+        ("hash-identifier", "https://gitlab.com/kalilinux/packages/hash-identifier", "Simple hash algorithm identifier.", ["Hashes"]),
+        ("padding-oracle-attacker", "https://github.com/KishanBagaria/padding-oracle-attacker", "CLI/library to execute padding-oracle attacks.", ["Attack"]),
+        ("PadBuster", "https://github.com/AonCyberLabs/PadBuster", "Automated padding-oracle attack script.", ["Attack"]),
+        ("PEMCrack", "https://github.com/robertdavidgraham/pemcrack", "Crack SSL PEM files with encrypted private keys.", ["Crack"]),
+        ("PKCrack", "https://www.unix-ag.uni-kl.de/~conrad/krypto/pkcrack.html", "PkZip encryption cracker.", ["Crack"]),
+        ("Crackstation", "https://crackstation.net/", "Hash cracker backed by a huge lookup database.", ["Hashes"]),
+        ("OEIS", "https://oeis.org/", "On-Line Encyclopedia of Integer Sequences.", ["Reference"]),
+    ]
+    pwn_tools = [
+        ("Pwntools", "https://github.com/Gallopsled/pwntools", "CTF framework for writing exploits.", ["Framework"]),
+        ("ROPgadget", "https://github.com/JonathanSalwan/ROPgadget", "Framework for ROP exploitation.", ["ROP"]),
+        ("Ropper", "https://github.com/sashs/Ropper", "Find gadgets and build ROP chains across architectures.", ["ROP"]),
+        ("one_gadget", "https://github.com/david942j/one_gadget", "Find one-gadget execve('/bin/sh') RCE in libc.", ["libc"]),
+        ("libformatstr", "https://github.com/hellman/libformatstr", "Simplify format-string exploitation.", ["Fmt"]),
+        ("afl", "https://lcamtuf.coredump.cx/afl/", "Security-oriented coverage-guided fuzzer.", ["Fuzzing"]),
+        ("honggfuzz", "https://github.com/google/honggfuzz", "Evolutionary, feedback-driven security fuzzer.", ["Fuzzing"]),
+        ("Shellcodes Database", "http://shell-storm.org/shellcode/", "Massive database of ready-made shellcode.", ["Shellcode"]),
+    ]
+    forensics_tools = [
+        ("A-Packets", "https://apackets.com/", "Effortless PCAP analysis in the browser.", ["Browser"]),
+        ("Autopsy", "https://www.autopsy.com/", "End-to-end open-source digital forensics platform.", ["Disk"]),
+        ("Binwalk", "https://github.com/ReFirmLabs/binwalk", "Firmware analysis & embedded extraction tool.", ["Carving"]),
+        ("Bulk-extractor", "https://github.com/simsong/bulk_extractor", "High-performance artefact extraction.", ["Artefacts"]),
+        ("Bkhive & samdump2", "https://www.kali.org/tools/samdump2/", "Dump SYSTEM and SAM files.", ["Windows"]),
+        ("ChromeCacheView", "https://www.nirsoft.net/utils/chrome_cache_view.html", "Read the Chrome browser cache folder.", ["Cache"]),
+        ("Creddump", "https://github.com/moyix/creddump", "Dump Windows credentials.", ["Windows"]),
+        ("Exiftool", "https://exiftool.org/", "Read, write and edit file metadata.", ["Metadata"]),
+        ("Extundelete", "http://extundelete.sourceforge.net/", "Recover deleted files from ext3/ext4.", ["Recovery"]),
+        ("firmware-mod-kit", "https://code.google.com/archive/p/firmware-mod-kit/", "Modify firmware images without recompiling.", ["Firmware"]),
+        ("Foremost", "http://foremost.sourceforge.net/", "Recover files by headers/footers & structures.", ["Carving"]),
+        ("Forensic Toolkit (FTK)", "https://www.exterro.com/forensic-toolkit", "Scan a drive for artefacts, deleted emails & strings.", ["Suite"]),
+        ("Forensically", "https://29a.ch/photo-forensics/#forensic-magnifier", "Free online image analysis with many features.", ["Images"]),
+        ("MZCacheView", "https://www.nirsoft.net/utils/mozilla_cache_viewer.html", "Read the Firefox/Mozilla cache folder.", ["Cache"]),
+        ("NetworkMiner", "https://www.netresec.com/index.ashx?page=NetworkMiner", "Network Forensic Analysis Tool (NFAT).", ["Network"]),
+        ("OfflineRegistryView", "https://www.nirsoft.net/utils/offline_registry_view.html", "Read offline Windows registry files.", ["Windows"]),
+        ("PhotoRec", "https://www.cgsecurity.org/wiki/PhotoRec", "Recover lost files from disks and media.", ["Recovery"]),
+        ("Registry Viewer", "https://accessdata.com/product-download/registry-viewer-2-0-0", "View Windows registry hives.", ["Windows"]),
+        ("Scalpel", "https://github.com/sleuthkit/scalpel", "Open-source data carving tool.", ["Carving"]),
+        ("The Sleuth Kit", "https://www.sleuthkit.org/", "CLI tools & C library to analyse disk images.", ["Disk"]),
+        ("USBRip", "https://github.com/snovvcrash/usbrip", "Track USB device artefacts on Linux.", ["Artefacts"]),
+        ("Volatility", "https://github.com/volatilityfoundation/volatility3", "Advanced memory forensics framework.", ["Memory"]),
+        ("Wireshark", "https://www.wireshark.org/", "Analyse pcap / pcapng network captures.", ["Network"]),
+        ("X-Ways", "https://www.x-ways.net/forensics/index-m.html", "Advanced computer-forensics work environment.", ["Suite"]),
+    ]
+    stego_tools = [
+        ("AperiSolve", "https://aperisolve.fr/", "Runs layered stego analysis on images online.", ["Browser"]),
+        ("BPStegano", "https://github.com/TapanSoni/BPStegano", "Python3 LSB steganography.", ["Embed"]),
+        ("DeepSound", "https://github.com/Jpinsoft/DeepSound", "Hide secret data inside audio files.", ["Audio"]),
+        ("DTMF Detection", "https://unframework.github.io/dtmf-detect/", "Detect phone-button audio frequencies.", ["Audio"]),
+        ("DTMF Tones", "http://dialabc.com/sound/detect/index.html", "Decode phone-button (DTMF) tones.", ["Audio"]),
+        ("Exif", "http://manpages.ubuntu.com/manpages/trusty/man1/exif.1.html", "Show EXIF information in JPEG files.", ["Metadata"]),
+        ("Exiv2", "https://www.exiv2.org/manpage.html", "Image metadata manipulation tool.", ["Metadata"]),
+        ("FotoForensics", "https://fotoforensics.com/", "Web-based digital photo forensics (ELA).", ["Images"]),
+        ("hipshot", "https://bitbucket.org/eliteraspberries/hipshot/src/master/", "Turn video/photos into a long-exposure image.", ["Images"]),
+        ("Image Error Level Analyzer", "https://29a.ch/sandbox/2012/imageerrorlevelanalysis/", "ELA, clone detection & more, web based.", ["Images"]),
+        ("Image Steganography", "https://incoherency.co.uk/image-steganography/", "Client-side JS tool to hide/unhide images in LSBs.", ["Embed"]),
+        ("ImageMagick", "http://www.imagemagick.org/script/index.php", "Tool for manipulating images.", ["Images"]),
+        ("jsteg", "https://github.com/lukechampine/jsteg", "CLI stego tool for JPEG images.", ["JPEG"]),
+        ("Magic Eye Solver", "http://magiceye.ecksdee.co.uk/", "Reveal hidden info in Magic-Eye images.", ["Images"]),
+        ("Outguess", "https://github.com/resurrecting-open-source-projects/outguess", "Universal steganographic tool.", ["Embed"]),
+        ("Pngcheck", "http://www.libpng.org/pub/png/apps/pngcheck.html", "Verify PNG integrity & dump chunk info.", ["PNG"]),
+        ("Pngtools", "https://packages.debian.org/sid/pngtools", "Various analysis tools for PNGs.", ["PNG"]),
+        ("sigBits", "https://github.com/Pulho/sigBits", "Significant-bits image stego decoder.", ["Images"]),
+        ("SmartDeblur", "https://github.com/Y-Vladimir/SmartDeblur", "Restore defocused and blurred images.", ["Images"]),
+        ("Snow", "https://darkside.com.au/snow/", "Whitespace steganography tool.", ["Whitespace"]),
+        ("Sonic Visualiser", "https://www.sonicvisualiser.org/", "Audio file spectrogram visualisation.", ["Audio"]),
+        ("Steganography Online", "https://stylesuxx.github.io/steganography/", "Online stego encoder and decoder.", ["Browser"]),
+        ("Stegbreak", "https://linux.die.net/man/1/stegbreak", "Dictionary attacks on JPG stego.", ["Crack"]),
+        ("StegCracker", "https://github.com/Paradoxis/StegCracker", "Brute-force hidden data inside files.", ["Crack"]),
+        ("stegextract", "https://github.com/evyatarmeged/stegextract", "Detect hidden files and text in images.", ["Extract"]),
+        ("Steghide", "https://steghide.sourceforge.net/", "Hide data in image and audio files.", ["Embed"]),
+        ("StegOnline", "https://stegonline.georgeom.net/", "Wide range of image stego operations.", ["Browser"]),
+        ("Stegosaurus", "https://github.com/AngelKitty/stegosaurus", "Embed payloads within Python bytecode.", ["Embed"]),
+        ("StegoVeritas", "https://github.com/bannsec/stegoVeritas", "Yet another all-in-one stego tool.", ["Auto"]),
+        ("Stegpy", "https://github.com/dhsdshdhk/stegpy", "Simple LSB-based steganography program.", ["Embed"]),
+        ("stegseek", "https://github.com/RickdeJager/stegseek", "Lightning-fast steghide passphrase cracker.", ["Crack"]),
+        ("stegsnow", "https://manpages.ubuntu.com/manpages/trusty/man1/stegsnow.1.html", "Whitespace steganography program.", ["Whitespace"]),
+        ("Stegsolve", "https://github.com/zardus/ctf-tools/tree/master/stegsolve", "View bit planes & apply stego filters.", ["Images"]),
+        ("Zsteg", "https://github.com/zed-0xff/zsteg/", "PNG/BMP LSB stego analysis.", ["PNG"]),
+    ]
+    reversing_tools = [
+        ("Ghidra", "https://ghidra-sre.org/", "NSA software reverse-engineering suite.", ["Decompiler"]),
+        ("IDA Pro", "https://hex-rays.com/ida-pro/", "The most-used reversing / disassembly software.", ["Disassembler"]),
+        ("radare2", "https://github.com/radareorg/radare2", "UNIX-like RE framework & CLI toolset.", ["Framework"]),
+        ("Rizin", "https://github.com/rizinorg/rizin", "Usability-focused fork of radare2.", ["Framework"]),
+        ("Binary Ninja", "https://binary.ninja/", "Modern binary-analysis framework.", ["Framework"]),
+        ("Hopper", "https://www.hopperapp.com/", "Disassembler/decompiler for macOS & Linux.", ["Disassembler"]),
+        ("GDB", "https://www.gnu.org/software/gdb/", "The GNU Project debugger.", ["Debugger"]),
+        ("GEF", "https://github.com/hugsy/gef", "GDB Enhanced Features for exploit devs & RE.", ["Debugger"]),
+        ("PEDA", "https://github.com/longld/peda", "Python Exploit Development Assistance for GDB.", ["Debugger"]),
+        ("Pwndbg", "https://github.com/pwndbg/pwndbg", "Exploit-dev & RE made easy in GDB.", ["Debugger"]),
+        ("WinDBG", "http://www.windbg.org/", "Windows debugger distributed by Microsoft.", ["Debugger"]),
+        ("angr", "https://github.com/angr/angr", "Powerful binary analysis & symbolic execution.", ["Symbolic"]),
+        ("Z3", "https://github.com/Z3Prover/z3", "Theorem prover from Microsoft Research.", ["Solver"]),
+        ("miasm", "https://github.com/cea-sec/miasm", "Reverse-engineering framework in Python.", ["Framework"]),
+        ("Frida", "https://github.com/frida/", "Dynamic instrumentation toolkit.", ["Dynamic"]),
+        ("Objection", "https://github.com/sensepost/objection", "Runtime mobile exploration.", ["Mobile"]),
+        ("Androguard", "https://github.com/androguard/androguard", "Full Python tool to play with Android files.", ["Android"]),
+        ("ApkTool", "https://ibotpeaches.github.io/Apktool/", "Reverse-engineer closed Android apps.", ["Android"]),
+        ("Apk2gold", "https://github.com/lxdvs/apk2gold", "Decompile Android apps to Java.", ["Android"]),
+        ("Jadx", "https://github.com/skylot/jadx", "Produce Java source from Android DEX/APK.", ["Android"]),
+        ("Java Decompilers", "http://www.javadecompilers.com/", "Online decompiler for Java and APKs.", ["Java"]),
+        ("dnSpy", "https://github.com/dnSpy/dnSpy", ".NET debugger and assembly editor.", [".NET"]),
+        ("JSDetox", "https://github.com/svent/jsdetox", "JavaScript malware analysis tool.", ["JS"]),
+        ("EasyPythonDecompiler", "https://sourceforge.net/projects/easypythondecompiler/", "Decompile Python .pyc bytecode.", ["Python"]),
+        ("Uncompyle", "https://github.com/gstarnberger/uncompyle", "Python 2.7 byte-code decompiler.", ["Python"]),
+        ("PEfile", "https://github.com/erocarrera/pefile", "Python module to read PE files.", ["PE"]),
+        ("BinUtils", "https://www.gnu.org/software/binutils/binutils.html", "Collection of binary tools.", ["Toolkit"]),
+        ("CTF_import", "https://github.com/sciencemanx/ctf_import", "Run functions from stripped binaries.", ["Toolkit"]),
+        ("CWE_checker", "https://github.com/fkie-cad/cwe_checker", "Find vulnerable patterns in binaries.", ["Analysis"]),
+        ("Demovfuscator", "https://github.com/kirschju/demovfuscator", "Deobfuscator for movfuscated binaries.", ["Deobf"]),
+        ("Disassembler.io", "https://onlinedisassembler.com/static/home/index.html", "Disassemble on demand, online.", ["Browser"]),
+        ("Online Asm/Disasm", "http://shell-storm.org/online/Online-Assembler-and-Disassembler/", "Keystone/Capstone online wrappers.", ["Browser"]),
+        ("Compiler Explorer", "https://godbolt.org/", "See source ↔ assembly side by side.", ["Browser"]),
+    ]
+    web_tools = [
+        ("BurpSuite", "https://portswigger.net/burp", "Graphical proxy for testing website security.", ["Proxy"]),
+        ("OWASP Zap", "https://owasp.org/www-project-zap/", "Intercepting proxy to replay, debug and fuzz HTTP.", ["Proxy"]),
+        ("SQLMap", "https://github.com/sqlmapproject/sqlmap", "Automatic SQL injection & DB takeover.", ["SQLi"]),
+        ("Commix", "https://github.com/commixproject/commix", "Automated OS command-injection tool.", ["CmdInj"]),
+        ("XSSer", "https://xsser.03c8.net/", "Automated XSS tester.", ["XSS"]),
+        ("Arachni", "https://www.arachni-scanner.com/", "Web-application security scanner framework.", ["Scanner"]),
+        ("W3af", "https://github.com/andresriancho/w3af", "Web-app attack and audit framework.", ["Scanner"]),
+        ("ffuf", "https://github.com/ffuf/ffuf", "Fast web fuzzer written in Go.", ["Fuzzing"]),
+        ("dirsearch", "https://github.com/maurosoria/dirsearch", "Web path scanner.", ["Discovery"]),
+        ("Dirhunt", "https://github.com/Nekmo/dirhunt", "Find web directories without bruteforce.", ["Discovery"]),
+        ("debugHunter", "https://github.com/devploit/debugHunter", "Discover hidden debug parameters & secrets.", ["Discovery"]),
+        ("nomore403", "https://github.com/devploit/nomore403", "Bypass 40x access-control responses.", ["Bypass"]),
+        ("git-dumper", "https://github.com/arthaud/git-dumper", "Dump an exposed .git repo from a site.", ["Recon"]),
+        ("Gopherus", "https://github.com/tarunkant/Gopherus", "Generate gopher payloads for SSRF→RCE.", ["SSRF"]),
+        ("Smuggler", "https://github.com/defparam/smuggler", "HTTP request-smuggling / desync testing.", ["Desync"]),
+        ("PHPGGC", "https://github.com/ambionics/phpggc", "PHP unserialize() gadget-chain payloads.", ["Deser"]),
+        ("ysoserial", "https://github.com/frohoff/ysoserial", "Java deserialization payload generator.", ["Deser"]),
+        ("Revelo", "http://www.kahusecurity.com/posts/revelo_javascript_deobfuscator.html", "Analyse obfuscated JavaScript.", ["Deobf"]),
+        ("Beautifier.io", "https://beautifier.io/", "Online JavaScript beautifier.", ["JS"]),
+        ("ngrok", "https://ngrok.com/", "Secure introspectable tunnels to localhost.", ["Tunnel"]),
+        ("Hookbin", "https://hookbin.com/", "Collect, parse and view HTTP requests.", ["Callback"]),
+        ("Request Bin", "https://requestbin.com/", "Inspect any event / HTTP request.", ["Callback"]),
+        ("REQBIN", "https://reqbin.com/", "Online REST & SOAP API testing tool.", ["API"]),
+        ("Postman", "https://www.postman.com/", "Build, debug and test API requests.", ["API"]),
+        ("JSFiddle", "https://jsfiddle.net/", "Test JS/CSS/HTML online.", ["Sandbox"]),
+    ]
+    osint_tools = [
+        ("Shodan", "https://www.shodan.io/", "Search engine for internet-connected devices.", ["Recon"]),
+        ("BinaryEdge", "https://www.binaryedge.io/", "Scan, acquire & classify public internet data.", ["Recon"]),
+        ("theHarvester", "https://github.com/laramies/theHarvester", "Gather emails, names, subdomains, IPs, URLs.", ["Recon"]),
+        ("haveibeenpwned", "https://haveibeenpwned.com/", "Check emails/usernames against breaches.", ["Breach"]),
+        ("snusbase", "https://snusbase.com/", "Search leaked databases for creds.", ["Breach"]),
+        ("dehashed", "https://www.dehashed.com/", "Search engine for hacked databases.", ["Breach"]),
+        ("leakcheck", "https://leakcheck.io/", "Check for leaked credentials.", ["Breach"]),
+        ("whopostedwhat", "https://whopostedwhat.com/", "Find accounts posting about a topic/event.", ["Social"]),
+        ("Graph.tips", "https://graph.tips/", "Search public Facebook data.", ["Social"]),
+        ("instant-username-search", "https://instantusername.com/", "Check a username across 100+ sites.", ["Pivot"]),
+        ("Social Mapper", "https://github.com/Greenwolf/social_mapper", "Correlate profiles via facial recognition.", ["Social"]),
+        ("Creepy", "https://github.com/ilektrojohn/creepy", "Geolocation OSINT from social networks.", ["Geo"]),
+        ("WiGLE", "https://wigle.net/", "Worldwide wireless-hotspot database.", ["Wireless"]),
+        ("ExifTool", "https://exiftool.org/", "Read/write metadata in files.", ["Metadata"]),
+        ("TinEye", "https://tineye.com/", "Reverse image search engine.", ["Images"]),
+        ("YandexImages", "https://yandex.com/images/", "Reverse image search engine.", ["Images"]),
+    ]
+    misc_tools = [
+        ("boofuzz", "https://github.com/jtpereyda/boofuzz", "Network protocol fuzzing for humans.", ["Fuzzing"]),
+        ("Veles", "https://codisec.com/veles/", "Binary data analysis and visualisation.", ["Analysis"]),
+        ("changeme", "https://github.com/ztgrace/changeme", "Default-credential scanner.", ["Creds"]),
+        ("Hashcat", "https://hashcat.net/hashcat/", "Advanced GPU password recovery.", ["Cracking"]),
+        ("Hydra", "https://www.kali.org/tools/hydra/", "Parallelised network login cracker.", ["Bruteforce"]),
+        ("John the Ripper", "https://www.openwall.com/john/", "Open-source password cracker.", ["Cracking"]),
+        ("jwt_tool", "https://github.com/ticarpi/jwt_tool", "Test, tweak and crack JSON Web Tokens.", ["JWT"]),
+        ("Ophcrack", "https://ophcrack.sourceforge.io/", "Windows password cracker (rainbow tables).", ["Cracking"]),
+        ("Patator", "https://github.com/lanjelot/patator", "Multi-purpose modular brute-forcer.", ["Bruteforce"]),
+        ("Turbo Intruder", "https://portswigger.net/bappstore/9abaa233088242e8be252cd4ff534988", "Send huge numbers of HTTP requests (Burp).", ["Bruteforce"]),
+        ("Brainfuck IDE", "https://copy.sh/brainfuck/", "Brainfuck esoteric language IDE.", ["Esolang"]),
+        ("COW", "https://frank-buss.de/cow.html", "Bovine-themed Brainfuck variant.", ["Esolang"]),
+        ("Malbolge", "http://www.malbolge.doleczek.pl/", "Malbolge esoteric language solver.", ["Esolang"]),
+        ("Ook!", "https://www.dcode.fr/ook-language", "Decode / encode in Ook!.", ["Esolang"]),
+        ("Piet", "https://www.bertnase.de/npiet/npiet-execute.php", "Piet (image) language compiler.", ["Esolang"]),
+        ("Rockstar", "https://codewithrockstar.com/online", "Language that looks like song lyrics.", ["Esolang"]),
+        ("Try It Online", "https://tio.run/", "Interpreters for tons of esoteric languages.", ["Esolang"]),
+        ("Any.run", "https://any.run/", "Interactive malware-hunting sandbox.", ["Sandbox"]),
+        ("Intezer Analyze", "https://analyze.intezer.com/", "Malware analysis platform.", ["Sandbox"]),
+        ("Triage", "https://tria.ge/", "State-of-the-art malware analysis sandbox.", ["Sandbox"]),
+    ]
+    hash_tools = [
+        ("MD5Hashing.net", "https://md5hashing.net/", "Online hash cracker and tools.", ["Browser"]),
+        ("CyberChef", "https://gchq.github.io/CyberChef/", "Encode/decode/hash & data analysis.", ["Browser"]),
+        ("hash-identifier", "https://gitlab.com/kalilinux/packages/hash-identifier", "Identify different types of hashes.", ["Identify"]),
+        ("hashID", "https://github.com/blackploit/hashid", "Identify hash types.", ["Identify"]),
+        ("HashTag", "https://github.com/SmeegeSec/HashTag", "Parse and identify password hashes.", ["Identify"]),
+        ("hashcat", "https://hashcat.net/hashcat/", "Fast advanced password-recovery utility.", ["Cracking"]),
+        ("John the Ripper", "https://www.openwall.com/john/", "Fast password cracker.", ["Cracking"]),
+        ("HashPump", "https://github.com/bwall/HashPump", "Exploit hash length-extension attacks.", ["Attack"]),
+    ]
+    privesc_tools = [
+        ("linuxprivchecker", "https://github.com/sleventyeleven/linuxprivchecker", "Foundational Linux privesc guide & script.", ["Linux"]),
+        ("Windows-Exploit-Suggester", "https://github.com/AonCyberLabs/Windows-Exploit-Suggester", "Suggest Windows privesc exploits.", ["Windows"]),
+        ("linux-smart-enumeration", "https://github.com/diego-treitos/linux-smart-enumeration", "Show relevant Linux security info.", ["Linux"]),
+        ("linux-exploit-suggester", "https://github.com/mzet-/linux-exploit-suggester", "Detect Linux kernel security gaps.", ["Linux"]),
+        ("LinEnum", "https://github.com/rebootuser/LinEnum", "Scripted local Linux enumeration.", ["Linux"]),
+        ("PEASS-ng (Lin/WinPEAS)", "https://github.com/carlospolop/PEASS-ng", "Privilege-escalation awesome scripts suite.", ["Both"]),
+        ("GTFOBins", "https://gtfobins.github.io/", "Unix binaries abusable to bypass restrictions.", ["Reference"]),
+        ("PowerUp", "https://github.com/PowerShellMafia/PowerSploit/tree/master/Privesc", "Common Windows privesc vectors.", ["Windows"]),
+        ("JAWS", "https://github.com/411Hall/JAWS", "Windows privesc enumeration script.", ["Windows"]),
+    ]
+    net_tools = [
+        ("nmap", "https://nmap.org/", "Discover hosts & services on a network.", ["Scanning"]),
+        ("Netcat / Ncat", "https://nmap.org/ncat/", "Read/write TCP & UDP connections.", ["Networking"]),
+        ("Wireshark", "https://www.wireshark.org/", "Network protocol analyser for captures.", ["Analysis"]),
+    ]
+
+    # ── Online practice platforms ────────────────────────────────────────────
+    platforms = [
+        ("TryHackMe", "https://tryhackme.com/", "Guided, beginner-friendly hands-on rooms.", ["Beginner"]),
+        ("picoCTF", "https://picoctf.org/", "Beginner-friendly CTF platform by CMU.", ["Beginner"]),
+        ("HackTheBox", "https://www.hackthebox.com/", "A massive hacking playground.", ["Labs"]),
+        ("OverTheWire", "https://overthewire.org/wargames/", "Classic Linux/security wargames.", ["Wargame"]),
+        ("Hacker101", "https://www.hacker101.com/", "CTF platform by HackerOne.", ["Web"]),
+        ("HackThisSite", "https://www.hackthissite.org/", "Free, safe, legal hacker training ground.", ["Practice"]),
+        ("CTFlearn", "https://ctflearn.com/", "Learn, practice and compete across categories.", ["Practice"]),
+        ("Root-Me", "https://www.root-me.org/", "Hundreds of challenges across domains.", ["Practice"]),
+        ("CryptoHack", "https://cryptohack.org/", "Interactive cryptography challenges.", ["Crypto"]),
+        ("Cryptopals", "https://cryptopals.com/", "48 practical crypto attack challenges.", ["Crypto"]),
+        ("pwn.college", "https://pwn.college/", "World-class free binary-exploitation course.", ["Pwn"]),
+        ("Pwnable.kr", "http://pwnable.kr/", "Pwn / exploitation platform.", ["Pwn"]),
+        ("Pwnable.tw", "https://pwnable.tw/", "Pwn / exploitation platform.", ["Pwn"]),
+        ("Pwnable.xyz", "https://pwnable.xyz/", "Pwn / exploitation platform.", ["Pwn"]),
+        ("Reversing.kr", "http://reversing.kr/", "Reverse-engineering platform.", ["Reversing"]),
+        ("Crackmes.One", "https://crackmes.one/", "Reverse-engineering crackme library.", ["Reversing"]),
+        ("MicroCorruption", "https://microcorruption.com/", "Embedded-security CTF.", ["Embedded"]),
+        ("247CTF", "https://247ctf.com/", "Free capture-the-flag hacking environment.", ["Practice"]),
+        ("Archive.ooo", "https://archive.ooo/", "Playable archive of DEF CON CTF challenges.", ["Archive"]),
+        ("Atenea", "https://atenea.ccn-cert.cni.es/", "Spanish CCN-CERT CTF platform.", ["Practice"]),
+        ("Defend the Web", "https://defendtheweb.net/", "Interactive cyber-security platform.", ["Web"]),
+        ("Dreamhack.io", "https://dreamhack.io/wargame", "Online wargame.", ["Wargame"]),
+        ("echoCTF.RED", "https://echoctf.red/", "Online hacking laboratories.", ["Labs"]),
+        ("Flagyard", "https://flagyard.com/", "Hands-on cybersecurity challenge playground.", ["Practice"]),
+        ("Hackropole", "https://hackropole.fr/en/", "Replay France Cybersecurity Challenge tasks.", ["Archive"]),
+        ("VibloCTF", "https://ctf.viblo.asia/landing", "CTF training platform.", ["Practice"]),
+        ("VulnHub", "https://www.vulnhub.com/", "Downloadable vulnerable VMs.", ["VMs"]),
+        ("W3Challs", "https://w3challs.com/", "Hacking / CTF platform.", ["Practice"]),
+        ("WebHacking", "https://webhacking.kr/", "Web challenges platform.", ["Web"]),
+        ("Websec.fr", "http://websec.fr/", "Web challenges platform.", ["Web"]),
+        ("WeChall", "https://www.wechall.net/active_sites", "Challenge-site directory & forum.", ["Directory"]),
+        ("CTFtime", "https://ctftime.org/", "Calendar, rankings & writeups for events.", ["Calendar"]),
+    ]
+
+    # ── Self-hosted / deliberately-vulnerable apps ───────────────────────────
+    vuln_apps = [
+        ("Damn Vulnerable Web App", "https://dvwa.co.uk/", "Classic PHP/MySQL vulnerable web app.", ["Web"]),
+        ("OWASP Juice Shop", "https://github.com/juice-shop/juice-shop-ctf", "Modern insecure app + CTF setup tools.", ["Web"]),
+        ("AWSGoat", "https://github.com/ine-labs/AWSGoat", "Damn-vulnerable AWS infrastructure.", ["Cloud"]),
+        ("GCPGoat", "https://github.com/ine-labs/GCPGoat", "Damn-vulnerable GCP infrastructure.", ["Cloud"]),
+        ("CICD-goat", "https://github.com/cider-security-research/cicd-goat", "Deliberately vulnerable CI/CD environment.", ["DevOps"]),
+    ]
+
+    # ── Host your own CTF (frameworks) ───────────────────────────────────────
+    create_platforms = [
+        ("CTFd", "https://github.com/CTFd/CTFd", "Platform to host jeopardy-style CTFs (powers this site).", ["Jeopardy"]),
+        ("FBCTF", "https://github.com/facebookarchive/fbctf", "Facebook CTF platform (Jeopardy & King-of-the-Hill).", ["Platform"]),
+        ("HackTheArch", "https://github.com/mcpa-stlouis/hack-the-arch", "Scoring server for CTF competitions.", ["Scoring"]),
+        ("kCTF", "https://github.com/google/kctf", "Kubernetes-based infrastructure for CTFs.", ["K8s"]),
+        ("LibreCTF", "https://github.com/easyctf/librectf", "CTF platform from EasyCTF.", ["Platform"]),
+        ("Mellivora", "https://github.com/Nakiami/mellivora", "CTF engine written in PHP.", ["Platform"]),
+        ("NightShade", "https://github.com/UnrealAkama/NightShade", "Simple CTF framework.", ["Platform"]),
+        ("picoCTF", "https://github.com/picoCTF/picoCTF", "Infrastructure used to run picoCTF.", ["Platform"]),
+        ("rCTF", "https://github.com/redpwn/rctf", "CTF platform maintained by redpwn.", ["Platform"]),
+        ("RootTheBox", "https://github.com/moloch--/RootTheBox", "CTF scoring engine for wargames.", ["Scoring"]),
+        ("ImaginaryCTF", "https://github.com/Et3rnos/ImaginaryCTF", "Platform to host CTFs.", ["Platform"]),
+    ]
+
+    # ── Tools for building challenges ────────────────────────────────────────
+    create_tools = [
+        ("Belkasoft RAM Capturer", "https://belkasoft.com/ram-capturer", "Volatile memory acquisition (forensics challenges).", ["Forensics"]),
+        ("Dnscat2", "https://github.com/iagox86/dnscat2", "Tunnel communication through DNS.", ["Forensics"]),
+        ("Magnet AXIOM", "https://www.magnetforensics.com/resources/magnet-axiom-2-0-memory-analysis/", "Artifact-centric DFIR tool.", ["Forensics"]),
+        ("Registry Dumper", "http://www.kahusecurity.com/posts/registry_dumper_find_and_dump_hidden_registry_keys.html", "Dump the Windows registry.", ["Forensics"]),
+        ("MSF JS Obfuscator", "https://github.com/rapid7/metasploit-framework/wiki/How-to-obfuscate-JavaScript-in-Metasploit", "Obfuscate JavaScript in Metasploit (web challenges).", ["Web"]),
+    ]
+
+    # ── Writeups & courses ───────────────────────────────────────────────────
+    writeups = [
+        ("CTFtime Writeups", "https://ctftime.org/writeups", "Community writeups for past CTF events.", ["Writeups"]),
+        ("github.com/ctfs", "https://github.com/ctfs", "Large collection of CTF writeups.", ["Writeups"]),
+        ("Courgettes.Club", "https://ctf.courgettes.club/", "CTF writeup finder.", ["Writeups"]),
+        ("Roppers CTF Bootcamp", "https://www.roppers.org/courses/ctf", "Free CTF bootcamp course.", ["Course"]),
+    ]
+
+    # ── Assemble page ────────────────────────────────────────────────────────
+    faqs = [
+        ("What is a flag in a CTF?",
+         "A secret string hidden in a challenge that proves you solved it. Flags usually look like "
+         "<code>CTF{example}</code>, <code>flag{...}</code> or <code>whatdahack{...}</code>."),
+        ("Do I need to be a hacker or programmer to play?",
+         "No. Many challenges are beginner-friendly. Programming and security knowledge help, but you can learn as you go."),
+        ("Are CTFs legal?",
+         "Yes. CTFs are legal competitions built for learning in a safe, controlled environment."),
+        ("Can I play solo or do I need a team?",
+         "Both work. Many CTFs allow solo play, but teaming up helps you solve harder challenges and learn faster."),
+        ("Where do I find writeups?",
+         "Check <a href='https://ctftime.org/writeups' target='_blank' rel='noopener noreferrer'>CTFtime</a> and "
+         "<a href='https://github.com/ctfs' target='_blank' rel='noopener noreferrer'>github.com/ctfs</a> for past-challenge writeups."),
+    ]
+    faq_html = "".join(_faq(q, a) for q, a in faqs)
+
+    return CHEATSHEET_STYLE + SHARED_STYLE + f"""
+<div class="dp-wrap">
+
+  <div class="dp-hero">
+    <span class="dp-hero-icon">🚩</span>
+    <h1>CTF Cheatsheet</h1>
+    <p class="dp-hero-lead">
+      A fast, printable-style checklist for Capture-The-Flag competitions: identify unknown
+      encodings and ciphers at a glance, pick the right RSA attack, and jump straight to the
+      right tool for every challenge category.
+    </p>
+  </div>
+
+  <div class="dp-section dp-anchor" id="identify">
+    <h2 class="dp-section-title"><i class="fas fa-fingerprint"></i> Identify the Encoding / Cipher</h2>
+    <p style="font-size:.85rem;color:var(--dp-muted);margin-bottom:1.4rem;line-height:1.6;">
+      Got a blob of unknown data? Match its shape against the patterns below, then decode it with
+      <a href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener noreferrer">CyberChef</a> or
+      <a href="https://www.dcode.fr/en" target="_blank" rel="noopener noreferrer">dCode</a>.
+    </p>
+    {id_html}
+    {symbol_html}
+    {rsa_html}
+  </div>
+
+  <div class="dp-toc">
+    <a href="#identify">🔎 Identify</a>
+    <a href="#crypto">🔐 Crypto</a>
+    <a href="#pwn">💥 Pwn</a>
+    <a href="#forensics">🔍 Forensics</a>
+    <a href="#stego">🖼️ Stego</a>
+    <a href="#reversing">🔬 Reversing</a>
+    <a href="#web">🌐 Web</a>
+    <a href="#osint">👁️ OSINT</a>
+    <a href="#misc">🎲 Misc</a>
+    <a href="#privesc">🛡️ PrivEsc</a>
+    <a href="#hashes">#️⃣ Hashes</a>
+    <a href="#network">📡 Network</a>
+    <a href="#platforms">🎮 Practice</a>
+    <a href="#labs">🧪 Vuln Apps</a>
+    <a href="#host">🏗️ Host a CTF</a>
+    <a href="#build">🧰 Build</a>
+    <a href="#writeups">📝 Writeups</a>
+    <a href="#faq">❓ FAQ</a>
+  </div>
+
+  <div class="dp-anchor" id="crypto">{_section("fas fa-lock", "Cryptography Tools", "".join(_card(*r) for r in crypto_tools))}</div>
+  <div class="dp-anchor" id="pwn">{_section("fas fa-bomb", "Binary Exploitation (Pwn) Tools", "".join(_card(*r) for r in pwn_tools))}</div>
+  <div class="dp-anchor" id="forensics">{_section("fas fa-search", "Forensics Tools", "".join(_card(*r) for r in forensics_tools))}</div>
+  <div class="dp-anchor" id="stego">{_section("fas fa-image", "Steganography Tools", "".join(_card(*r) for r in stego_tools))}</div>
+  <div class="dp-anchor" id="reversing">{_section("fas fa-microchip", "Reverse Engineering Tools", "".join(_card(*r) for r in reversing_tools))}</div>
+  <div class="dp-anchor" id="web">{_section("fas fa-globe", "Web Tools", "".join(_card(*r) for r in web_tools))}</div>
+  <div class="dp-anchor" id="osint">{_section("fas fa-user-secret", "OSINT Tools", "".join(_card(*r) for r in osint_tools))}</div>
+  <div class="dp-anchor" id="misc">{_section("fas fa-random", "Misc &amp; Esoteric Tools", "".join(_card(*r) for r in misc_tools))}</div>
+  <div class="dp-anchor" id="privesc">{_section("fas fa-user-shield", "Privilege Escalation", "".join(_card(*r) for r in privesc_tools))}</div>
+  <div class="dp-anchor" id="hashes">{_section("fas fa-hashtag", "Hash Cracking", "".join(_card(*r) for r in hash_tools))}</div>
+  <div class="dp-anchor" id="network">{_section("fas fa-network-wired", "Network Utilities", "".join(_card(*r) for r in net_tools))}</div>
+  <div class="dp-anchor" id="platforms">{_section("fas fa-gamepad", "Online Practice Platforms", "".join(_card(*r) for r in platforms))}</div>
+  <div class="dp-anchor" id="labs">{_section("fas fa-flask", "Vulnerable Apps &amp; Labs", "".join(_card(*r) for r in vuln_apps))}</div>
+  <div class="dp-anchor" id="host">{_section("fas fa-server", "Host Your Own CTF", "".join(_card(*r) for r in create_platforms))}</div>
+  <div class="dp-anchor" id="build">{_section("fas fa-tools", "Challenge-Creation Tools", "".join(_card(*r) for r in create_tools))}</div>
+  <div class="dp-anchor" id="writeups">{_section("fas fa-book", "Writeups &amp; Courses", "".join(_card(*r) for r in writeups))}</div>
+
+  <div class="dp-section dp-anchor" id="faq">
+    <h2 class="dp-section-title"><i class="fas fa-question-circle"></i> Frequently Asked Questions</h2>
+    {faq_html}
+  </div>
+
+  <div class="dp-credit">
+    Cheatsheet content adapted from the public
+    <a href="https://neerajlovecyber.com/ctf-cheatsheet" target="_blank" rel="noopener noreferrer">CTF Cheatsheet by neerajlovecyber</a>,
+    curated and re-styled for Whatdahack.
+  </div>
+
+</div>
+"""
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 #  Page registry
 # ─────────────────────────────────────────────────────────────────────────────
 
 PAGES = [
     {"title": "CTF Resources",                "route": "resources",                "content": build_landing()},
+    {"title": "CTF Cheatsheet",               "route": "resources/cheatsheet",     "content": build_cheatsheet()},
     {"title": "Web Security",                 "route": "resources/web",            "content": WEB},
     {"title": "Cryptography",                 "route": "resources/crypto",         "content": CRYPTO},
     {"title": "Reverse Engineering",          "route": "resources/reverse-engineering", "content": REVERSE},
@@ -1316,4 +1941,4 @@ with app.app_context():
             db.session.add(page)
             print(f"  Created : /{data['route']}")
     db.session.commit()
-    print("\nAll done — 11 pages written.")
+    print("\nAll done — 12 pages written.")
